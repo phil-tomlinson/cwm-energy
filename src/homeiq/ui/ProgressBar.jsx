@@ -5,22 +5,22 @@ export default function ProgressBar({ current, total, labels }) {
         {labels.map((label, i) => (
           <div key={i} className="flex flex-col items-center flex-1">
             <div className={`
-              w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
-              ${i < current  ? 'bg-emerald-600 text-white'
-              : i === current ? 'bg-emerald-600 text-white ring-4 ring-emerald-100'
-              : 'bg-gray-200 text-gray-500'}
+              w-8 h-8 flex items-center justify-center text-sm font-bold
+              ${i < current   ? 'bg-emerald-400 text-zinc-950'
+              : i === current  ? 'bg-emerald-400 text-zinc-950 ring-4 ring-emerald-400/20'
+              : 'bg-zinc-700 text-zinc-500'}
             `}>
               {i < current ? '✓' : i + 1}
             </div>
-            <span className={`mt-1 text-xs hidden sm:block ${i === current ? 'text-emerald-700 font-medium' : 'text-gray-400'}`}>
+            <span className={`mt-1 text-xs hidden sm:block ${i === current ? 'text-emerald-400 font-medium' : 'text-zinc-600'}`}>
               {label}
             </span>
           </div>
         ))}
       </div>
-      <div className="relative h-1.5 bg-gray-200 rounded-full mt-1">
+      <div className="relative h-1 bg-zinc-700 mt-1">
         <div
-          className="absolute h-1.5 bg-emerald-500 rounded-full transition-all duration-300"
+          className="absolute h-1 bg-emerald-400 transition-all duration-300"
           style={{ width: `${(current / (total - 1)) * 100}%` }}
         />
       </div>

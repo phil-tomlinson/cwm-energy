@@ -1,19 +1,22 @@
 import { displayArea, displayLength, inputArea, inputLength, areaUnit, lengthUnit } from '../../utils/units'
 
+const inputClass = 'w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder-zinc-600'
+const selectClass = 'w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent'
+
 // A labeled form field with optional help text and "default" badge.
 export default function FormField({ label, hint, defaultNote, children, className = '' }) {
   return (
     <div className={`mb-4 ${className}`}>
       <div className="flex items-baseline justify-between mb-1">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-zinc-300">{label}</label>
         {defaultNote && (
-          <span className="text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+          <span className="text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 font-mono">
             default: {defaultNote}
           </span>
         )}
       </div>
       {children}
-      {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-zinc-500">{hint}</p>}
     </div>
   )
 }
@@ -24,14 +27,33 @@ export function SelectField({ label, hint, defaultNote, value, onChange, options
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+        className={selectClass}
       >
         {options.map(opt => (
-          <option key={opt.value ?? opt} value={opt.value ?? opt}>
+          <option key={opt.value ?? opt} value={opt.value ?? opt} className="bg-zinc-800 text-zinc-100">
             {opt.label ?? opt}
           </option>
         ))}
       </select>
+    </FormField>
+  )
+}
+
+export function NumberField({ label, hint, defaultNote, value, onChange, min, max, step = 1, unit, className = '' }) {
+  return (
+    <FormField label={label} hint={hint} defaultNote={defaultNote} className={className}>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          value={value}
+          onChange={e => onChange(Number(e.target.value))}
+          min={min}
+          max={max}
+          step={step}
+          className={inputClass}
+        />
+        {unit && <span className="text-sm text-zinc-500 whitespace-nowrap font-mono">{unit}</span>}
+      </div>
     </FormField>
   )
 }
@@ -65,24 +87,5 @@ export function LengthField({ label, hint, defaultNote, value, onChange, units =
       min={0} step={step} unit={unit}
       className={className}
     />
-  )
-}
-
-export function NumberField({ label, hint, defaultNote, value, onChange, min, max, step = 1, unit, className = '' }) {
-  return (
-    <FormField label={label} hint={hint} defaultNote={defaultNote} className={className}>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          value={value}
-          onChange={e => onChange(Number(e.target.value))}
-          min={min}
-          max={max}
-          step={step}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-        />
-        {unit && <span className="text-sm text-gray-500 whitespace-nowrap">{unit}</span>}
-      </div>
-    </FormField>
   )
 }
