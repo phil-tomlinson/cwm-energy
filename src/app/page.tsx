@@ -17,11 +17,11 @@ const modules = [
   },
   {
     num: "02",
-    tag: "Coming Soon",
-    title: "Transportation",
-    desc: "Vehicle vs. EV vs. transit. Real carbon and cost numbers for your actual drive.",
-    href: "#",
-    live: false,
+    tag: "Available Now",
+    title: "EV Benefit Calculator",
+    desc: "Ioniq 5 vs Mach-E vs RAV4 vs RAV4 Hybrid — emissions, fuel cost, and maintenance over 10 years using live grid data for your city.",
+    href: "/ev-benefit-calculator",
+    live: true,
   },
   {
     num: "03",

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 const links = [
-  { href: "/calculator", label: "Calculator" },
+  { href: "/calculator", label: "Home" },
+  { href: "/ev-benefit-calculator", label: "EVs" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
