@@ -213,178 +213,198 @@ function MaintTable({ activeVids, allVehicles, annualKm }) {
   )
 }
 
-// ── EPA Search Panel ──────────────────────────────────────────────────────
-function EPASearchPanel({ onAdd, onClose }) {
-  const [years,   setYears]   = useState([])
-  const [makes,   setMakes]   = useState([])
-  const [models,  setModels]  = useState([])
-  const [trims,   setTrims]   = useState([])
-  const [specs,   setSpecs]   = useState(null)
+// ── NRCan vehicle search panel ────────────────────────────────────────────
+function NrcanSearchPanel({ onAdd, onClose }) {
+  const currentYear = new Date().getFullYear()
+  // 2012 is when NRCan BEV data starts; conventional data starts at 2015
+  const yearOptions = Array.from({ length: currentYear - 2011 }, (_, i) => currentYear - i)
 
-  const [year,    setYear]    = useState('')
-  const [make,    setMake]    = useState('')
-  const [model,   setModel]   = useState('')
-  const [trim,    setTrim]    = useState('')
+  const [year,     setYear]     = useState('')
+  const [makes,    setMakes]    = useState([])
+  const [make,     setMake]     = useState('')
+  const [models,   setModels]   = useState([])
+  const [model,    setModel]    = useState('')
+  const [variants, setVariants] = useState([])  // NrcanVehicle[]
+  const [selected, setSelected] = useState(null)
 
   const [batteryKwh, setBatteryKwh] = useState('')
   const [price,      setPrice]      = useState(35000)
   const [loading,    setLoading]    = useState('')
   const [error,      setError]      = useState('')
 
-  // Load years on mount
-  useEffect(() => {
-    setLoading('years')
-    fetch('/api/epa?action=years')
-      .then(r => r.json())
-      .then(data => { setYears(data); setLoading('') })
-      .catch(() => { setError('Could not reach EPA data service.'); setLoading('') })
-  }, [])
-
   async function onYearChange(y) {
-    setYear(y); setMake(''); setModel(''); setTrim(''); setSpecs(null)
-    setMakes([]); setModels([]); setTrims([])
+    setYear(y); setMake(''); setModel(''); setVariants([]); setSelected(null)
+    setMakes([]); setModels([])
     if (!y) return
-    setLoading('makes')
-    const r = await fetch(`/api/epa?action=makes&year=${y}`)
-    setMakes(await r.json()); setLoading('')
+    setLoading('makes'); setError('')
+    try {
+      const r    = await fetch(`/api/nrcan?action=makes&year=${y}`)
+      const data = await r.json()
+      if (data.error) throw new Error(data.error)
+      setMakes(Array.isArray(data) ? data : [])
+    } catch (e) { setError('Could not load makes. Try again.') }
+    setLoading('')
   }
 
   async function onMakeChange(m) {
-    setMake(m); setModel(''); setTrim(''); setSpecs(null)
-    setModels([]); setTrims([])
+    setMake(m); setModel(''); setVariants([]); setSelected(null); setModels([])
     if (!m) return
-    setLoading('models')
-    const r = await fetch(`/api/epa?action=models&year=${year}&make=${encodeURIComponent(m)}`)
-    setModels(await r.json()); setLoading('')
+    setLoading('models'); setError('')
+    try {
+      const r    = await fetch(`/api/nrcan?action=models&year=${year}&make=${encodeURIComponent(m)}`)
+      const data = await r.json()
+      if (data.error) throw new Error(data.error)
+      setModels(Array.isArray(data) ? data : [])
+    } catch (e) { setError('Could not load models. Try again.') }
+    setLoading('')
   }
 
   async function onModelChange(mo) {
-    setModel(mo); setTrim(''); setSpecs(null); setTrims([])
+    setModel(mo); setVariants([]); setSelected(null)
     if (!mo) return
-    setLoading('trims')
-    const r = await fetch(`/api/epa?action=trims&year=${year}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(mo)}`)
-    setTrims(await r.json()); setLoading('')
-  }
-
-  async function onTrimChange(t) {
-    setTrim(t); setSpecs(null)
-    if (!t) return
-    setLoading('specs')
-    const r = await fetch(`/api/epa?action=vehicle&id=${t}`)
-    const s = await r.json()
-    if (s.error) { setError(s.error); setLoading(''); return }
-    setSpecs(s); setLoading('')
+    setLoading('variants'); setError('')
+    try {
+      const r    = await fetch(`/api/nrcan?action=vehicles&year=${year}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(mo)}`)
+      const data = await r.json()
+      if (data.error) throw new Error(data.error)
+      const vs = Array.isArray(data) ? data : []
+      setVariants(vs)
+      if (vs.length === 1) setSelected(vs[0])
+    } catch (e) { setError('Could not load vehicle data. Try again.') }
+    setLoading('')
   }
 
   function handleAdd() {
-    if (!specs) return
-    const mfg = estimateMfgCO2(specs.type, batteryKwh)
+    if (!selected) return
+    const mfg = estimateMfgCO2(selected.type, batteryKwh)
     const v = {
       id:               'custom',
-      name:             `${specs.make} ${specs.model}`,
-      sub:              `${specs.year} · ${specs.drive ?? ''} · EPA data`,
-      type:             specs.type,
+      name:             `${selected.make} ${selected.model}`,
+      sub:              `${selected.year} · ${selected.transmission ?? ''} · NRCan`,
+      type:             selected.type,
       batteryKwh:       parseFloat(batteryKwh) || null,
-      effKwh100km:      specs.effKwh100km,
-      fuelL100km:       specs.fuelL100km,
+      effKwh100km:      selected.effKwh100km,
+      fuelL100km:       selected.fuelL100km,
       co2PerFuelL:      CO2_PER_FUEL_L,
       mfgKgCO2e:        mfg.total,
       batteryMfgKgCO2e: mfg.battery,
       color:            CUSTOM_COLOR,
       colorMuted:       CUSTOM_COLOR_MUTED,
-      evRangeKm:        specs.evRangeKm,
+      evRangeKm:        selected.evRangeKm,
     }
     onAdd(v, price)
   }
 
   const selClass = 'w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors disabled:opacity-40'
-  const typeLabel = { ev: 'Battery Electric (BEV)', phev: 'Plug-in Hybrid (PHEV)', hybrid: 'Hybrid', ice: 'Gasoline' }
+  const typeLabel = { ev: 'Battery Electric (BEV)', phev: 'Plug-in Hybrid (PHEV)', ice: 'Gas / Hybrid' }
 
   return (
     <div className="border border-zinc-700 bg-zinc-900 p-5 mt-4 space-y-4">
       <div className="flex items-center justify-between">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">Custom vehicle — EPA data lookup</p>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">
+          Custom vehicle — NRCan fuel consumption data
+        </p>
         <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200 text-lg leading-none">×</button>
       </div>
       <p className="text-[11px] text-zinc-500 leading-relaxed">
-        Select a vehicle and we'll pull EPA fuel economy data automatically.
-        Fuel economy values are EPA combined cycle — Canadian NRCan values are typically 10–20% higher (less favourable).
+        Select a vehicle and we'll pull official NRCan combined fuel consumption ratings — already in Canadian units
+        (L/100km or kWh/100km), tested on the Canadian 5-cycle test. Covers model years 2012–{currentYear}.
       </p>
 
       {error && <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-3">{error}</p>}
 
-      {/* Cascading selects */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Cascading selects: Year → Make → Model */}
+      <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Year</label>
-          <select value={year} onChange={e => onYearChange(e.target.value)} className={selClass}
-            disabled={years.length === 0}>
-            <option value="">{loading === 'years' ? 'Loading…' : 'Select year'}</option>
-            {years.map(y => <option key={y.value} value={y.value}>{y.text}</option>)}
+          <select value={year} onChange={e => onYearChange(e.target.value)} className={selClass}>
+            <option value="">Select year</option>
+            {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
         <div>
           <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Make</label>
           <select value={make} onChange={e => onMakeChange(e.target.value)} className={selClass}
-            disabled={!year || makes.length === 0}>
+            disabled={!year || (loading === 'makes')}>
             <option value="">{loading === 'makes' ? 'Loading…' : 'Select make'}</option>
-            {makes.map(m => <option key={m.value} value={m.value}>{m.text}</option>)}
+            {makes.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div>
           <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Model</label>
           <select value={model} onChange={e => onModelChange(e.target.value)} className={selClass}
-            disabled={!make || models.length === 0}>
+            disabled={!make || (loading === 'models')}>
             <option value="">{loading === 'models' ? 'Loading…' : 'Select model'}</option>
-            {models.map(m => <option key={m.value} value={m.value}>{m.text}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Trim / variant</label>
-          <select value={trim} onChange={e => onTrimChange(e.target.value)} className={selClass}
-            disabled={!model || trims.length === 0}>
-            <option value="">{loading === 'trims' ? 'Loading…' : 'Select trim'}</option>
-            {trims.map(t => <option key={t.value} value={t.value}>{t.text}</option>)}
+            {models.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
       </div>
 
-      {/* Specs display */}
-      {loading === 'specs' && (
-        <p className="text-xs text-zinc-500 font-mono">Fetching EPA data…</p>
+      {/* Variant picker — shown when model selected and multiple variants exist */}
+      {loading === 'variants' && (
+        <p className="text-xs text-zinc-500 font-mono">Loading NRCan data…</p>
       )}
-      {specs && (
+      {variants.length > 1 && (
+        <div>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+            Variant / transmission
+          </label>
+          <div className="space-y-1.5">
+            {variants.map((v, i) => {
+              const label = [
+                typeLabel[v.type] ?? v.type,
+                v.transmission,
+                v.effKwh100km != null ? `${fmt(v.effKwh100km, 1)} kWh/100km` : null,
+                v.fuelL100km   != null ? `${fmt(v.fuelL100km, 1)} L/100km`   : null,
+                v.evRangeKm    != null ? `${v.evRangeKm} km range`            : null,
+              ].filter(Boolean).join(' · ')
+              return (
+                <label key={i} className={`flex items-start gap-3 border p-3 cursor-pointer transition-colors ${
+                  selected === v ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 hover:border-zinc-500'
+                }`}>
+                  <input type="radio" name="variant" checked={selected === v} onChange={() => setSelected(v)}
+                    className="mt-0.5 accent-emerald-400" />
+                  <span className="text-xs text-zinc-300 leading-relaxed">{label}</span>
+                </label>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Specs summary */}
+      {selected && (
         <div className="border border-emerald-400/30 bg-emerald-400/5 p-4 space-y-3">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">EPA specs found</p>
-          <div className="grid grid-cols-3 gap-3 text-xs">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">NRCan specs</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div>
-              <p className="text-zinc-500 font-mono">Vehicle type</p>
-              <p className="text-zinc-200 font-semibold">{typeLabel[specs.type] ?? specs.type}</p>
+              <p className="text-zinc-500 font-mono">Type</p>
+              <p className="text-zinc-200 font-semibold">{typeLabel[selected.type] ?? selected.type}</p>
             </div>
-            {specs.effKwh100km != null && (
+            {selected.effKwh100km != null && (
               <div>
                 <p className="text-zinc-500 font-mono">Efficiency</p>
-                <p className="text-zinc-200 font-semibold">{fmt(specs.effKwh100km, 1)} kWh/100km</p>
-                <p className="text-zinc-600 text-[10px]">(from {specs.comb08} MPGe EPA combined)</p>
+                <p className="text-zinc-200 font-semibold">{fmt(selected.effKwh100km, 1)} kWh/100km</p>
+                <p className="text-zinc-600 text-[10px]">NRCan combined</p>
               </div>
             )}
-            {specs.fuelL100km != null && (
+            {selected.fuelL100km != null && (
               <div>
-                <p className="text-zinc-500 font-mono">Fuel consumption</p>
-                <p className="text-zinc-200 font-semibold">{fmt(specs.fuelL100km, 1)} L/100km</p>
-                <p className="text-zinc-600 text-[10px]">(from {specs.comb08} MPG EPA combined)</p>
+                <p className="text-zinc-500 font-mono">{selected.type === 'phev' ? 'Gas mode' : 'Fuel'}</p>
+                <p className="text-zinc-200 font-semibold">{fmt(selected.fuelL100km, 1)} L/100km</p>
+                <p className="text-zinc-600 text-[10px]">NRCan combined</p>
               </div>
             )}
-            {specs.evRangeKm && (
+            {selected.evRangeKm != null && (
               <div>
                 <p className="text-zinc-500 font-mono">EV range</p>
-                <p className="text-zinc-200 font-semibold">{specs.evRangeKm} km</p>
+                <p className="text-zinc-200 font-semibold">{selected.evRangeKm} km</p>
               </div>
             )}
           </div>
 
-          {/* Battery size (EVs only — for manufacturing CO₂ estimate) */}
-          {(specs.type === 'ev' || specs.type === 'phev') && (
+          {/* Battery size (EVs/PHEVs — for manufacturing CO₂ estimate) */}
+          {(selected.type === 'ev' || selected.type === 'phev') && (
             <div>
               <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
                 Battery size (kWh) <span className="normal-case opacity-70">— for manufacturing CO₂ estimate</span>
@@ -393,16 +413,18 @@ function EPASearchPanel({ onAdd, onClose }) {
                 onChange={e => setBatteryKwh(e.target.value)}
                 placeholder="e.g. 77.4"
                 className="w-40 bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors" />
-              <p className="text-[11px] text-zinc-600 mt-1">Found in the vehicle spec sheet. Defaults to class average if left blank.</p>
+              <p className="text-[11px] text-zinc-600 mt-1">
+                Check the manufacturer spec sheet. Defaults to a class average if left blank.
+              </p>
             </div>
           )}
 
-          {/* Price */}
+          {/* Purchase price */}
           <div>
             <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
               Purchase price <span className="normal-case opacity-70">($CAD, pre-incentive)</span>
             </label>
-            <input type="number" value={price} step={500} min={5000} max={250000}
+            <input type="number" value={price} step={500} min={5000} max={300000}
               onChange={e => setPrice(parseFloat(e.target.value))}
               className="w-40 bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors" />
           </div>
@@ -510,7 +532,7 @@ export default function EVCalculator() {
   // ── Custom vehicle ───────────────────────────────────────────────────────
   const [customVehicle,  setCustomVehicle]  = useState(null)
   const [customPrice,    setCustomPrice]    = useState(35000)
-  const [showEPAPanel,   setShowEPAPanel]   = useState(false)
+  const [showNrcanPanel, setShowNrcanPanel] = useState(false)
 
   // ── Results ──────────────────────────────────────────────────────────────
   const [status,    setStatus]    = useState('idle')
@@ -1011,7 +1033,7 @@ export default function EVCalculator() {
                   {customVehicle.effKwh100km != null ? `${fmt(customVehicle.effKwh100km, 1)} kWh/100km` : `${fmt(customVehicle.fuelL100km, 1)} L/100km`}
                 </p>
               ) : (
-                <p className="text-[11px] text-zinc-600 mt-0.5">Compare a specific vehicle using EPA fuel economy data</p>
+                <p className="text-[11px] text-zinc-600 mt-0.5">Compare any vehicle using official NRCan fuel consumption ratings</p>
               )}
             </div>
             <div className="flex gap-2">
@@ -1021,21 +1043,21 @@ export default function EVCalculator() {
                   Remove
                 </button>
               )}
-              <button onClick={() => setShowEPAPanel(v => !v)}
+              <button onClick={() => setShowNrcanPanel(v => !v)}
                 className="text-[10px] font-mono uppercase tracking-widest border border-zinc-600 text-zinc-400 hover:border-emerald-400 hover:text-emerald-400 px-3 py-1.5 transition-colors">
-                {showEPAPanel ? 'Close' : customVehicle ? 'Change vehicle' : '+ Add vehicle'}
+                {showNrcanPanel ? 'Close' : customVehicle ? 'Change vehicle' : '+ Add vehicle'}
               </button>
             </div>
           </div>
-          {showEPAPanel && (
-            <EPASearchPanel
+          {showNrcanPanel && (
+            <NrcanSearchPanel
               onAdd={(v, p) => {
                 setCustomVehicle(v)
                 setCustomPrice(p)
                 setFederalRebates(prev => ({ ...prev, custom: v.type === 'ev' ? 5000 : v.type === 'phev' ? 2500 : 0 }))
-                setShowEPAPanel(false)
+                setShowNrcanPanel(false)
               }}
-              onClose={() => setShowEPAPanel(false)}
+              onClose={() => setShowNrcanPanel(false)}
             />
           )}
         </div>
@@ -1259,8 +1281,8 @@ export default function EVCalculator() {
               body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (~28 gCO₂e/kWh hydro grid), an Ioniq 5 emits roughly 5 g CO₂e/km. In Alberta (~385 gCO₂e/kWh), the same car emits around 68 g/km — still below a gas RAV4's ~243 g/km, but the advantage is thinner. This tool fetches live data so you see today's grid mix." },
             { title: "LFP vs NMC — not all batteries are equal",
               body: "The Ioniq 5 uses NMC811 chemistry — energy-dense but cobalt-intensive. GREET 2023 puts NMC811 at ~84 kg CO₂e/kWh. The Mach-E Standard Range uses LFP cells — no cobalt, no nickel. GREET puts LFP at ~52 kg CO₂e/kWh. On a 72 kWh pack that's ~2,750 kg CO₂e less, shortening the emissions breakeven by years on a dirty grid." },
-            { title: "Why EPA numbers differ from NRCan",
-              body: "EPA and NRCan use different test cycles. NRCan-rated fuel consumption is typically 10–20% higher (less favourable) than EPA because Canadian testing better reflects cold weather, highway driving, and real-world conditions. When you add a custom vehicle using EPA data, keep this in mind — actual consumption will likely be higher." },
+            { title: "Why we use NRCan numbers, not EPA",
+              body: "NRCan and EPA use different test cycles. NRCan's 5-cycle Canadian test reflects cold starts, air conditioning, and real highway speeds — so rated L/100km and kWh/100km values are more realistic for Canadian drivers than EPA figures. The Ioniq 5, for example, is rated 21.1 kWh/100km by EPA vs 23.4 kWh/100km by NRCan. Custom vehicles you add pull directly from NRCan's official ratings database, so comparisons stay consistent." },
             { title: "What we're not capturing",
               body: "Manufacturing CO₂ figures are GREET 2023 averages. The real number depends on which factory built the car and what energy mix powered it. We also haven't modelled battery degradation, end-of-life recycling credits, upstream methane from gas extraction, or marginal vs. average grid emissions. For a well-grounded estimate, this tool is the right level of detail." },
             { title: "Spotted something wrong?",
@@ -1289,8 +1311,8 @@ export default function EVCalculator() {
             'Consumer Reports Annual Auto Surveys — EV vs ICE reliability & service costs',
             'GREET 2023 — Argonne National Lab, vehicle lifecycle & battery manufacturing CO₂',
             'GREET 2023 — NMC811: ~84 kg CO₂e/kWh · LFP: ~52 kg CO₂e/kWh',
-            'EPA fueleconomy.gov — fuel economy ratings by year/make/model (custom vehicle lookup)',
-            'Natural Resources Canada — fuel consumption guide & CO₂ factors',
+            'Natural Resources Canada (NRCan) — official fuel consumption ratings database, 2012–present (custom vehicle lookup)',
+            'NRCan 5-cycle test — Canadian combined L/100km and kWh/100km ratings',
             'Electricity Maps — live grid carbon intensity by location',
             'OpenWeatherMap — city location lookup',
             'IPCC AR5 — lifecycle CO₂e emission factor for gasoline (2.31 kg/L)',
