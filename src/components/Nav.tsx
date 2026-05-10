@@ -1,12 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import AuthButton from "@/components/AuthButton";
 
 const links = [
-  { href: "/calculator", label: "Home" },
-  { href: "/ev-benefit-calculator", label: "EVs" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+  { href: "/calculator",           label: "Home" },
+  { href: "/ev-benefit-calculator", label: "EVs"  },
+  { href: "/plan",                  label: "Plan"  },
+  { href: "/about",                 label: "About" },
+  { href: "/contact",               label: "Contact" },
 ];
 
 export default function Nav() {
@@ -25,7 +27,7 @@ export default function Nav() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-8">
+        <nav className="hidden sm:flex items-center gap-6">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -35,12 +37,9 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/calculator"
-            className="text-[11px] uppercase tracking-widest font-bold bg-emerald-400 text-zinc-950 px-4 py-2 hover:bg-emerald-300 transition-colors"
-          >
-            Launch Tool
-          </Link>
+          <div className="border-l border-zinc-800 pl-6">
+            <AuthButton />
+          </div>
         </nav>
 
         {/* Mobile toggle */}
@@ -66,13 +65,9 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/calculator"
-            className="text-xs uppercase tracking-widest font-bold bg-emerald-400 text-zinc-950 px-4 py-2 text-center"
-            onClick={() => setOpen(false)}
-          >
-            Launch Tool
-          </Link>
+          <div className="border-t border-zinc-800 pt-4">
+            <AuthButton mobile />
+          </div>
         </div>
       )}
     </header>

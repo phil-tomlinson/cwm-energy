@@ -508,7 +508,7 @@ export default function EVCalculator() {
       const totalKm10 = annualKm * 10
       const lc = id => annualCosts[id === 'ioniq5' ? 'ioniq' : id === 'macheelfp' ? 'mache' : id] * 10 + maintTotal(id, totalKm10)
 
-      setResults({
+      const resultData = {
         grid, effectiveGrid, effectivePrice,
         cityName: w.name, country: w.sys.country,
         c2km, annualCosts,
@@ -520,8 +520,13 @@ export default function EVCalculator() {
           macheVsRav4h: breakeven('macheelfp', 'rav4h'),
         },
         solarPct,
-      })
+        prices,     // needed by plan page (price premium calculation)
+        annualKm,   // needed by plan page (maintenance savings + CO₂ saved per year)
+      }
+      setResults(resultData)
       setStatus('done')
+      // Persist to localStorage so the Plan page can cross-reference EV data
+      try { localStorage.setItem('cwm_ev', JSON.stringify(resultData)) } catch {}
 
       // Draw charts after state + DOM update
       setTimeout(() => drawCharts(grid, effectiveGrid, annualKm, annualCosts, prices), 50)

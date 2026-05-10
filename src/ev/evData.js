@@ -184,9 +184,9 @@ export const SERVICE_ITEMS = [
   },
 ]
 
-// ── Proxy URLs (Val.town) ────────────────────────────────────────────────
-export const WEATHER_PROXY        = 'https://phillyt--a73fa35227f911f185f142dde27851f2.web.val.run'
-export const CARBON_PROXY         = 'https://phillyt--3b2e313027fc11f18cd442dde27851f2.web.val.run'
+// ── Internal API routes (server-side proxies — no CORS, key stays server-side) ──
+export const WEATHER_PROXY = '/api/weather'
+export const CARBON_PROXY  = '/api/carbon'
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 export function co2PerKm(vehicle, gridGCO2kWh) {

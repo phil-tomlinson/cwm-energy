@@ -6,6 +6,12 @@ import Results from '@/homeiq/results/Results'
 export default function CalculatorPage() {
   const [results, setResults] = useState<any>(null)
 
+  function handleComplete(r: any) {
+    // Persist to localStorage so the Plan page can cross-reference HomeIQ data
+    try { localStorage.setItem('cwm_homeiq', JSON.stringify(r)) } catch {}
+    setResults(r)
+  }
+
   return (
     <div className="bg-zinc-950 min-h-screen">
       {/* Header bar */}
@@ -27,7 +33,7 @@ export default function CalculatorPage() {
           />
         ) : (
           <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8">
-            <Wizard onComplete={setResults} />
+            <Wizard onComplete={handleComplete} />
           </div>
         )}
       </div>
