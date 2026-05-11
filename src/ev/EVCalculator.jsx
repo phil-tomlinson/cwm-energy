@@ -120,7 +120,7 @@ function BreakevenCard({ evV, compV, breakKm, annualKm }) {
       <p className="text-xs font-semibold text-zinc-300 mb-3 leading-snug">vs {compV.name}</p>
       {impossible ? (
         <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-2 leading-relaxed">
-          No breakeven at current grid intensity.
+          No breakeven — grid may be too carbon-intensive for a driving-emissions advantage.
         </p>
       ) : tooLong ? (
         <>
@@ -1244,10 +1244,10 @@ export default function EVCalculator() {
               <BreakevenCard evV={allVeh.ioniq5}    compV={allVeh.rav4h} breakKm={r.breakeven.ioniqVsRav4h} annualKm={annualKm} />
               <BreakevenCard evV={allVeh.macheelfp} compV={allVeh.rav4}  breakKm={r.breakeven.macheVsRav4}  annualKm={annualKm} />
               <BreakevenCard evV={allVeh.macheelfp} compV={allVeh.rav4h} breakKm={r.breakeven.macheVsRav4h} annualKm={annualKm} />
-              {vids.includes('custom') && r.breakeven.customVsRav4 != null && (
+              {vids.includes('custom') && (customVehicle?.type === 'ev' || customVehicle?.type === 'phev') && r.breakeven.customVsRav4 != null && (
                 <BreakevenCard evV={allVeh.custom} compV={allVeh.rav4}  breakKm={r.breakeven.customVsRav4}  annualKm={annualKm} />
               )}
-              {vids.includes('custom') && r.breakeven.customVsRav4h != null && (
+              {vids.includes('custom') && (customVehicle?.type === 'ev' || customVehicle?.type === 'phev') && r.breakeven.customVsRav4h != null && (
                 <BreakevenCard evV={allVeh.custom} compV={allVeh.rav4h} breakKm={r.breakeven.customVsRav4h} annualKm={annualKm} />
               )}
             </div>
