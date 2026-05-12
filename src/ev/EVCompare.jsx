@@ -77,6 +77,13 @@ function defaultFed(type) {
   return type === 'ev' ? 5000 : type === 'phev' ? 2500 : 0
 }
 
+// How many full-vehicle replacements have occurred by `kmDriven`?
+// The first car starts with `remKm` km of life left; each replacement buys `lifespan` more km.
+function numRepsAtKm(kmDriven, remKm, lifespan) {
+  if (kmDriven < remKm || lifespan <= 0) return 0
+  return Math.floor((kmDriven - remKm) / lifespan) + 1
+}
+
 // ── Section header ─────────────────────────────────────────────────────────────
 function SectionHeader({ num, title }) {
   return (
@@ -406,6 +413,7 @@ export default function EVCompare() {
       mfgA, mfgB,
       annKm,
       remKmA, remKmB,
+      lifespanA, lifespanB,
     } = data
 
     const TICK = '#71717a', GRID = '#27272a', FONT = 'ui-monospace, monospace'
@@ -424,15 +432,29 @@ export default function EVCompare() {
     const nameA = `${vehicleA.make} ${vehicleA.model}`
     const nameB = `${vehicleB.make} ${vehicleB.model}`
 
-    // null = vehicle reached end of life; line stops
-    const cumCostA = years.map((_, i) =>
-      i * annKm > remKmA ? null : effPA + i * (costA + annMaintA))
-    const cumCostB = years.map((_, i) =>
-      i * annKm > remKmB ? null : effPB + i * (costB + annMaintB))
-    const cumCO2A  = years.map((_, i) =>
-      i * annKm > remKmA ? null : (mfgA.total + co2kmA * i * annKm) / 1000)
-    const cumCO2B  = years.map((_, i) =>
-      i * annKm > remKmB ? null : (mfgB.total + co2kmB * i * annKm) / 1000)
+    // Continuous lines — purchase price re-added each time a vehicle reaches end of life.
+    // numRepsAtKm() returns how many full replacements have occurred at a given km milestone.
+    const cumCostA = years.map((_, i) => {
+      const km   = i * annKm
+      const reps = numRepsAtKm(km, remKmA, lifespanA)
+      return effPA * (1 + reps) + i * (costA + annMaintA)
+    })
+    const cumCostB = years.map((_, i) => {
+      const km   = i * annKm
+      const reps = numRepsAtKm(km, remKmB, lifespanB)
+      return effPB * (1 + reps) + i * (costB + annMaintB)
+    })
+    // Manufacturing CO₂ also resets on replacement — buying a new vehicle = new production cycle.
+    const cumCO2A  = years.map((_, i) => {
+      const km   = i * annKm
+      const reps = numRepsAtKm(km, remKmA, lifespanA)
+      return (mfgA.total * (1 + reps) + co2kmA * km) / 1000
+    })
+    const cumCO2B  = years.map((_, i) => {
+      const km   = i * annKm
+      const reps = numRepsAtKm(km, remKmB, lifespanB)
+      return (mfgB.total * (1 + reps) + co2kmB * km) / 1000
+    })
 
     const baseX = { grid: { color: GRID }, ticks: { color: TICK, font: { family: FONT, size: 11 } } }
     const baseY = { grid: { color: GRID }, ticks: { color: TICK, font: { family: FONT, size: 11 } } }
@@ -462,9 +484,14 @@ export default function EVCompare() {
               ...tip,
               callbacks: {
                 title: titleCb,
-                label: ctx => ctx.parsed.y == null
-                  ? ` ${ctx.dataset.label}: reached end of life`
-                  : ` ${ctx.dataset.label}: $${fmt(ctx.parsed.y, 0)}`,
+                label: ctx => {
+                  const i    = ctx.dataIndex
+                  const km   = i * annKm
+                  const isA  = ctx.datasetIndex === 0
+                  const reps = numRepsAtKm(km, isA ? remKmA : remKmB, isA ? lifespanA : lifespanB)
+                  const repNote = reps > 0 ? ` · ${reps} replacement${reps > 1 ? 's' : ''} purchased` : ''
+                  return ` ${ctx.dataset.label}: $${fmt(ctx.parsed.y, 0)}${repNote}`
+                },
               },
             },
           },
@@ -567,6 +594,7 @@ export default function EVCompare() {
         vehicleA: vA, vehicleB: vB,
         effPA, effPB, costA, costB, co2kmA, co2kmB, mfgA, mfgB,
         annKm: annualKm, remKmA, remKmB,
+        lifespanA, lifespanB,
       }), 50)
 
     } catch (err) {
@@ -728,8 +756,8 @@ export default function EVCompare() {
         const run10B    = costB * 10 + maintTotal(maintVid(vehicleB.type), annKm * 10)
 
         const pairs = [
-          { v: vehicleA, color: COLOR_A, label: 'Vehicle A', cost: costA, maint: annMaintA, run10: run10A, co2km: co2kmA, mfg: mfgA, remKm: remKmA, effP: effPA },
-          { v: vehicleB, color: COLOR_B, label: 'Vehicle B', cost: costB, maint: annMaintB, run10: run10B, co2km: co2kmB, mfg: mfgB, remKm: remKmB, effP: effPB },
+          { v: vehicleA, color: COLOR_A, label: 'Vehicle A', cost: costA, maint: annMaintA, run10: run10A, co2km: co2kmA, mfg: mfgA, remKm: remKmA, lifespan: lifespanA, effP: effPA },
+          { v: vehicleB, color: COLOR_B, label: 'Vehicle B', cost: costB, maint: annMaintB, run10: run10B, co2km: co2kmB, mfg: mfgB, remKm: remKmB, lifespan: lifespanB, effP: effPB },
         ]
         const minCost = Math.min(costA, costB)
         const minCO2  = Math.min(co2kmA, co2kmB)
@@ -763,8 +791,10 @@ export default function EVCompare() {
               Annual fuel &amp; energy costs
             </p>
             <div className="grid grid-cols-2 gap-4">
-              {pairs.map(({ v, color, label, cost, maint, run10, remKm, effP }) => {
-                const isLowest = cost === minCost
+              {pairs.map(({ v, color, label, cost, maint, run10, remKm, lifespan, effP }) => {
+                const isLowest  = cost === minCost
+                const rep10     = numRepsAtKm(10 * annKm, remKm, lifespan)
+                const totalCost10 = effP * (1 + rep10) + run10
                 return (
                   <div key={label} className={`relative border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
                     {isLowest && (
@@ -781,6 +811,8 @@ export default function EVCompare() {
                         { k: 'Annual maintenance',    val: `$${fmt(maint, 0)}/yr`, hi: false },
                         { k: '10-yr fuel + maint.',   val: `$${fmt(run10, 0)}`,    hi: false, sep: true },
                         { k: `Purchase price${applyRebates ? ' (after rebates)' : ''}`, val: `$${fmt(effP, 0)}`, hi: false },
+                        { k: 'Replacements in 10 yrs', val: rep10 === 0 ? 'None' : `${rep10}×  (+$${fmt(effP * rep10, 0)})`, hi: false },
+                        { k: 'Total 10-yr cost',      val: `$${fmt(totalCost10, 0)}`, hi: false },
                         { k: 'Remaining life',        val: `${fmt(remKm, 0)} km`,  hi: false, sep: true },
                         { k: '≈ years remaining',     val: `${fmt(remKm / annKm, 1)} yrs`, hi: false },
                       ].map(({ k, val, hi, sep }) => (
@@ -816,8 +848,9 @@ export default function EVCompare() {
             </p>
             <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative cost over 10 years</h3>
             <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
-              Purchase price + annual fuel + annual maintenance compound over time. Lines end when a vehicle reaches its
-              estimated end-of-life.{applyRebates && ' Rebates applied to purchase price.'}
+              Purchase price + annual fuel + annual maintenance compound over time.
+              When a vehicle reaches end of life, a replacement purchase is added — causing a visible step up in cost.
+              {applyRebates && ' Rebates applied to each purchase.'}
             </p>
             <div className="bg-zinc-900 border border-zinc-700 p-4 mb-8" style={{ height: 340 }}>
               <canvas ref={tcoRef} />
