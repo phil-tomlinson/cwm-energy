@@ -20,9 +20,10 @@ export default function Nav() {
 
         {/* Wordmark */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-6 h-6 bg-emerald-400 flex items-center justify-center shrink-0">
-            <span className="text-zinc-950 text-[9px] font-black tracking-tighter leading-none">CWM</span>
-          </div>
+          <svg width="24" height="24" viewBox="0 0 32 32" className="shrink-0">
+            <rect width="32" height="32" fill="#34d399" />
+            <path d="M1 29 L10 7 L16.5 18 L23 7 L31 29 Z" fill="#09090b" />
+          </svg>
           <span className="text-sm font-semibold text-zinc-100 tracking-tight">CWM Energy</span>
         </Link>
 

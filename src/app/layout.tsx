@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   description:
     "Free tools to help Canadians understand their home energy use, reduce their carbon footprint, and find the most cost-effective upgrades.",
   icons: {
-    icon: "/favicon.svg",
+    icon:     [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/favicon.svg",
+    apple:    "/favicon.svg",
   },
   openGraph: {
     title: "CWM Energy — Understand Your Energy",
