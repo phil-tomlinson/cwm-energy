@@ -231,6 +231,8 @@ function VehicleInputPanel({
   label, accentColor,
   vehicle, onSel,
   price, setPrice,
+  replPrice, setReplPrice,
+  sunk, setSunk,
   startKm, setStartKm,
   lifespan, setLifespan,
   batt, setBatt,
@@ -272,6 +274,44 @@ function VehicleInputPanel({
                 className={ic} />
             </div>
           </div>
+
+          {/* Used vehicle extras — shown only when starting mileage > 0 */}
+          {startKm > 0 && (
+            <div className="bg-zinc-950 border border-zinc-800 p-3 space-y-3">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+                Used vehicle options
+              </p>
+
+              {/* Sunk cost toggle */}
+              <label className="flex items-start gap-3 cursor-pointer" onClick={() => setSunk(v => !v)}>
+                <div className={`relative w-8 h-4 rounded-full transition-colors flex-shrink-0 mt-0.5 ${sunk ? 'bg-emerald-400' : 'bg-zinc-600'}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${sunk ? 'translate-x-4' : 'translate-x-0'}`} />
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 select-none">
+                    Already own this vehicle
+                  </p>
+                  <p className="text-[11px] text-zinc-600 mt-0.5">
+                    Excludes purchase price — compares running costs from today only
+                  </p>
+                </div>
+              </label>
+
+              {/* Replacement cost */}
+              <div>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+                  Replacement vehicle cost ($CAD)
+                  <span className="normal-case opacity-60 ml-1">— when this one reaches end of life</span>
+                </label>
+                <input type="number" value={replPrice} step={500} min={5000} max={300000}
+                  onChange={e => setReplPrice(parseFloat(e.target.value) || 0)}
+                  className={ic} />
+                <p className="text-[10px] text-zinc-600 mt-1 font-mono">
+                  Used vehicles reach end of life sooner — set what you'd spend on the next one.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Lifespan */}
           <div>
@@ -357,22 +397,26 @@ export default function EVCompare() {
   const [applyRebates, setApplyRebates] = useState(false)
 
   // ── Vehicle A ────────────────────────────────────────────────────────────
-  const [vA,        setVA]        = useState(null)
-  const [priceA,    setPriceA]    = useState(35000)
-  const [startKmA,  setStartKmA]  = useState(0)
-  const [lifespanA, setLifespanA] = useState(300000)
-  const [battA,     setBattA]     = useState('')
-  const [fedA,      setFedA]      = useState(0)
-  const [provA,     setProvA]     = useState(0)
+  const [vA,         setVA]         = useState(null)
+  const [priceA,     setPriceA]     = useState(35000)
+  const [replPriceA, setReplPriceA] = useState(35000)
+  const [sunkA,      setSunkA]      = useState(false)
+  const [startKmA,   setStartKmA]   = useState(0)
+  const [lifespanA,  setLifespanA]  = useState(300000)
+  const [battA,      setBattA]      = useState('')
+  const [fedA,       setFedA]       = useState(0)
+  const [provA,      setProvA]      = useState(0)
 
   // ── Vehicle B ────────────────────────────────────────────────────────────
-  const [vB,        setVB]        = useState(null)
-  const [priceB,    setPriceB]    = useState(35000)
-  const [startKmB,  setStartKmB]  = useState(0)
-  const [lifespanB, setLifespanB] = useState(300000)
-  const [battB,     setBattB]     = useState('')
-  const [fedB,      setFedB]      = useState(0)
-  const [provB,     setProvB]     = useState(0)
+  const [vB,         setVB]         = useState(null)
+  const [priceB,     setPriceB]     = useState(35000)
+  const [replPriceB, setReplPriceB] = useState(35000)
+  const [sunkB,      setSunkB]      = useState(false)
+  const [startKmB,   setStartKmB]   = useState(0)
+  const [lifespanB,  setLifespanB]  = useState(300000)
+  const [battB,      setBattB]      = useState('')
+  const [fedB,       setFedB]       = useState(0)
+  const [provB,      setProvB]      = useState(0)
 
   // ── Results ──────────────────────────────────────────────────────────────
   const [status,   setStatus]   = useState('idle')
@@ -392,11 +436,15 @@ export default function EVCompare() {
     setVA(v)
     setLifespanA(LIFESPAN_KM[v.type] ?? 300000)
     setFedA(defaultFed(v.type))
+    setReplPriceA(priceA)
+    setSunkA(false)
   }
   function handleSelectB(v) {
     setVB(v)
     setLifespanB(LIFESPAN_KM[v.type] ?? 300000)
     setFedB(defaultFed(v.type))
+    setReplPriceB(priceB)
+    setSunkB(false)
   }
 
   // ── Draw charts ───────────────────────────────────────────────────────────
@@ -408,6 +456,7 @@ export default function EVCompare() {
     const {
       vehicleA, vehicleB,
       effPA, effPB,
+      effInitA, effInitB, effReplA, effReplB,
       costA, costB,
       co2kmA, co2kmB,
       mfgA, mfgB,
@@ -432,17 +481,17 @@ export default function EVCompare() {
     const nameA = `${vehicleA.make} ${vehicleA.model}`
     const nameB = `${vehicleB.make} ${vehicleB.model}`
 
-    // Continuous lines — purchase price re-added each time a vehicle reaches end of life.
+    // Continuous lines — initial purchase (effInit, 0 if sunk) + replacements at effRepl each.
     // numRepsAtKm() returns how many full replacements have occurred at a given km milestone.
     const cumCostA = years.map((_, i) => {
       const km   = i * annKm
       const reps = numRepsAtKm(km, remKmA, lifespanA)
-      return effPA * (1 + reps) + i * (costA + annMaintA)
+      return effInitA + reps * effReplA + i * (costA + annMaintA)
     })
     const cumCostB = years.map((_, i) => {
       const km   = i * annKm
       const reps = numRepsAtKm(km, remKmB, lifespanB)
-      return effPB * (1 + reps) + i * (costB + annMaintB)
+      return effInitB + reps * effReplB + i * (costB + annMaintB)
     })
     // Manufacturing CO₂ also resets on replacement — buying a new vehicle = new production cycle.
     const cumCO2A  = years.map((_, i) => {
@@ -561,10 +610,16 @@ export default function EVCompare() {
       const mfgA   = estimateMfg(vA.type, battA)
       const mfgB   = estimateMfg(vB.type, battB)
 
-      const remKmA = Math.max(0, lifespanA - startKmA)
-      const remKmB = Math.max(0, lifespanB - startKmB)
-      const effPA  = applyRebates ? Math.max(0, priceA - fedA - provA) : priceA
-      const effPB  = applyRebates ? Math.max(0, priceB - fedB - provB) : priceB
+      const remKmA   = Math.max(0, lifespanA - startKmA)
+      const remKmB   = Math.max(0, lifespanB - startKmB)
+      const effPA    = applyRebates ? Math.max(0, priceA - fedA - provA) : priceA
+      const effPB    = applyRebates ? Math.max(0, priceB - fedB - provB) : priceB
+      // Sunk cost: if user already owns the vehicle, exclude purchase price from cumulative cost
+      const effInitA = sunkA ? 0 : effPA
+      const effInitB = sunkB ? 0 : effPB
+      // Replacement cost: separate from purchase price (used cars are replaced at market value)
+      const effReplA = applyRebates ? Math.max(0, replPriceA - fedA - provA) : replPriceA
+      const effReplB = applyRebates ? Math.max(0, replPriceB - fedB - provB) : replPriceB
 
       // Carbon breakeven — only meaningful when vehicle types differ in kind
       const isElecA = vA.type === 'ev' || vA.type === 'phev'
@@ -584,6 +639,7 @@ export default function EVCompare() {
         vehicleA: vA, vehicleB: vB,
         costA, costB, co2kmA, co2kmB, mfgA, mfgB,
         remKmA, remKmB, effPA, effPB,
+        effInitA, effInitB, effReplA, effReplB, sunkA, sunkB,
         breakevenKm, annualKm, solarPct,
       }
       setResults(r)
@@ -592,7 +648,8 @@ export default function EVCompare() {
 
       setTimeout(() => drawCharts({
         vehicleA: vA, vehicleB: vB,
-        effPA, effPB, costA, costB, co2kmA, co2kmB, mfgA, mfgB,
+        effPA, effPB, effInitA, effInitB, effReplA, effReplB,
+        costA, costB, co2kmA, co2kmB, mfgA, mfgB,
         annKm: annualKm, remKmA, remKmB,
         lifespanA, lifespanB,
       }), 50)
@@ -603,7 +660,8 @@ export default function EVCompare() {
     }
   }, [vA, vB, city, annualKm, elecPrice, gasPrice, solarPct,
       startKmA, startKmB, lifespanA, lifespanB, battA, battB,
-      priceA, priceB, fedA, fedB, provA, provB, applyRebates])
+      priceA, priceB, replPriceA, replPriceB, sunkA, sunkB,
+      fedA, fedB, provA, provB, applyRebates])
 
   // ── Render ─────────────────────────────────────────────────────────────────
   const r = results
@@ -712,6 +770,8 @@ export default function EVCompare() {
               label="Vehicle A"  accentColor={COLOR_A}
               vehicle={vA}       onSel={handleSelectA}
               price={priceA}     setPrice={setPriceA}
+              replPrice={replPriceA} setReplPrice={setReplPriceA}
+              sunk={sunkA}       setSunk={setSunkA}
               startKm={startKmA} setStartKm={setStartKmA}
               lifespan={lifespanA} setLifespan={setLifespanA}
               batt={battA}       setBatt={setBattA}
@@ -723,6 +783,8 @@ export default function EVCompare() {
               label="Vehicle B"  accentColor={COLOR_B}
               vehicle={vB}       onSel={handleSelectB}
               price={priceB}     setPrice={setPriceB}
+              replPrice={replPriceB} setReplPrice={setReplPriceB}
+              sunk={sunkB}       setSunk={setSunkB}
               startKm={startKmB} setStartKm={setStartKmB}
               lifespan={lifespanB} setLifespan={setLifespanB}
               batt={battB}       setBatt={setBattB}
@@ -749,15 +811,15 @@ export default function EVCompare() {
 
       {/* Results */}
       {status === 'done' && r && (() => {
-        const { vehicleA, vehicleB, costA, costB, co2kmA, co2kmB, mfgA, mfgB, remKmA, remKmB, effPA, effPB, breakevenKm, annualKm: annKm } = r
+        const { vehicleA, vehicleB, costA, costB, co2kmA, co2kmB, mfgA, mfgB, remKmA, remKmB, effPA, effPB, effInitA, effInitB, effReplA, effReplB, sunkA, sunkB, breakevenKm, annualKm: annKm } = r
         const annMaintA = maintTotal(maintVid(vehicleA.type), annKm)
         const annMaintB = maintTotal(maintVid(vehicleB.type), annKm)
         const run10A    = costA * 10 + maintTotal(maintVid(vehicleA.type), annKm * 10)
         const run10B    = costB * 10 + maintTotal(maintVid(vehicleB.type), annKm * 10)
 
         const pairs = [
-          { v: vehicleA, color: COLOR_A, label: 'Vehicle A', cost: costA, maint: annMaintA, run10: run10A, co2km: co2kmA, mfg: mfgA, remKm: remKmA, lifespan: lifespanA, effP: effPA },
-          { v: vehicleB, color: COLOR_B, label: 'Vehicle B', cost: costB, maint: annMaintB, run10: run10B, co2km: co2kmB, mfg: mfgB, remKm: remKmB, lifespan: lifespanB, effP: effPB },
+          { v: vehicleA, color: COLOR_A, label: 'Vehicle A', cost: costA, maint: annMaintA, run10: run10A, co2km: co2kmA, mfg: mfgA, remKm: remKmA, lifespan: lifespanA, effP: effPA, effInit: effInitA, effRepl: effReplA, sunk: sunkA },
+          { v: vehicleB, color: COLOR_B, label: 'Vehicle B', cost: costB, maint: annMaintB, run10: run10B, co2km: co2kmB, mfg: mfgB, remKm: remKmB, lifespan: lifespanB, effP: effPB, effInit: effInitB, effRepl: effReplB, sunk: sunkB },
         ]
         const minCost = Math.min(costA, costB)
         const minCO2  = Math.min(co2kmA, co2kmB)
@@ -791,10 +853,10 @@ export default function EVCompare() {
               Annual fuel &amp; energy costs
             </p>
             <div className="grid grid-cols-2 gap-4">
-              {pairs.map(({ v, color, label, cost, maint, run10, remKm, lifespan, effP }) => {
-                const isLowest  = cost === minCost
-                const rep10     = numRepsAtKm(10 * annKm, remKm, lifespan)
-                const totalCost10 = effP * (1 + rep10) + run10
+              {pairs.map(({ v, color, label, cost, maint, run10, remKm, lifespan, effP, effInit, effRepl, sunk }) => {
+                const isLowest    = cost === minCost
+                const rep10       = numRepsAtKm(10 * annKm, remKm, lifespan)
+                const totalCost10 = effInit + rep10 * effRepl + run10
                 return (
                   <div key={label} className={`relative border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
                     {isLowest && (
@@ -810,15 +872,18 @@ export default function EVCompare() {
                         { k: 'Annual fuel / energy',  val: `$${fmt(cost, 0)}/yr`,  hi: isLowest },
                         { k: 'Annual maintenance',    val: `$${fmt(maint, 0)}/yr`, hi: false },
                         { k: '10-yr fuel + maint.',   val: `$${fmt(run10, 0)}`,    hi: false, sep: true },
-                        { k: `Purchase price${applyRebates ? ' (after rebates)' : ''}`, val: `$${fmt(effP, 0)}`, hi: false },
-                        { k: 'Replacements in 10 yrs', val: rep10 === 0 ? 'None' : `${rep10}×  (+$${fmt(effP * rep10, 0)})`, hi: false },
+                        sunk
+                          ? { k: 'Purchase price (sunk — excluded)', val: `$${fmt(effP, 0)}`, hi: false, dim: true }
+                          : { k: `Purchase price${applyRebates ? ' (after rebates)' : ''}`, val: `$${fmt(effP, 0)}`, hi: false },
+                        { k: 'Replacement cost', val: `$${fmt(effRepl, 0)}`, hi: false },
+                        { k: 'Replacements in 10 yrs', val: rep10 === 0 ? 'None' : `${rep10}×  (+$${fmt(effRepl * rep10, 0)})`, hi: false },
                         { k: 'Total 10-yr cost',      val: `$${fmt(totalCost10, 0)}`, hi: false },
                         { k: 'Remaining life',        val: `${fmt(remKm, 0)} km`,  hi: false, sep: true },
                         { k: '≈ years remaining',     val: `${fmt(remKm / annKm, 1)} yrs`, hi: false },
-                      ].map(({ k, val, hi, sep }) => (
+                      ].map(({ k, val, hi, sep, dim }) => (
                         <div key={k} className={`flex justify-between items-baseline ${sep ? 'border-t border-zinc-800 pt-2 mt-2' : ''}`}>
-                          <span className="text-zinc-500">{k}</span>
-                          <span className={`font-mono font-semibold ${hi ? 'text-emerald-400' : 'text-zinc-200'}`}>{val}</span>
+                          <span className={dim ? 'text-zinc-600 line-through' : 'text-zinc-500'}>{k}</span>
+                          <span className={`font-mono font-semibold ${hi ? 'text-emerald-400' : dim ? 'text-zinc-600' : 'text-zinc-200'}`}>{val}</span>
                         </div>
                       ))}
                     </div>
