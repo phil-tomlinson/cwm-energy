@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import HeatLossChart from './HeatLossChart'
@@ -25,7 +26,24 @@ export default function Results({ results, onReset }) {
   const totalAnnualCost = heatLoss.annualCost + waterHeater.annualCost
   const totalEnergyGJ   = heatLoss.annualFuelGJ + waterHeater.inputEnergyGJ
 
-  const topRec = recommendations[0]
+  // ── "Mark as done" state ─────────────────────────────────────────────────
+  const [doneIds, setDoneIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('homeiq-completed') ?? '[]') }
+    catch { return [] }
+  })
+
+  function toggleDone(id) {
+    setDoneIds(prev => {
+      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      try { localStorage.setItem('homeiq-completed', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  const activeRecs = recommendations.filter(r => !doneIds.includes(r.id))
+  const doneRecs   = recommendations.filter(r =>  doneIds.includes(r.id))
+
+  const topRec = activeRecs[0]
   const paybackText = topRec?.paybackYears < 1
     ? 'less than a year'
     : `about ${Math.round(topRec?.paybackYears)} year${Math.round(topRec?.paybackYears) === 1 ? '' : 's'}`
@@ -159,7 +177,11 @@ export default function Results({ results, onReset }) {
         <p className="text-sm text-zinc-500 mb-4">
           Ranked by payback period — most cost-effective first. Mid-range Canadian cost estimates.
         </p>
-        <RecommendationsList recommendations={recommendations} />
+        <RecommendationsList
+          recommendations={activeRecs}
+          doneRecs={doneRecs}
+          onToggleDone={toggleDone}
+        />
       </div>
 
       {/* Methodology */}

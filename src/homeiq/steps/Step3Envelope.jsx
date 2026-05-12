@@ -271,7 +271,7 @@ export default function Step3Envelope({ data, updateData }) {
       )}
 
       {/* ── Air leakage ── */}
-      <Card>
+      <Card className="mb-4">
         <CardSection
           title="Air leakage"
           hint="How many times per hour indoor air is replaced by outdoor air through gaps and cracks."
@@ -284,6 +284,75 @@ export default function Step3Envelope({ data, updateData }) {
             defaultNote={`${era.ach} ACH`}
           />
           <p className="text-xs text-emerald-400 mt-1">{achDescription(env.ach)}</p>
+        </CardSection>
+      </Card>
+
+      {/* ── Air leakage factors ── */}
+      <Card>
+        <CardSection
+          title="Air leakage factors"
+          hint="These details unlock more specific recommendations for your home."
+        >
+          {/* Chimney / fireplace */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-zinc-300 mb-1">Chimney / fireplace type</label>
+            <select
+              value={data.airLeakageFactors?.chimney ?? 'none'}
+              onChange={e => updateData({ airLeakageFactors: { ...data.airLeakageFactors, chimney: e.target.value } })}
+              className="w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              <option value="none">None</option>
+              <option value="masonry">Masonry fireplace — leaky or rarely used</option>
+              <option value="wood_insert">Wood stove / sealed insert (minimal leakage)</option>
+              <option value="gas_vented">Gas fireplace — vented (pilot light or non-sealed)</option>
+              <option value="gas_sealed">Gas fireplace — sealed combustion</option>
+            </select>
+            <p className="mt-1 text-xs text-zinc-500">Open or vented chimneys are a significant and often overlooked heat loss source.</p>
+          </div>
+
+          {/* Exposed rim joists */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">Exposed rim joists in basement?</label>
+            <div className="flex gap-2">
+              {[{ label: 'Yes — visible and uninsulated', value: true }, { label: 'No / already insulated', value: false }].map(opt => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, exposedRimJoists: opt.value } })}
+                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                    (data.airLeakageFactors?.exposedRimJoists ?? false) === opt.value
+                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">The band of framing between your foundation wall and first floor — spray foam here has excellent payback.</p>
+          </div>
+
+          {/* Recessed pot lights */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">Recessed pot lights in ceiling below attic?</label>
+            <div className="flex gap-2">
+              {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, recessedLights: opt.value } })}
+                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                    (data.airLeakageFactors?.recessedLights ?? false) === opt.value
+                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">Each uninsulated pot light is effectively a hole in your ceiling — they're sealed during attic insulation work.</p>
+          </div>
         </CardSection>
       </Card>
     </div>

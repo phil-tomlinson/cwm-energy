@@ -134,6 +134,72 @@ export default function TechnicalMode({ data, updateData }) {
           hint="Blower door @ natural pressure. Tight = 0.1 · Leaky = 1.0+" />
       </div>
 
+      {/* ── Envelope — Air Leakage Factors ───────────────────── */}
+      <SectionHeader label="Envelope — Air Leakage Factors" />
+      <p className="text-xs text-zinc-600 font-mono">Unlocks targeted recommendations for chimney and rim joist losses.</p>
+
+      <div className="grid grid-cols-1 gap-4">
+        {/* Chimney */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">Chimney / fireplace type</label>
+          <select
+            value={data.airLeakageFactors?.chimney ?? 'none'}
+            onChange={e => updateData({ airLeakageFactors: { ...data.airLeakageFactors, chimney: e.target.value } })}
+            className="w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          >
+            <option value="none">None</option>
+            <option value="masonry">Masonry fireplace — leaky or rarely used</option>
+            <option value="wood_insert">Wood stove / sealed insert (minimal leakage)</option>
+            <option value="gas_vented">Gas fireplace — vented (pilot light or non-sealed)</option>
+            <option value="gas_sealed">Gas fireplace — sealed combustion</option>
+          </select>
+        </div>
+
+        {/* Rim joists + pot lights */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm font-medium text-zinc-300 mb-2">Exposed rim joists?</p>
+            <div className="flex gap-2">
+              {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, exposedRimJoists: opt.value } })}
+                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                    (data.airLeakageFactors?.exposedRimJoists ?? false) === opt.value
+                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[10px] text-zinc-600 font-mono">Uninsulated rim joists in basement</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-zinc-300 mb-2">Recessed pot lights?</p>
+            <div className="flex gap-2">
+              {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, recessedLights: opt.value } })}
+                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                    (data.airLeakageFactors?.recessedLights ?? false) === opt.value
+                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[10px] text-zinc-600 font-mono">In ceiling below unconditioned attic</p>
+          </div>
+        </div>
+      </div>
+
       {/* ── Envelope — Areas ─────────────────────────────────── */}
       <SectionHeader label="Envelope — Areas" />
       <p className="text-xs text-zinc-600 font-mono">Pre-filled from floor area geometry. Override with measured values if available.</p>

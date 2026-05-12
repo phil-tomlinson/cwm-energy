@@ -31,6 +31,11 @@ const DEFAULT_STATE = {
   era:          '1980_1999',
   basementType: 'full_heated',
   envelope:     null,
+  airLeakageFactors: {
+    chimney:          'none',   // 'none' | 'masonry' | 'wood_insert' | 'gas_vented' | 'gas_sealed'
+    exposedRimJoists: false,
+    recessedLights:   false,
+  },
   heating: {
     fuelType:     'naturalGas',
     systemType:   'furnace_80',
@@ -107,9 +112,12 @@ export default function Wizard({ onComplete }) {
       {
         envelope,
         heating: { fuelType: data.heating.fuelType, efficiency: data.heating.efficiency, fuelCostPerGJ },
-        waterHeater: data.waterHeater,
-        climate: data.climate,
+        waterHeater:        data.waterHeater,
+        climate:            data.climate,
         electricityCostPerGJ,
+        airLeakageFactors:  data.airLeakageFactors,
+        floorArea:          data.floorArea,
+        storeys:            data.storeys,
       }
     )
 

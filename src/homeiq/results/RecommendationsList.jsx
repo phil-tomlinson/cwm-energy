@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import DiveDeeper from '@/components/DiveDeeper'
 
 const CATEGORY_LABELS = {
@@ -13,52 +14,133 @@ const CATEGORY_COLORS = {
   water:    'bg-blue-400/10 text-blue-400 border border-blue-400/20',
 }
 
-export default function RecommendationsList({ recommendations }) {
-  if (!recommendations.length) {
+function RecCard({ rec, rank, onMarkDone, isDone }) {
+  return (
+    <div className={`border p-5 transition-colors ${
+      isDone
+        ? 'border-zinc-700 bg-zinc-900/60 opacity-60'
+        : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'
+    }`}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            {rank != null && (
+              <span className="w-6 h-6 bg-emerald-400 text-zinc-950 text-xs flex items-center justify-center font-black flex-shrink-0">
+                {rank}
+              </span>
+            )}
+            {isDone && (
+              <span className="w-6 h-6 bg-zinc-600 text-zinc-300 text-xs flex items-center justify-center font-black flex-shrink-0">
+                ✓
+              </span>
+            )}
+            <h3 className="font-bold text-zinc-100 text-sm">{rec.title}</h3>
+          </div>
+
+          <span className={`inline-block text-[10px] px-2 py-0.5 font-mono uppercase tracking-wide mb-2 ${CATEGORY_COLORS[rec.category]}`}>
+            {CATEGORY_LABELS[rec.category]}
+          </span>
+
+          <p className="text-xs text-zinc-500 mb-3 leading-relaxed">{rec.description}</p>
+
+          <DiveDeeper label="Technical details">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 font-mono">
+              <span><span className="text-zinc-400">From:</span> {rec.currentValue}</span>
+              <span><span className="text-zinc-400">To:</span> {rec.targetValue}</span>
+            </div>
+          </DiveDeeper>
+        </div>
+
+        <div className="flex-shrink-0 text-right">
+          <p className="text-2xl font-black text-emerald-400 font-mono">${Math.round(rec.annualSavingsCAD).toLocaleString()}</p>
+          <p className="text-xs text-zinc-500">saved/year</p>
+          <div className="mt-2 px-3 py-1.5 bg-zinc-700 border border-zinc-600 text-center">
+            <p className="text-sm font-bold text-zinc-200 font-mono">
+              {rec.paybackYears < 100 ? `${rec.paybackYears.toFixed(1)} yr` : 'Long'}
+            </p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wide">payback</p>
+          </div>
+          <p className="text-xs text-zinc-600 mt-1 font-mono">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
+        </div>
+      </div>
+
+      {/* Mark as done / Restore button */}
+      <div className="mt-4 pt-3 border-t border-zinc-700 flex justify-end">
+        <button
+          onClick={() => onMarkDone(rec.id)}
+          className={`text-xs font-mono uppercase tracking-wide transition-colors px-3 py-1.5 border ${
+            isDone
+              ? 'border-zinc-600 text-zinc-500 hover:border-zinc-400 hover:text-zinc-300'
+              : 'border-zinc-600 text-zinc-500 hover:border-emerald-400 hover:text-emerald-400'
+          }`}
+        >
+          {isDone ? '↩ Restore to list' : '✓ Already done'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function RecommendationsList({ recommendations, doneRecs = [], onToggleDone }) {
+  const [showDone, setShowDone] = useState(false)
+
+  if (!recommendations.length && !doneRecs.length) {
     return <p className="text-zinc-500 text-sm">No additional recommendations — your home is already well-optimised!</p>
   }
 
   return (
-    <div className="space-y-3">
-      {recommendations.map((rec, i) => (
-        <div key={rec.id} className="bg-zinc-800 border border-zinc-700 p-5 hover:border-zinc-600 transition-colors">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-6 h-6 bg-emerald-400 text-zinc-950 text-xs flex items-center justify-center font-black flex-shrink-0">
-                  {i + 1}
-                </span>
-                <h3 className="font-bold text-zinc-100 text-sm">{rec.title}</h3>
-              </div>
-
-              <span className={`inline-block text-[10px] px-2 py-0.5 font-mono uppercase tracking-wide mb-2 ${CATEGORY_COLORS[rec.category]}`}>
-                {CATEGORY_LABELS[rec.category]}
-              </span>
-
-              <p className="text-xs text-zinc-500 mb-3 leading-relaxed">{rec.description}</p>
-
-              <DiveDeeper label="Technical details">
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 font-mono">
-                  <span><span className="text-zinc-400">From:</span> {rec.currentValue}</span>
-                  <span><span className="text-zinc-400">To:</span> {rec.targetValue}</span>
-                </div>
-              </DiveDeeper>
-            </div>
-
-            <div className="flex-shrink-0 text-right">
-              <p className="text-2xl font-black text-emerald-400 font-mono">${Math.round(rec.annualSavingsCAD).toLocaleString()}</p>
-              <p className="text-xs text-zinc-500">saved/year</p>
-              <div className="mt-2 px-3 py-1.5 bg-zinc-700 border border-zinc-600 text-center">
-                <p className="text-sm font-bold text-zinc-200 font-mono">
-                  {rec.paybackYears < 100 ? `${rec.paybackYears.toFixed(1)} yr` : 'Long'}
-                </p>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wide">payback</p>
-              </div>
-              <p className="text-xs text-zinc-600 mt-1 font-mono">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
-            </div>
-          </div>
+    <div>
+      {/* Active recommendations */}
+      {recommendations.length > 0 ? (
+        <div className="space-y-3">
+          {recommendations.map((rec, i) => (
+            <RecCard
+              key={rec.id}
+              rec={rec}
+              rank={i + 1}
+              onMarkDone={onToggleDone}
+              isDone={false}
+            />
+          ))}
         </div>
-      ))}
+      ) : (
+        <p className="text-zinc-500 text-sm py-4">
+          All recommendations marked as done — nice work! Restore items below if you want to revisit them.
+        </p>
+      )}
+
+      {/* Completed section */}
+      {doneRecs.length > 0 && (
+        <div className="mt-6">
+          <button
+            onClick={() => setShowDone(v => !v)}
+            className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-500 hover:text-emerald-400 transition-colors mb-3"
+          >
+            <svg
+              width="10" height="10" viewBox="0 0 10 10" fill="none"
+              className={`shrink-0 transition-transform duration-150 ${showDone ? 'rotate-90' : ''}`}
+              aria-hidden="true"
+            >
+              <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Already completed ({doneRecs.length})
+          </button>
+
+          {showDone && (
+            <div className="space-y-3 border-l-2 border-zinc-700 pl-4">
+              {doneRecs.map(rec => (
+                <RecCard
+                  key={rec.id}
+                  rec={rec}
+                  rank={null}
+                  onMarkDone={onToggleDone}
+                  isDone={true}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
