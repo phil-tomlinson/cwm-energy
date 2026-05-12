@@ -1,3 +1,6 @@
+'use client'
+import DiveDeeper from '@/components/DiveDeeper'
+
 const CATEGORY_LABELS = {
   envelope: 'Building envelope',
   heating:  'Heating system',
@@ -34,10 +37,12 @@ export default function RecommendationsList({ recommendations }) {
 
               <p className="text-xs text-zinc-500 mb-3 leading-relaxed">{rec.description}</p>
 
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 font-mono">
-                <span><span className="text-zinc-400">From:</span> {rec.currentValue}</span>
-                <span><span className="text-zinc-400">To:</span> {rec.targetValue}</span>
-              </div>
+              <DiveDeeper label="Technical details">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 font-mono">
+                  <span><span className="text-zinc-400">From:</span> {rec.currentValue}</span>
+                  <span><span className="text-zinc-400">To:</span> {rec.targetValue}</span>
+                </div>
+              </DiveDeeper>
             </div>
 
             <div className="flex-shrink-0 text-right">

@@ -27,8 +27,8 @@ export default function Step2Home({ data, updateData }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-1">Tell us about your home</h2>
-      <p className="text-gray-500 text-sm mb-6">
+      <h2 className="text-xl font-bold text-zinc-100 mb-1">Tell us about your home</h2>
+      <p className="text-zinc-500 text-sm mb-6">
         These details let us estimate your home's geometry and set smart defaults for insulation levels.
       </p>
 

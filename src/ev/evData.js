@@ -1,5 +1,5 @@
 // ── Vehicle definitions ───────────────────────────────────────────────────
-// Sources: EPA fuel economy, GREET 2023 (Argonne National Lab), NRCan
+// Sources: NRCan Fuel Consumption Ratings, GREET 2023 (Argonne National Lab)
 export const VEHICLES = {
   ioniq5: {
     id:                   'ioniq5',
@@ -7,7 +7,7 @@ export const VEHICLES = {
     sub:                  'NMC Battery · AWD Long Range',
     type:                 'ev',
     batteryKwh:           77.4,
-    effKwh100km:          21.1,   // EPA combined AWD LR (99 MPGe → 21.1 kWh/100km incl. charging losses)
+    effKwh100km:          21.1,   // NRCan combined AWD Long Range: 21.3 (2022), 21.0 (2023), 21.5 (2024)
     fuelL100km:           null,
     co2PerFuelL:          null,
     mfgKgCO2e:            14500,  // GREET 2023: ~6500 kg battery + ~8000 kg glider
@@ -21,7 +21,7 @@ export const VEHICLES = {
     sub:                  'LFP Battery · Standard Range RWD',
     type:                 'ev',
     batteryKwh:           72,
-    effKwh100km:          20.7,   // EPA combined SR RWD
+    effKwh100km:          20.7,   // NRCan combined SR RWD (LFP, 2023)
     fuelL100km:           null,
     co2PerFuelL:          null,
     mfgKgCO2e:            11740,  // GREET 2023: ~3740 kg battery + ~8000 kg glider
@@ -36,7 +36,7 @@ export const VEHICLES = {
     type:                 'ice',
     batteryKwh:           null,
     effKwh100km:          null,
-    fuelL100km:           10.5,   // NRCan combined
+    fuelL100km:           8.5,    // NRCan combined AWD 2.5L (2023–2025 consistent)
     co2PerFuelL:          2.31,   // kg CO₂e/L gasoline (IPCC AR5)
     mfgKgCO2e:            8500,   // GREET 2023 mid-size ICE SUV
     batteryMfgKgCO2e:     0,
@@ -50,7 +50,7 @@ export const VEHICLES = {
     type:                 'hybrid',
     batteryKwh:           null,
     effKwh100km:          null,
-    fuelL100km:           6.7,    // NRCan combined
+    fuelL100km:           6.0,    // NRCan combined Hybrid AWD (2022–2025 consistent)
     co2PerFuelL:          2.31,
     mfgKgCO2e:            9200,   // GREET 2023 + ~700 kg NiMH premium
     batteryMfgKgCO2e:     700,

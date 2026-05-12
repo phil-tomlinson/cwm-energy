@@ -66,39 +66,89 @@ function generatePlan(homeiqData: any, evData: any, mode: Mode): PlanAction[] {
     }
   }
 
-  // EV calculator — derive a "switch to EV" action
+  // EV calculator — derive a transport action
   if (evData) {
-    const { annualCosts, c2km, lc, prices, annualKm, grid, cityName } = evData
 
-    if (annualCosts && c2km && prices && annualKm) {
-      const bestEVid   = (annualCosts.ioniq ?? Infinity) <= (annualCosts.mache ?? Infinity) ? 'ioniq5' : 'macheelfp'
-      const bestEV     = VEHICLES[bestEVid]
-      const bestCost   = bestEVid === 'ioniq5' ? annualCosts.ioniq : annualCosts.mache
-      const bestCO2km  = c2km[bestEVid]
+    // ── Compare mode (any two NRCan vehicles) ────────────────────────────
+    if (evData.source === 'compare') {
+      const { vehicleA, vehicleB, costA, costB, co2kmA, co2kmB, effPA, effPB, annualKm, grid, cityName } = evData
 
-      const annFuelSaving  = (annualCosts.rav4 ?? 0) - bestCost
-      const annMaintSaving = (maintTotal('rav4', annualKm * 10) - maintTotal(bestEVid, annualKm * 10)) / 10
-      const annTotalSaving = annFuelSaving + annMaintSaving
-      const annCO2Saved    = ((c2km.rav4 ?? 0) - bestCO2km) * annualKm / 1000  // tonnes/yr
+      if (vehicleA && vehicleB && costA != null && costB != null && annualKm) {
+        const aBetter    = (costA ?? Infinity) <= (costB ?? Infinity)
+        const winner     = aBetter ? vehicleA : vehicleB
+        const loser      = aBetter ? vehicleB : vehicleA
+        const winCost    = aBetter ? costA    : costB
+        const loseCost   = aBetter ? costB    : costA
+        const winCO2km   = aBetter ? (co2kmA ?? 0) : (co2kmB ?? 0)
+        const loseCO2km  = aBetter ? (co2kmB ?? 0) : (co2kmA ?? 0)
+        const winPrice   = aBetter ? (effPA  ?? 0) : (effPB  ?? 0)
+        const losePrice  = aBetter ? (effPB  ?? 0) : (effPA  ?? 0)
 
-      // Price premium over RAV4 (what you pay extra vs just buying the gas car)
-      const pricePremium = (prices[bestEVid] ?? 0) - (prices.rav4 ?? 0)
-      const payback      = pricePremium > 0 && annTotalSaving > 0
-        ? pricePremium / annTotalSaving
-        : Infinity
+        const annSaving    = loseCost - winCost
+        const annCO2Saved  = (loseCO2km - winCO2km) * annualKm / 1000  // tonnes/yr
+        const pricePremium = Math.max(0, winPrice - losePrice)
+        const payback      = pricePremium > 0 && annSaving > 0 ? pricePremium / annSaving : 0
 
-      if (annTotalSaving > 0 && isFinite(payback)) {
-        actions.push({
-          id:               'ev_switch',
-          category:         'transport',
-          title:            `When replacing your vehicle, choose a ${bestEV.name}`,
-          description:      `At ${cityName ?? 'your location'}'s grid intensity (${Math.round(grid ?? 0)} gCO₂e/kWh), the ${bestEV.name} emits ${(bestCO2km * 1000).toFixed(0)} g CO₂e/km — versus ~${((c2km.rav4 ?? 0.243) * 1000).toFixed(0)} g/km for the RAV4. Fuel and maintenance savings add up to $${Math.round(annTotalSaving).toLocaleString('en-CA')}/year. The ${bestEV.sub.includes('LFP') ? 'LFP battery has lower manufacturing emissions and no cobalt or nickel' : 'NMC battery offers longer range but a higher manufacturing footprint'}.`,
-          estimatedCostCAD: Math.max(0, pricePremium),
-          annualSavingsCAD: annTotalSaving,
-          co2SavedTonnes:   Math.max(0, annCO2Saved),
-          paybackYears:     payback,
-          grants:           GRANTS.ev_switch,
-        })
+        const winName  = `${winner.year ?? ''} ${winner.make ?? ''} ${winner.model ?? ''}`.trim()
+        const loseName = `${loser.year  ?? ''} ${loser.make  ?? ''} ${loser.model  ?? ''}`.trim()
+        const isWinEV  = winner.type === 'ev' || winner.type === 'phev'
+
+        const gridNote  = cityName && grid != null
+          ? ` at ${cityName}'s grid intensity (${Math.round(grid)} gCO₂e/kWh)`
+          : ''
+        const co2Note   = annCO2Saved > 0.01
+          ? ` It also cuts driving emissions by ${fmt(annCO2Saved, 1)} t CO₂e/yr — ${(winCO2km * 1000).toFixed(0)} g/km vs ${(loseCO2km * 1000).toFixed(0)} g/km${gridNote}.`
+          : ''
+
+        if (annSaving > 0) {
+          actions.push({
+            id:               'ev_switch',
+            category:         'transport',
+            title:            `When replacing your vehicle, choose the ${winName}`,
+            description:      `Based on your comparison, the ${winName} saves $${Math.round(annSaving).toLocaleString('en-CA')}/yr in fuel costs over the ${loseName}.${co2Note}`,
+            estimatedCostCAD: pricePremium,
+            annualSavingsCAD: annSaving,
+            co2SavedTonnes:   Math.max(0, annCO2Saved),
+            paybackYears:     payback,
+            grants:           isWinEV ? GRANTS.ev_switch : undefined,
+          })
+        }
+      }
+
+    // ── Case-study mode (Ioniq 5 / Mach-E vs RAV4) ───────────────────────
+    } else {
+      const { annualCosts, c2km, prices, annualKm, grid, cityName } = evData
+
+      if (annualCosts && c2km && prices && annualKm) {
+        const bestEVid   = (annualCosts.ioniq5 ?? Infinity) <= (annualCosts.macheelfp ?? Infinity) ? 'ioniq5' : 'macheelfp'
+        const bestEV     = VEHICLES[bestEVid]
+        const bestCost   = annualCosts[bestEVid]
+        const bestCO2km  = c2km[bestEVid]
+
+        const annFuelSaving  = (annualCosts.rav4 ?? 0) - bestCost
+        const annMaintSaving = (maintTotal('rav4', annualKm * 10) - maintTotal(bestEVid, annualKm * 10)) / 10
+        const annTotalSaving = annFuelSaving + annMaintSaving
+        const annCO2Saved    = ((c2km.rav4 ?? 0) - bestCO2km) * annualKm / 1000  // tonnes/yr
+
+        // Price premium over RAV4 (what you pay extra vs just buying the gas car)
+        const pricePremium = (prices[bestEVid] ?? 0) - (prices.rav4 ?? 0)
+        const payback      = pricePremium > 0 && annTotalSaving > 0
+          ? pricePremium / annTotalSaving
+          : Infinity
+
+        if (annTotalSaving > 0 && isFinite(payback)) {
+          actions.push({
+            id:               'ev_switch',
+            category:         'transport',
+            title:            `When replacing your vehicle, choose a ${bestEV.name}`,
+            description:      `At ${cityName ?? 'your location'}'s grid intensity (${Math.round(grid ?? 0)} gCO₂e/kWh), the ${bestEV.name} emits ${(bestCO2km * 1000).toFixed(0)} g CO₂e/km — versus ~${((c2km.rav4 ?? 0.243) * 1000).toFixed(0)} g/km for the RAV4. Fuel and maintenance savings add up to $${Math.round(annTotalSaving).toLocaleString('en-CA')}/year. The ${bestEV.sub.includes('LFP') ? 'LFP battery has lower manufacturing emissions and no cobalt or nickel' : 'NMC battery offers longer range but a higher manufacturing footprint'}.`,
+            estimatedCostCAD: Math.max(0, pricePremium),
+            annualSavingsCAD: annTotalSaving,
+            co2SavedTonnes:   Math.max(0, annCO2Saved),
+            paybackYears:     payback,
+            grants:           GRANTS.ev_switch,
+          })
+        }
       }
     }
   }
@@ -271,7 +321,11 @@ export default function PlanPage() {
                 label: 'EV Benefit Calculator',
                 href:  '/ev-benefit-calculator',
                 data:  evData,
-                meta:  evData ? `${evData.cityName ?? ''} · ${(evData.annualKm ?? 0).toLocaleString('en-CA')} km/yr` : null,
+                meta:  evData
+                  ? evData.source === 'compare'
+                    ? `${[evData.vehicleA?.make, evData.vehicleA?.model].filter(Boolean).join(' ')} vs ${[evData.vehicleB?.make, evData.vehicleB?.model].filter(Boolean).join(' ')}`
+                    : `${evData.cityName ?? ''} · ${(evData.annualKm ?? 0).toLocaleString('en-CA')} km/yr`
+                  : null,
               },
             ].map(({ key, label, href, data, meta }) => (
               <div key={key} className={`border p-4 flex items-start gap-3 ${data ? 'border-emerald-400/30 bg-emerald-400/5' : 'border-zinc-800 bg-zinc-900'}`}>

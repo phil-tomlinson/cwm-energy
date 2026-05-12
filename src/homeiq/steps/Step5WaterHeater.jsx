@@ -21,8 +21,8 @@ export default function Step5WaterHeater({ data, updateData }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-1">Water heater</h2>
-      <p className="text-gray-500 text-sm mb-6">
+      <h2 className="text-xl font-bold text-zinc-100 mb-1">Water heater</h2>
+      <p className="text-zinc-500 text-sm mb-6">
         Water heating is typically the second-largest energy use in a Canadian home after space heating.
       </p>
 
@@ -64,9 +64,9 @@ export default function Step5WaterHeater({ data, updateData }) {
         </CardSection>
       </Card>
 
-      <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-        <p className="text-sm text-blue-800 font-medium">Ready to calculate</p>
-        <p className="text-xs text-blue-600 mt-1">
+      <div className="mt-4 p-4 bg-blue-400/5 border border-blue-400/20">
+        <p className="text-sm text-blue-300 font-medium">Ready to calculate</p>
+        <p className="text-xs text-blue-400 mt-1">
           Click <strong>Calculate Results</strong> to see your home's heat loss breakdown, annual energy costs, and a prioritised list of cost-effective upgrades.
         </p>
       </div>

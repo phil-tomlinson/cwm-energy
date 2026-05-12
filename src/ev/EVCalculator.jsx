@@ -5,6 +5,16 @@ import {
   WEATHER_PROXY, CARBON_PROXY,
   co2PerKm, maintTotal, fmt,
 } from './evData'
+import DiveDeeper from '@/components/DiveDeeper'
+
+// Human-readable label for grid carbon intensity
+function gridLabel(gCO2kWh) {
+  if (gCO2kWh <  80) return { text: 'Very clean grid',        hint: 'mostly hydro or nuclear' }
+  if (gCO2kWh < 200) return { text: 'Clean grid',             hint: 'significant renewables' }
+  if (gCO2kWh < 350) return { text: 'Average grid',           hint: 'mixed fossil + clean sources' }
+  if (gCO2kWh < 500) return { text: 'Carbon-heavy grid',      hint: 'substantial fossil fuel' }
+  return                    { text: 'Very carbon-heavy grid',  hint: 'mostly fossil fuel' }
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────
 const CUSTOM_COLOR       = '#a78bfa'  // violet-400
@@ -918,8 +928,9 @@ export default function EVCalculator() {
 
       {/* Intro */}
       <p className="text-sm text-zinc-400 leading-relaxed mb-6">
-        EVs cost more to manufacture than gas cars — but lower running costs and cleaner driving can close that gap quickly,
-        depending on where you live and how much you drive. We show the full picture, including the carbon debt that comes with building a battery.
+        Should you buy an EV? The answer depends on where you live and how much you drive.
+        Enter your city and we'll show you the full picture: what you'd spend each year, what you'd emit, and at what point an EV
+        starts winning — both financially and for the environment.
       </p>
 
       {/* ── Form ── */}
@@ -1089,12 +1100,24 @@ export default function EVCalculator() {
         return (
           <>
             {/* Grid banner */}
-            <div className="bg-emerald-400/5 border border-emerald-400/20 px-4 py-2 flex flex-wrap gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 mt-4 mb-2">
-              <span><span className="text-emerald-400 font-semibold">{r.cityName}, {r.country}</span></span>
-              <span>Grid: <span className="text-emerald-400 font-semibold">{Math.round(r.grid)} gCO₂e/kWh</span></span>
-              {r.solarPct > 0 && <span>EV effective: <span className="text-emerald-400 font-semibold">{Math.round(r.effectiveGrid)} gCO₂e/kWh</span> ({r.solarPct}% solar)</span>}
-              {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
-            </div>
+            {(() => {
+              const gl = gridLabel(r.grid)
+              return (
+                <div className="bg-emerald-400/5 border border-emerald-400/20 px-4 py-3 mt-4 mb-2">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 mb-1">
+                    <span><span className="text-emerald-400 font-semibold">{r.cityName}, {r.country}</span></span>
+                    <span><span className="text-emerald-400 font-semibold">{gl.text}</span> — {gl.hint}</span>
+                    {r.solarPct > 0 && <span className="text-emerald-400">↗ {r.solarPct}% solar applied</span>}
+                    {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
+                  </div>
+                  <p className="text-[11px] text-zinc-600 font-mono">
+                    Grid intensity: {Math.round(r.grid)} gCO₂e/kWh
+                    {r.solarPct > 0 && ` · EV effective: ${Math.round(r.effectiveGrid)} gCO₂e/kWh`}
+                    {' '}— <span className="italic">grams of CO₂ equivalent per kilowatt-hour of electricity used</span>
+                  </p>
+                </div>
+              )
+            })()}
 
             {/* ════ 01 — ECONOMICS ════════════════════════════════════════ */}
             <SectionHeader num="01 — Economics" title="What does it cost to own and run each vehicle?" />
@@ -1228,16 +1251,28 @@ export default function EVCalculator() {
                 )
               })}
               <p className="text-[11px] text-zinc-600 mt-4 pt-4 border-t border-zinc-700 leading-relaxed">
-                Default vehicles: GREET 2023 (Argonne National Lab). NMC811 ~84 kg CO₂e/kWh · LFP ~52 kg CO₂e/kWh.
-                {vids.includes('custom') && ' Custom vehicle manufacturing estimate: generic glider + ~75 kg CO₂e/kWh battery.'}
+                Source: GREET 2023 (Argonne National Lab).
+                {vids.includes('custom') && ' Custom vehicle: estimated from class average.'}
               </p>
             </div>
+            <DiveDeeper label="Why do EVs have a higher manufacturing footprint?">
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Building a battery pack is energy-intensive — mining lithium, cobalt, and nickel; refining them; manufacturing cells; assembling the pack. That process produces significant CO₂ before the car moves a single kilometre.
+              </p>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                <span className="text-zinc-300 font-semibold">Battery chemistry makes a big difference.</span> The Ioniq 5 uses NMC811 cells — energy-dense but cobalt-intensive, at ~84 kg CO₂e per kWh of battery capacity. The Mach-E Standard Range uses LFP (lithium iron phosphate) — no cobalt or nickel, at ~52 kg CO₂e/kWh. On a 72 kWh pack that's roughly 2,300 kg CO₂e less, which can shave one to two years off the emissions breakeven time on a typical grid.
+              </p>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                These figures are GREET 2023 industry averages from Argonne National Lab — the standard used by governments and researchers worldwide. Real numbers vary by factory and energy source.
+              </p>
+            </DiveDeeper>
 
             {/* Breakeven */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">When the manufacturing debt gets paid off</p>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">When does an EV become better for the planet?</p>
             <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
-              The km at which lower driving emissions have fully offset the manufacturing premium over the RAV4 Gas.
-              Everything beyond this point is ahead on a lifetime basis.
+              Building a battery takes energy — so an EV starts life with a higher carbon footprint than a gas car.
+              But every kilometre driven on cleaner electricity chips away at that deficit.
+              The number below is how far you need to drive before the EV comes out ahead, lifetime total.
             </p>
             <div className={`grid grid-cols-2 ${vids.includes('custom') ? 'sm:grid-cols-3' : 'sm:grid-cols-4'} gap-3 mb-4`}>
               <BreakevenCard evV={allVeh.ioniq5}    compV={allVeh.rav4}  breakKm={r.breakeven.ioniqVsRav4}  annualKm={annualKm} />
@@ -1251,6 +1286,17 @@ export default function EVCalculator() {
                 <BreakevenCard evV={allVeh.custom} compV={allVeh.rav4h} breakKm={r.breakeven.customVsRav4h} annualKm={annualKm} />
               )}
             </div>
+            <DiveDeeper label="How is this calculated?">
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                The breakeven distance is calculated by dividing the manufacturing CO₂ gap between the two vehicles by the emissions savings per kilometre during driving.
+              </p>
+              <p className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-2 leading-relaxed">
+                Breakeven km = (EV mfg CO₂ − Gas car mfg CO₂) ÷ (Gas car g/km − EV g/km)
+              </p>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                If the EV's driving emissions are higher than the gas car's — which happens on a very carbon-heavy grid — the denominator goes negative and no breakeven exists. That's not a broken calculation; it means the grid is too dirty for EVs to win on emissions at the moment.
+              </p>
+            </DiveDeeper>
 
             {/* Lifetime emissions chart */}
             <div className="mt-6 mb-2">
@@ -1269,60 +1315,58 @@ export default function EVCalculator() {
         )
       })()}
 
-      {/* ── Explainer ── */}
-      <div className="border-t border-zinc-800 mt-12 pt-10">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">Behind the numbers</p>
-        <h2 className="text-lg font-black text-zinc-100 tracking-tight mb-6">What this tool is actually measuring — and why it matters</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { title: "Yes, EVs start with a carbon debt. Here's why.",
-              body: "Building a battery is energy-intensive. Mining lithium, cobalt, and nickel; refining them; assembling cells; shipping them — it all adds up. The Ioniq 5's 77.4 kWh NMC pack alone accounts for roughly 6,500 kg CO₂e before the car moves. Add the rest of the vehicle and you're at ~14,500 kg, versus ~8,500 kg for a gas RAV4. The question isn't whether EVs have a manufacturing penalty — it's how long it takes to pay it back." },
-            { title: "Why Quebec and Alberta get very different answers",
-              body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (~28 gCO₂e/kWh hydro grid), an Ioniq 5 emits roughly 5 g CO₂e/km. In Alberta (~385 gCO₂e/kWh), the same car emits around 68 g/km — still below a gas RAV4's ~243 g/km, but the advantage is thinner. This tool fetches live data so you see today's grid mix." },
-            { title: "LFP vs NMC — not all batteries are equal",
-              body: "The Ioniq 5 uses NMC811 chemistry — energy-dense but cobalt-intensive. GREET 2023 puts NMC811 at ~84 kg CO₂e/kWh. The Mach-E Standard Range uses LFP cells — no cobalt, no nickel. GREET puts LFP at ~52 kg CO₂e/kWh. On a 72 kWh pack that's ~2,750 kg CO₂e less, shortening the emissions breakeven by years on a dirty grid." },
-            { title: "Why we use NRCan numbers, not EPA",
-              body: "NRCan and EPA use different test cycles. NRCan's 5-cycle Canadian test reflects cold starts, air conditioning, and real highway speeds — so rated L/100km and kWh/100km values are more realistic for Canadian drivers than EPA figures. The Ioniq 5, for example, is rated 21.1 kWh/100km by EPA vs 23.4 kWh/100km by NRCan. Custom vehicles you add pull directly from NRCan's official ratings database, so comparisons stay consistent." },
-            { title: "What we're not capturing",
-              body: "Manufacturing CO₂ figures are GREET 2023 averages. The real number depends on which factory built the car and what energy mix powered it. We also haven't modelled battery degradation, end-of-life recycling credits, upstream methane from gas extraction, or marginal vs. average grid emissions. For a well-grounded estimate, this tool is the right level of detail." },
-            { title: "Spotted something wrong?",
-              body: "Lifecycle analysis is genuinely tricky, battery manufacturing data improves every year, and model specs change. If a number looks off or a key variable is missing, we want to hear it.",
-              cta: true },
-          ].map(({ title, body, cta }) => (
-            <div key={title} className="border border-zinc-800 bg-zinc-900/60 p-5">
-              <h3 className="text-sm font-bold text-zinc-200 mb-3 leading-snug">{title}</h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">{body}</p>
-              {cta && (
-                <a href="mailto:info@cwmenergy.ca" className="inline-block mt-4 text-xs font-bold text-emerald-400 border border-emerald-400/30 px-4 py-2 hover:bg-emerald-400 hover:text-zinc-950 transition-colors">
-                  Send feedback →
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ── Explainer + Sources — collapsed by default ── */}
+      <div className="border-t border-zinc-800 mt-12 pt-8">
+        <DiveDeeper label="Behind the numbers — what this tool is actually measuring">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+            {[
+              { title: "Yes, EVs start with a higher footprint. Here's why.",
+                body: "Building a battery is energy-intensive — mining lithium, cobalt, and nickel; refining them; assembling cells. The Ioniq 5's 77.4 kWh NMC pack accounts for roughly 6,500 kg CO₂e before the car moves an inch. Add the rest of the vehicle and you're at ~14,500 kg, versus ~8,500 kg for a gas RAV4. The question isn't whether EVs have a manufacturing penalty — it's how long it takes to pay it back through cleaner driving." },
+              { title: "Why Quebec and Alberta get very different answers",
+                body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (~28 gCO₂e/kWh hydro grid), an Ioniq 5 emits roughly 5 g CO₂e/km. In Alberta (~385 gCO₂e/kWh gas-heavy grid), the same car emits around 68 g/km — still better than a gas RAV4's ~243 g/km, but the advantage is thinner and the breakeven takes longer. This tool fetches live grid data for your specific city." },
+              { title: "LFP vs NMC — not all batteries are equal",
+                body: "The Ioniq 5 uses NMC811 chemistry — energy-dense but cobalt-intensive, at ~84 kg CO₂e/kWh of battery. The Mach-E Standard Range uses LFP (lithium iron phosphate) cells — no cobalt or nickel, at ~52 kg CO₂e/kWh. On a 72 kWh pack that's roughly 2,300 kg CO₂e less manufacturing, which shortens the emissions breakeven by years on a dirtier grid." },
+              { title: "Why we use NRCan numbers",
+                body: "NRCan's 5-cycle Canadian test reflects cold starts, air conditioning, and real-world highway speeds. The resulting L/100km and kWh/100km ratings are more realistic for Canadian drivers than EPA figures. All vehicle efficiency numbers in this tool — including custom vehicles you add — come directly from NRCan's official ratings database." },
+              { title: "What we're not capturing",
+                body: "Manufacturing CO₂ figures are GREET 2023 industry averages. The real number depends on the specific factory and its energy source. We've also not modelled battery degradation, end-of-life recycling credits, upstream methane from gas extraction, or marginal vs. average grid emissions." },
+              { title: "Spotted something wrong?",
+                body: "Lifecycle analysis is genuinely tricky, battery manufacturing data improves every year, and model specs change. If a number looks off or a key variable is missing, we want to hear it.",
+                cta: true },
+            ].map(({ title, body, cta }) => (
+              <div key={title} className="border border-zinc-800 bg-zinc-900/60 p-5">
+                <h3 className="text-sm font-bold text-zinc-200 mb-3 leading-snug">{title}</h3>
+                <p className="text-xs text-zinc-500 leading-relaxed">{body}</p>
+                {cta && (
+                  <a href="mailto:info@cwmenergy.ca" className="inline-block mt-4 text-xs font-bold text-emerald-400 border border-emerald-400/30 px-4 py-2 hover:bg-emerald-400 hover:text-zinc-950 transition-colors">
+                    Send feedback →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </DiveDeeper>
 
-      {/* ── Sources ── */}
-      <div className="border-t border-zinc-800 pt-8 mt-8">
-        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono mb-4">Where the numbers come from</h3>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-          {[
-            'CAA 2023 Driving Costs — maintenance estimates by vehicle type',
-            'Consumer Reports Annual Auto Surveys — EV vs ICE reliability & service costs',
-            'GREET 2023 — Argonne National Lab, vehicle lifecycle & battery manufacturing CO₂',
-            'GREET 2023 — NMC811: ~84 kg CO₂e/kWh · LFP: ~52 kg CO₂e/kWh',
-            'Natural Resources Canada (NRCan) — official fuel consumption ratings database, 2012–present (custom vehicle lookup)',
-            'NRCan 5-cycle test — Canadian combined L/100km and kWh/100km ratings',
-            'Electricity Maps — live grid carbon intensity by location',
-            'OpenWeatherMap — city location lookup',
-            'IPCC AR5 — lifecycle CO₂e emission factor for gasoline (2.31 kg/L)',
-            'Canada EV Affordability Program (EVAP) — federal incentive amounts',
-          ].map(s => (
-            <li key={s} className="text-[11px] text-zinc-500 leading-relaxed pl-4 relative before:absolute before:left-0 before:text-emerald-400 before:content-['—']">
-              {s}
-            </li>
-          ))}
-        </ul>
+        <DiveDeeper label="Data sources">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 mt-2">
+            {[
+              'CAA 2023 Driving Costs — maintenance estimates by vehicle type',
+              'Consumer Reports Annual Auto Surveys — EV vs ICE reliability & service costs',
+              'GREET 2023 — Argonne National Lab, vehicle lifecycle & battery manufacturing CO₂',
+              'GREET 2023 — NMC811: ~84 kg CO₂e/kWh · LFP: ~52 kg CO₂e/kWh',
+              'Natural Resources Canada (NRCan) — official fuel consumption ratings, 2012–present',
+              'NRCan 5-cycle test — Canadian combined L/100km and kWh/100km ratings',
+              'Electricity Maps — live grid carbon intensity by location',
+              'OpenWeatherMap — city location lookup',
+              'IPCC AR5 — lifecycle CO₂e emission factor for gasoline (2.31 kg/L)',
+              'Canada EV Affordability Program (EVAP) — federal incentive amounts',
+            ].map(s => (
+              <li key={s} className="text-[11px] text-zinc-500 leading-relaxed pl-4 relative before:absolute before:left-0 before:text-emerald-400 before:content-['—']">
+                {s}
+              </li>
+            ))}
+          </ul>
+        </DiveDeeper>
       </div>
 
       {/* ── Transparency ── */}

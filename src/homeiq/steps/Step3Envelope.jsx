@@ -33,7 +33,7 @@ export default function Step3Envelope({ data, updateData }) {
   }, [data.era, data.houseType, data.floorArea, data.storeys, data.basementType])
 
   const env = data.envelope
-  if (!env) return <div className="text-gray-500 text-sm p-4">Calculating defaults…</div>
+  if (!env) return <div className="text-zinc-500 text-sm p-4">Calculating defaults…</div>
 
   function update(field, value) {
     updateData({ envelope: { ...env, [field]: value } })
@@ -94,11 +94,11 @@ export default function Step3Envelope({ data, updateData }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-1">Building envelope</h2>
-      <p className="text-gray-500 text-sm mb-2">
+      <h2 className="text-xl font-bold text-zinc-100 mb-1">Building envelope</h2>
+      <p className="text-zinc-500 text-sm mb-2">
         We've pre-filled these values based on your home's age. Adjust anything you know for better accuracy.
       </p>
-      <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-3 py-2 mb-6">
+      <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-6">
         R-values are imperial (as on product labels). Areas are auto-estimated from your floor area — use the estimators below each field if you want to refine them.
       </p>
 
@@ -283,7 +283,7 @@ export default function Step3Envelope({ data, updateData }) {
             min={0.05} max={2.0} step={0.05}
             defaultNote={`${era.ach} ACH`}
           />
-          <p className="text-xs text-emerald-700 mt-1">{achDescription(env.ach)}</p>
+          <p className="text-xs text-emerald-400 mt-1">{achDescription(env.ach)}</p>
         </CardSection>
       </Card>
     </div>

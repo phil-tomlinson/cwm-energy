@@ -1,6 +1,16 @@
 'use client'
 import { useState, useRef, useCallback } from 'react'
 import { WEATHER_PROXY, CARBON_PROXY, maintTotal, fmt } from './evData'
+import DiveDeeper from '@/components/DiveDeeper'
+
+// Human-readable label for grid carbon intensity
+function gridLabel(gCO2kWh) {
+  if (gCO2kWh <  80) return { text: 'Very clean grid',        hint: 'mostly hydro or nuclear' }
+  if (gCO2kWh < 200) return { text: 'Clean grid',             hint: 'significant renewables' }
+  if (gCO2kWh < 350) return { text: 'Average grid',           hint: 'mixed fossil + clean sources' }
+  if (gCO2kWh < 500) return { text: 'Carbon-heavy grid',      hint: 'substantial fossil fuel' }
+  return                    { text: 'Very carbon-heavy grid',  hint: 'mostly fossil fuel' }
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CO2_PER_FUEL_L = 2.31           // kg CO₂e/L gasoline (IPCC AR5)
@@ -542,6 +552,7 @@ export default function EVCompare() {
       }
 
       const r = {
+        source: 'compare',
         grid, effGrid, effElec, cityName: w.name, country: w.sys.country,
         vehicleA: vA, vehicleB: vB,
         costA, costB, co2kmA, co2kmB, mfgA, mfgB,
@@ -550,6 +561,7 @@ export default function EVCompare() {
       }
       setResults(r)
       setStatus('done')
+      try { localStorage.setItem('cwm_ev', JSON.stringify(r)) } catch {}
 
       setTimeout(() => drawCharts({
         vehicleA: vA, vehicleB: vB,
@@ -725,14 +737,24 @@ export default function EVCompare() {
         return (
           <>
             {/* Grid banner */}
-            <div className="bg-emerald-400/5 border border-emerald-400/20 px-4 py-2 flex flex-wrap gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 mt-4 mb-2">
-              <span><span className="text-emerald-400 font-semibold">{r.cityName}, {r.country}</span></span>
-              <span>Grid: <span className="text-emerald-400 font-semibold">{Math.round(r.grid)} gCO₂e/kWh</span></span>
-              {r.solarPct > 0 && (
-                <span>EV effective: <span className="text-emerald-400 font-semibold">{Math.round(r.effGrid)} gCO₂e/kWh</span> ({r.solarPct}% solar)</span>
-              )}
-              {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
-            </div>
+            {(() => {
+              const gl = gridLabel(r.grid)
+              return (
+                <div className="bg-emerald-400/5 border border-emerald-400/20 px-4 py-3 mt-4 mb-2">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 mb-1">
+                    <span><span className="text-emerald-400 font-semibold">{r.cityName}, {r.country}</span></span>
+                    <span><span className="text-emerald-400 font-semibold">{gl.text}</span> — {gl.hint}</span>
+                    {r.solarPct > 0 && <span className="text-emerald-400">↗ {r.solarPct}% solar applied</span>}
+                    {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
+                  </div>
+                  <p className="text-[11px] text-zinc-600 font-mono">
+                    Grid intensity: {Math.round(r.grid)} gCO₂e/kWh
+                    {r.solarPct > 0 && ` · EV effective: ${Math.round(r.effGrid)} gCO₂e/kWh`}
+                    {' '}— <span className="italic">grams of CO₂ equivalent per kilowatt-hour of electricity used</span>
+                  </p>
+                </div>
+              )
+            })()}
 
             {/* ══ 01 — ECONOMICS ══ */}
             <SectionHeader num="01 — Economics" title="What does it cost to own and run each vehicle?" />
@@ -744,7 +766,7 @@ export default function EVCompare() {
               {pairs.map(({ v, color, label, cost, maint, run10, remKm, effP }) => {
                 const isLowest = cost === minCost
                 return (
-                  <div key={label} className={`border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
+                  <div key={label} className={`relative border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
                     {isLowest && (
                       <span className="absolute top-0 right-0 bg-emerald-400 text-zinc-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5">
                         Lower cost
@@ -850,8 +872,13 @@ export default function EVCompare() {
             {/* Carbon breakeven */}
             {breakevenKm !== null && (
               <div className="mt-5 border border-zinc-700 bg-zinc-800/40 p-4">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-3">
-                  Manufacturing carbon breakeven
+                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1">
+                  When does the EV become better for the planet?
+                </p>
+                <p className="text-xs text-zinc-500 mb-3 leading-relaxed">
+                  Building a battery takes energy, so an EV starts with a higher carbon footprint than a gas car.
+                  Every kilometre driven on cleaner electricity chips away at that gap.
+                  The distance below is when the EV comes out ahead, lifetime total.
                 </p>
                 {!isFinite(breakevenKm) || breakevenKm <= 0 ? (
                   <p className="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 p-3 leading-relaxed">
@@ -874,6 +901,18 @@ export default function EVCompare() {
                     </div>
                   </>
                 )}
+                <DiveDeeper label="How is this calculated?">
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    The breakeven point compares the manufacturing CO₂ gap between the two vehicles against the per-kilometre emissions savings during driving.
+                  </p>
+                  <p className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-2 leading-relaxed">
+                    Breakeven km = (EV mfg CO₂ − Gas car mfg CO₂) ÷ (Gas car g/km − EV g/km)
+                  </p>
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    If the EV emits more per km than the gas car (possible on a very carbon-heavy grid), no breakeven exists — the grid is too dirty for an emissions advantage at that moment.
+                    Manufacturing CO₂ estimates use GREET 2023 (Argonne National Lab): ~75 kg CO₂e/kWh blended battery average, plus ~8,000 kg for the vehicle glider.
+                  </p>
+                </DiveDeeper>
               </div>
             )}
 
@@ -891,36 +930,34 @@ export default function EVCompare() {
             </div>
 
             {/* Lifespan data sources */}
-            <div className="border border-zinc-800 bg-zinc-900/60 p-5 mt-4">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-3">
-                Lifespan default values &amp; sources
-              </p>
+            <DiveDeeper label="Where do the lifespan defaults come from?">
               <ul className="text-[11px] text-zinc-500 space-y-2 leading-relaxed">
                 <li>
-                  <span className="text-zinc-300 font-semibold">ICE / Hybrid ({fmt(LIFESPAN_KM.ice, 0)} km):</span>{' '}
-                  S&amp;P Global Mobility 2025 reports average U.S. scrappage age of 12.8 years; at ~24,000 km/yr that is ~306,000 km.
+                  <span className="text-zinc-300 font-semibold">Gas / Hybrid ({fmt(LIFESPAN_KM.ice, 0)} km):</span>{' '}
+                  S&P Global Mobility 2025 reports an average U.S. scrappage age of 12.8 years; at ~24,000 km/yr that's ~306,000 km.
                   CAA Canada confirms modern, well-maintained vehicles regularly exceed 300,000 km.
                 </li>
                 <li>
                   <span className="text-zinc-300 font-semibold">PHEV ({fmt(LIFESPAN_KM.phev, 0)} km):</span>{' '}
-                  Limited by the ICE powertrain; treated the same as conventional ICE.
+                  Limited by the ICE powertrain; treated the same as conventional gas.
                 </li>
                 <li>
                   <span className="text-zinc-300 font-semibold">EV — NMC default ({fmt(LIFESPAN_KM.ev, 0)} km):</span>{' '}
-                  Geotab real-world battery study (22,700+ EVs) shows ~80% capacity at 200–250k km.
-                  Hyundai/Kia warrant 70% at 10 yrs/200k km — this is the warranty floor, not end of life.
-                  Practical "end of life" (70% capacity) for NMC batteries is ~300–400k km.{' '}
-                  <span className="text-zinc-400">LFP-equipped vehicles (Tesla SR, BYD, CATL cells):</span>{' '}
+                  Geotab's real-world battery study (22,700+ EVs) shows ~80% capacity remaining at 200–250k km.
+                  Hyundai/Kia warrant 70% at 10 yrs/200k km — a warranty floor, not end of life.
+                  Practical end of life (~70% capacity) for NMC batteries is ~300–400k km.
+                </li>
+                <li>
+                  <span className="text-zinc-300 font-semibold">LFP batteries (Tesla SR, BYD, some GM):</span>{' '}
                   Battery Performance Index 2025 shows 85%+ capacity at 8–9 years; conservative practical estimate 500k+ km.
-                  If you know your EV uses LFP, raise the lifespan to 500k–800k km.
+                  If you know your EV uses LFP, raise the lifespan slider to 500k–800k km.
                 </li>
               </ul>
-              <p className="text-[10px] text-zinc-600 mt-3 pt-3 border-t border-zinc-800">
-                All lifespan values are editable above — adjust to match your specific vehicle or usage conditions.
-                EV powertrain components (motors, inverters) typically outlast the battery by a wide margin;
-                battery replacement extends effective lifespan significantly.
+              <p className="text-[10px] text-zinc-600 mt-2 pt-2 border-t border-zinc-800">
+                All lifespan values are editable in the inputs above.
+                EV motors and inverters typically outlast the battery; a battery swap can extend the effective lifespan significantly.
               </p>
-            </div>
+            </DiveDeeper>
           </>
         )
       })()}

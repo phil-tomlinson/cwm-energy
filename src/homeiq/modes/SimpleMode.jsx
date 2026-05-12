@@ -1,7 +1,9 @@
+'use client'
 import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import { houseTypes, storeyOptions, constructionEras } from '../../data/houseDefaults'
 import { fuelTypes, heatingSystemTypes, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
 import { SelectField, AreaField, NumberField } from '../ui/FormField'
+import DiveDeeper from '@/components/DiveDeeper'
 
 // Quick-select sizes: [label, m²]
 const SIZE_PRESETS = [
@@ -9,6 +11,31 @@ const SIZE_PRESETS = [
   { label: 'Medium', sub: '~160 m² / 1,700 ft²', m2: 160 },
   { label: 'Large', sub: '~250 m² / 2,700 ft²', m2: 250 },
 ]
+
+/** Plain-English description of how cold a city's climate is, based on HDD. */
+function hddLabel(hdd) {
+  if (hdd < 3000) return 'Mild Canadian climate'
+  if (hdd < 4000) return 'Moderate climate'
+  if (hdd < 5000) return 'Cold climate'
+  if (hdd < 6500) return 'Very cold climate'
+  return 'Extreme cold climate'
+}
+
+/** Plain-English description of design temperature severity. */
+function designTempLabel(temp) {
+  if (temp >= -5)  return 'Mild winters'
+  if (temp >= -15) return 'Cold winters'
+  if (temp >= -25) return 'Very cold winters'
+  return 'Severe winters'
+}
+
+/** Plain-English description of cold water temperature impact. */
+function coldWaterLabel(temp) {
+  if (temp <= 6)  return 'Very cold — high water heating cost'
+  if (temp <= 9)  return 'Cold tap water'
+  if (temp <= 12) return 'Cool tap water'
+  return 'Mild tap water'
+}
 
 export default function SimpleMode({ data, updateData }) {
   const units = data.units
@@ -145,17 +172,39 @@ export default function SimpleMode({ data, updateData }) {
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
               <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.hdd.toLocaleString()}</p>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wide">HDD base 18°C</p>
+              <p className="text-[10px] text-zinc-400 font-medium">{hddLabel(data.climate.hdd)}</p>
+              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">HDD base 18°C</p>
             </div>
             <div>
               <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.designTemp}°C</p>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wide">Design temp</p>
+              <p className="text-[10px] text-zinc-400 font-medium">{designTempLabel(data.climate.designTemp)}</p>
+              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Design temp</p>
             </div>
             <div>
               <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.coldWaterTemp}°C</p>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wide">Cold water</p>
+              <p className="text-[10px] text-zinc-400 font-medium leading-tight">{coldWaterLabel(data.climate.coldWaterTemp)}</p>
+              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Cold water</p>
             </div>
           </div>
+
+          <DiveDeeper label="What are heating degree days?">
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Heating Degree Days (HDD) measure how cold a location is over a full year.
+              Each day adds to the total based on how far the temperature falls below 18°C —
+              the point where most homes need active heating.
+            </p>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              <strong className="text-zinc-300">Example:</strong> If it's 3°C outside, that day contributes
+              15 HDD (18 − 3 = 15). Add up all such days across a year and you get the annual HDD figure.
+              Vancouver has ~2,900 HDD; Winnipeg has ~5,600 HDD — nearly twice as much heating demand.
+            </p>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              The design temperature is the coldest it gets in your city about 97.5% of the time —
+              used to size your heating equipment for a typical worst-case day.
+              Cold water temperature affects how much energy your water heater needs:
+              the colder the incoming water, the more it costs to heat.
+            </p>
+          </DiveDeeper>
         </div>
       )}
 
