@@ -1,9 +1,9 @@
-import EVCalculator from '@/ev/EVCalculator'
+import EVCalculatorTabs from '@/ev/EVCalculatorTabs'
 
 export const metadata = {
   title: 'EV Benefit Calculator — CWM Energy',
   description:
-    'Compare a Hyundai Ioniq 5 and Ford Mustang Mach-E against a gas and hybrid RAV4 — emissions, fuel costs, maintenance — using live grid carbon data for your city.',
+    'Compare any two vehicles — or see how Ioniq 5 and Mach-E stack up against a gas and hybrid RAV4 — on emissions, fuel costs, and lifetime ownership. Uses live grid carbon data for your city and official NRCan fuel consumption ratings.',
 }
 
 export default function EVBenefitCalculatorPage() {
@@ -23,7 +23,7 @@ export default function EVBenefitCalculatorPage() {
       {/* Calculator */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
         <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8">
-          <EVCalculator />
+          <EVCalculatorTabs />
         </div>
       </div>
     </div>
