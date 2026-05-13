@@ -733,14 +733,14 @@ export default function EVCompare() {
 
         {/* Solar slider */}
         <div className="border-t border-zinc-700 pt-4">
-          <div className="flex items-center gap-4">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 whitespace-nowrap min-w-[200px]">
-              Home solar <span className="normal-case opacity-70">(% from panels)</span>
-            </label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+            Home solar <span className="normal-case opacity-70">(% from panels)</span>
+          </label>
+          <div className="flex items-center gap-3">
             <input type="range" min={0} max={100} step={5} value={solarPct}
               onChange={e => setSolarPct(Number(e.target.value))}
-              className="flex-1 accent-emerald-400" />
-            <span className="font-mono text-emerald-400 text-sm font-semibold min-w-[36px] text-right">
+              className="flex-1 min-w-0 accent-emerald-400" />
+            <span className="font-mono text-emerald-400 text-sm font-semibold w-9 text-right flex-shrink-0">
               {solarPct}%
             </span>
           </div>
@@ -858,7 +858,7 @@ export default function EVCompare() {
             <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mt-5 mb-2">
               Annual fuel &amp; energy costs
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {pairs.map(({ v, color, label, cost, maint, run10, remKm, lifespan, effP, effInit, effRepl, resale, isUsed }) => {
                 const isLowest    = cost === minCost
                 const rep10       = numRepsAtKm(10 * annKm, remKm, lifespan)
@@ -937,7 +937,7 @@ export default function EVCompare() {
               Live carbon intensity for {r.cityName} ({Math.round(r.grid)} gCO₂e/kWh).
               EV emissions are entirely a function of your grid — Quebec and Alberta get very different answers.
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {pairs.map(({ v, color, label, co2km, mfg, remKm }) => {
                 const isLowest = co2km === minCO2
                 return (

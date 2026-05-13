@@ -972,14 +972,14 @@ export default function EVCalculator() {
 
         {/* Solar slider */}
         <div className="border-t border-zinc-700 pt-4">
-          <div className="flex items-center gap-4">
-            <label className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 whitespace-nowrap min-w-[200px]">
-              Home solar charging <span className="normal-case opacity-70">(% from panels)</span>
-            </label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+            Home solar charging <span className="normal-case opacity-70">(% from panels)</span>
+          </label>
+          <div className="flex items-center gap-3">
             <input type="range" min={0} max={100} step={5} value={solarPct}
               onChange={e => setSolarPct(Number(e.target.value))}
-              className="flex-1 accent-emerald-400" />
-            <span className="font-mono text-emerald-400 text-sm font-semibold min-w-[36px] text-right">{solarPct}%</span>
+              className="flex-1 min-w-0 accent-emerald-400" />
+            <span className="font-mono text-emerald-400 text-sm font-semibold w-9 text-right flex-shrink-0">{solarPct}%</span>
           </div>
           <p className="text-[11px] text-zinc-600 mt-1.5 leading-relaxed">
             Solar charging is treated as 0 gCO₂e/kWh and $0/kWh — reduces both emissions and fuel cost proportionally.
@@ -1234,19 +1234,23 @@ export default function EVCalculator() {
                 const v   = allVeh[vid]
                 const pct = (v.mfgKgCO2e / Math.max(...vids.map(x => allVeh[x].mfgKgCO2e)) * 100).toFixed(1)
                 return (
-                  <div key={vid} className="grid grid-cols-[160px_1fr_60px_120px] items-center gap-3 mb-4 last:mb-1">
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: v.color }}>{v.name}</p>
-                      <p className="text-[11px] text-zinc-500">{v.sub}</p>
+                  <div key={vid} className="mb-4 last:mb-1">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold" style={{ color: v.color }}>{v.name}</p>
+                        <p className="text-[11px] text-zinc-500 truncate">{v.sub}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-mono text-sm text-zinc-200">{fmt(v.mfgKgCO2e / 1000, 1)} t</p>
+                        <p className="font-mono text-[10px] text-zinc-500">
+                          {v.batteryMfgKgCO2e > 0 ? `batt: ${fmt(v.batteryMfgKgCO2e / 1000, 1)} t` : 'no traction battery'}
+                          {vid === 'custom' && <span className="block text-zinc-700">est.</span>}
+                        </p>
+                      </div>
                     </div>
                     <div className="h-3 bg-zinc-700">
                       <div className="h-full" style={{ width: `${pct}%`, background: v.color }} />
                     </div>
-                    <p className="font-mono text-sm text-zinc-200 text-right">{fmt(v.mfgKgCO2e / 1000, 1)}t</p>
-                    <p className="font-mono text-[10px] text-zinc-500 text-right">
-                      {v.batteryMfgKgCO2e > 0 ? `battery: ${fmt(v.batteryMfgKgCO2e / 1000, 1)}t` : 'no traction battery'}
-                      {vid === 'custom' && <span className="block text-zinc-700">estimated</span>}
-                    </p>
                   </div>
                 )
               })}
