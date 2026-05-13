@@ -2,6 +2,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { WEATHER_PROXY, CARBON_PROXY, maintTotal, fmt } from './evData'
 import DiveDeeper from '@/components/DiveDeeper'
+import SaveToPlanBanner from '@/components/SaveToPlanBanner'
 
 // Human-readable label for grid carbon intensity
 function gridLabel(gCO2kWh) {
@@ -851,6 +852,8 @@ export default function EVCompare() {
                 </div>
               )
             })()}
+
+            <SaveToPlanBanner storageKey="cwm_ev" data={r} />
 
             {/* ══ 01 — ECONOMICS ══ */}
             <SectionHeader num="01 — Economics" title="What does it cost to own and run each vehicle?" />
