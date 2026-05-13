@@ -335,10 +335,17 @@ export default function PlanPage() {
                     : <span className="text-zinc-500 text-[10px]">–</span>
                   }
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className={`text-xs font-semibold ${data ? 'text-zinc-200' : 'text-zinc-500'}`}>{label}</p>
                   {meta
-                    ? <p className="font-mono text-[10px] text-zinc-500 mt-0.5 truncate">{meta}</p>
+                    ? (
+                      <div className="flex items-baseline justify-between gap-2 mt-0.5">
+                        <p className="font-mono text-[10px] text-zinc-500 truncate">{meta}</p>
+                        <Link href={href} className="font-mono text-[10px] text-emerald-400 hover:underline whitespace-nowrap flex-shrink-0">
+                          Update →
+                        </Link>
+                      </div>
+                    )
                     : <Link href={href} className="font-mono text-[10px] text-emerald-400 hover:underline">Run calculator →</Link>
                   }
                 </div>
