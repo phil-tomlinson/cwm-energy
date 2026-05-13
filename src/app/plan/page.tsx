@@ -12,6 +12,7 @@ interface PlanAction {
   title:            string
   description:      string
   estimatedCostCAD: number
+  vendorCostCAD?:   number    // set when user enters a real vendor quote
   annualSavingsCAD: number
   co2SavedTonnes:   number
   paybackYears:     number
@@ -46,7 +47,7 @@ const CAT_STYLE: Record<string, { label: string; color: string; bg: string; bord
 }
 
 // ── Plan generator ───────────────────────────────────────────────────────
-function generatePlan(homeiqData: any, evData: any, mode: Mode): PlanAction[] {
+function generatePlan(homeiqData: any, evData: any): PlanAction[] {
   const actions: PlanAction[] = []
 
   // HomeIQ recommendations — already computed by the recommendations engine
@@ -153,23 +154,25 @@ function generatePlan(homeiqData: any, evData: any, mode: Mode): PlanAction[] {
     }
   }
 
-  // Sort by chosen mode
-  if (mode === 'bills') {
-    return actions.sort((a, b) => a.paybackYears - b.paybackYears)
-  } else {
-    return actions.sort((a, b) => b.co2SavedTonnes - a.co2SavedTonnes)
-  }
+  return actions
 }
 
 // ── Running totals ────────────────────────────────────────────────────────
 function withTotals(actions: PlanAction[]): PlanStep[] {
   let cumCost = 0, cumSavings = 0, cumCO2 = 0
   return actions.map(a => {
-    cumCost    += a.estimatedCostCAD
+    cumCost    += a.vendorCostCAD ?? a.estimatedCostCAD   // vendor quote wins when set
     cumSavings += a.annualSavingsCAD
     cumCO2     += a.co2SavedTonnes
     return { ...a, cumCost, cumSavings, cumCO2 }
   })
+}
+
+// ── Sort helper (applied after vendor-quote overrides) ────────────────────
+function sortActions(actions: PlanAction[], mode: Mode): PlanAction[] {
+  return [...actions].sort((a, b) =>
+    mode === 'bills' ? a.paybackYears - b.paybackYears : b.co2SavedTonnes - a.co2SavedTonnes
+  )
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -178,12 +181,37 @@ function fmt(n: number, d = 0) {
 }
 
 // ── UI components ─────────────────────────────────────────────────────────
-function StepCard({ step, index }: { step: PlanStep; index: number }) {
-  const cat = CAT_STYLE[step.category] ?? CAT_STYLE.envelope
-  const pb  = step.paybackYears
+function StepCard({
+  step,
+  index,
+  onQuoteChange,
+}: {
+  step:          PlanStep
+  index:         number
+  onQuoteChange: (id: string, amount: number | null) => void
+}) {
+  const cat          = CAT_STYLE[step.category] ?? CAT_STYLE.envelope
+  const pb           = step.paybackYears
+  const hasQuote     = step.vendorCostCAD != null
+  const effectiveCost = step.vendorCostCAD ?? step.estimatedCostCAD
+
+  const [editing,    setEditing]    = useState(false)
+  const [quoteInput, setQuoteInput] = useState('')
+
+  function openEdit() {
+    setQuoteInput(step.vendorCostCAD != null ? String(step.vendorCostCAD) : '')
+    setEditing(true)
+  }
+
+  function confirmEdit() {
+    const val = parseFloat(quoteInput)
+    if (!isNaN(val) && val >= 0) onQuoteChange(step.id, val)
+    setEditing(false)
+  }
 
   return (
     <div className="border border-zinc-700 bg-zinc-900">
+
       {/* Step header */}
       <div className="flex items-start gap-4 p-5 border-b border-zinc-800">
         <div className="shrink-0 w-8 h-8 border border-zinc-700 flex items-center justify-center">
@@ -194,6 +222,11 @@ function StepCard({ step, index }: { step: PlanStep; index: number }) {
             <span className={`font-mono text-[9px] uppercase tracking-widest border px-2 py-0.5 ${cat.color} ${cat.bg} ${cat.border}`}>
               {cat.label}
             </span>
+            {hasQuote && (
+              <span className="font-mono text-[9px] uppercase tracking-widest border px-2 py-0.5 text-amber-400 bg-amber-400/10 border-amber-400/30">
+                Quoted
+              </span>
+            )}
           </div>
           <h3 className="text-sm font-bold text-zinc-100 leading-snug">{step.title}</h3>
         </div>
@@ -205,12 +238,17 @@ function StepCard({ step, index }: { step: PlanStep; index: number }) {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-px bg-zinc-800 mx-5 mb-4">
+      <div className="grid grid-cols-3 gap-px bg-zinc-800 mx-5 mb-2">
         <div className="bg-zinc-900 p-3">
           <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-600 mb-1">Investment</p>
-          <p className="font-mono text-base font-semibold text-zinc-200">
-            {step.estimatedCostCAD > 0 ? `$${fmt(step.estimatedCostCAD)}` : 'None'}
+          <p className={`font-mono text-base font-semibold ${hasQuote ? 'text-amber-400' : 'text-zinc-200'}`}>
+            {effectiveCost > 0 ? `$${fmt(effectiveCost)}` : 'None'}
           </p>
+          {hasQuote && (
+            <p className="font-mono text-[9px] text-zinc-600 mt-0.5">
+              Est. ${fmt(step.estimatedCostCAD)}
+            </p>
+          )}
         </div>
         <div className="bg-zinc-900 p-3">
           <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-600 mb-1">Annual savings</p>
@@ -222,7 +260,57 @@ function StepCard({ step, index }: { step: PlanStep; index: number }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-5 pb-4 gap-4">
+      {/* Vendor quote row */}
+      <div className="px-5 py-2.5 flex items-center gap-3 flex-wrap border-b border-zinc-800/60">
+        {editing ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-xs text-zinc-500 pointer-events-none">$</span>
+              <input
+                type="number"
+                min="0"
+                value={quoteInput}
+                onChange={e => setQuoteInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') confirmEdit(); if (e.key === 'Escape') setEditing(false) }}
+                autoFocus
+                placeholder="0"
+                className="w-36 bg-zinc-950 border border-amber-400/50 pl-6 pr-3 py-1 font-mono text-xs text-zinc-200 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+            <button
+              onClick={confirmEdit}
+              className="font-mono text-[10px] font-bold bg-amber-400 text-zinc-950 px-3 py-1 hover:bg-amber-300 transition-colors"
+            >
+              Set
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="font-mono text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-4">
+            <button
+              onClick={openEdit}
+              className="font-mono text-[9px] uppercase tracking-widest text-zinc-600 hover:text-amber-400 transition-colors"
+            >
+              {hasQuote ? '✎ Edit vendor quote' : '+ Add vendor quote'}
+            </button>
+            {hasQuote && (
+              <button
+                onClick={() => onQuoteChange(step.id, null)}
+                className="font-mono text-[9px] uppercase tracking-widest text-zinc-700 hover:text-red-400 transition-colors"
+              >
+                × Clear
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between px-5 py-3 gap-4">
         <p className="text-[11px] text-zinc-500 font-mono">
           {isFinite(pb) ? `Payback: ${fmt(pb, 1)} years` : 'No payback calculated'}
         </p>
@@ -240,20 +328,23 @@ function StepCard({ step, index }: { step: PlanStep; index: number }) {
         <span className="font-mono text-[10px] text-zinc-400">Saving: <span className="text-emerald-400">${fmt(step.cumSavings)}/yr</span></span>
         <span className="font-mono text-[10px] text-zinc-400">CO₂ cut: <span className="text-emerald-400">{fmt(step.cumCO2, 1)} t/yr</span></span>
       </div>
+
     </div>
   )
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function PlanPage() {
-  const [mode,       setMode]       = useState<Mode>('bills')
-  const [homeiqData, setHomeiqData] = useState<any>(null)
-  const [evData,     setEvData]     = useState<any>(null)
-  const [authed,     setAuthed]     = useState(false)
+  const [mode,         setMode]         = useState<Mode>('bills')
+  const [homeiqData,   setHomeiqData]   = useState<any>(null)
+  const [evData,       setEvData]       = useState<any>(null)
+  const [authed,       setAuthed]       = useState(false)
+  const [vendorQuotes, setVendorQuotes] = useState<Record<string, number>>({})
 
   useEffect(() => {
-    try { const h = localStorage.getItem('cwm_homeiq'); if (h) setHomeiqData(JSON.parse(h)) } catch {}
-    try { const e = localStorage.getItem('cwm_ev');     if (e) setEvData(JSON.parse(e))     } catch {}
+    try { const h = localStorage.getItem('cwm_homeiq');      if (h) setHomeiqData(JSON.parse(h))   } catch {}
+    try { const e = localStorage.getItem('cwm_ev');          if (e) setEvData(JSON.parse(e))        } catch {}
+    try { const q = localStorage.getItem('cwm_plan_quotes'); if (q) setVendorQuotes(JSON.parse(q)) } catch {}
 
     import('@/lib/supabase/client').then(({ createClient }) => {
       const sb = createClient()
@@ -263,10 +354,27 @@ export default function PlanPage() {
     })
   }, [])
 
-  const hasData = homeiqData || evData
-  const actions = hasData ? generatePlan(homeiqData, evData, mode) : []
-  const steps   = withTotals(actions)
-  const last    = steps[steps.length - 1]
+  function updateQuote(id: string, amount: number | null) {
+    setVendorQuotes(prev => {
+      const next = { ...prev }
+      if (amount == null) delete next[id]
+      else next[id] = amount
+      try { localStorage.setItem('cwm_plan_quotes', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  const hasData    = homeiqData || evData
+  const rawActions = hasData ? generatePlan(homeiqData, evData) : []
+  // Apply vendor quote overrides — recalculate payback from real cost
+  const quoted     = rawActions.map(a => {
+    const q = vendorQuotes[a.id]
+    if (q == null) return a
+    const payback = q > 0 && a.annualSavingsCAD > 0 ? q / a.annualSavingsCAD : Infinity
+    return { ...a, vendorCostCAD: q, paybackYears: payback }
+  })
+  const steps      = withTotals(sortActions(quoted, mode))
+  const last       = steps[steps.length - 1]
 
   return (
     <div className="bg-zinc-950 min-h-screen">
@@ -379,7 +487,9 @@ export default function PlanPage() {
                 </p>
               </div>
               <div className="space-y-3">
-                {steps.map((step, i) => <StepCard key={step.id} step={step} index={i} />)}
+                {steps.map((step, i) => (
+                  <StepCard key={step.id} step={step} index={i} onQuoteChange={updateQuote} />
+                ))}
               </div>
             </div>
 
@@ -401,8 +511,9 @@ export default function PlanPage() {
                   ))}
                 </div>
                 <p className="text-[11px] text-zinc-600 mt-4 leading-relaxed">
-                  Payback estimates use mid-range installed costs (2024 CAD) and do not include government grants, which can
-                  significantly reduce out-of-pocket costs. See each step for applicable incentives.
+                  Default costs are mid-range installed estimates (2024 CAD). Add a vendor quote to any step to recalculate
+                  payback with your actual number — the plan re-sorts instantly. Government grants can significantly reduce
+                  out-of-pocket costs; see each step for applicable incentives.
                 </p>
               </div>
             )}
