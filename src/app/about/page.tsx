@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function AboutPage() {
   return (
@@ -6,7 +6,7 @@ export default function AboutPage() {
       <div className="max-w-2xl mx-auto">
 
         {/* Header */}
-        <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 font-mono mb-3">About</p>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-3">About</p>
         <h1 className="text-4xl font-black tracking-tight text-zinc-100 mb-10 leading-tight">
           Built by an engineer<br />
           <span className="text-emerald-400">who gives a damn.</span>
@@ -54,7 +54,7 @@ export default function AboutPage() {
 
         {/* Open source */}
         <div className="mb-12">
-          <h2 className="text-xs uppercase tracking-widest text-zinc-500 font-mono mb-4">Open Source</h2>
+          <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-mono mb-4">Open Source</h2>
           <p className="text-zinc-400 leading-relaxed mb-4">
             The calculation engines behind these tools are open source and peer-reviewable. If
             you&apos;re an engineer, an energy nerd, or just someone who wants to check our math —
@@ -72,7 +72,7 @@ export default function AboutPage() {
 
         {/* Contact */}
         <div className="border-t border-zinc-800 pt-8">
-          <h2 className="text-xs uppercase tracking-widest text-zinc-500 font-mono mb-4">Get in touch</h2>
+          <h2 className="text-xs uppercase tracking-widest text-zinc-400 font-mono mb-4">Get in touch</h2>
           <p className="text-zinc-400 text-sm leading-relaxed mb-4">
             Questions, feedback, data corrections, or partnership inquiries — we want to hear from you.
           </p>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -44,7 +44,7 @@ export default function SaveResultsButton({
 
   if (!authed) {
     return (
-      <p className="text-[11px] text-zinc-600 font-mono">
+      <p className="text-[11px] text-zinc-400 font-mono">
         <a href="/auth/login" className="text-emerald-400 hover:underline">Sign in</a> to save these results to your account.
       </p>
     )

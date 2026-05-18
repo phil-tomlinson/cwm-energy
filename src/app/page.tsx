@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 const stats = [
   { value: "13%", label: "of Canada's GHG emissions come from buildings" },
@@ -89,7 +89,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <p className="mt-4 text-xs text-zinc-600 font-mono">No account. No tape measure. ~5 minutes.</p>
+          <p className="mt-4 text-xs text-zinc-400 font-mono">No account. No tape measure. ~5 minutes.</p>
         </div>
       </section>
 
@@ -99,7 +99,7 @@ export default function Home() {
           {stats.map((s) => (
             <div key={s.value} className="py-6 sm:py-4 sm:px-8 first:pl-0 last:pr-0">
               <div className="text-3xl font-black font-mono text-emerald-400 mb-1">{s.value}</div>
-              <div className="text-xs text-zinc-500 leading-snug uppercase tracking-wide">{s.label}</div>
+              <div className="text-xs text-zinc-400 leading-snug uppercase tracking-wide">{s.label}</div>
             </div>
           ))}
         </div>
@@ -111,7 +111,7 @@ export default function Home() {
 
           {/* Section label */}
           <div className="flex items-center gap-4 mb-12">
-            <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-mono">The Toolkit</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono">The Toolkit</span>
             <div className="h-px flex-1 bg-zinc-800" />
           </div>
 
@@ -125,12 +125,12 @@ export default function Home() {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-zinc-600">{m.num}</span>
+                  <span className="text-[10px] font-mono text-zinc-400">{m.num}</span>
                   <span
                     className={`text-[9px] uppercase tracking-widest px-2 py-0.5 font-mono ${
                       m.live
                         ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/30"
-                        : "bg-zinc-800 text-zinc-600 border border-zinc-700"
+                        : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                     }`}
                   >
                     {m.tag}
@@ -138,7 +138,7 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-xl font-black tracking-tight text-zinc-100">{m.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed flex-1">{m.desc}</p>
+                <p className="text-sm text-zinc-400 leading-relaxed flex-1">{m.desc}</p>
 
                 {m.live && (
                   <Link
@@ -169,7 +169,7 @@ export default function Home() {
       <section className="px-4 sm:px-6 py-24">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-end justify-between gap-8 border-t border-zinc-800 pt-16">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-600 font-mono mb-3">Start here</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-3">Start here</p>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
               Your home.<br />
               <span className="text-emerald-400">Your numbers.</span>

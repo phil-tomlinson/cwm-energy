@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -9,7 +9,7 @@ export default function Footer() {
           <div className="w-5 h-5 bg-emerald-400 flex items-center justify-center shrink-0">
             <span className="text-zinc-950 text-[8px] font-black tracking-tighter">CWM</span>
           </div>
-          <span className="text-xs font-mono text-zinc-600">
+          <span className="text-xs font-mono text-zinc-400">
             © {new Date().getFullYear()} CWM Energy · Built in Calgary, AB
           </span>
         </div>
@@ -24,7 +24,7 @@ export default function Footer() {
             <Link
               key={l.label}
               href={l.href}
-              className="text-[10px] uppercase tracking-widest text-zinc-600 hover:text-zinc-300 transition-colors font-mono"
+              className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-300 transition-colors font-mono"
             >
               {l.label}
             </Link>

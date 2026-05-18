@@ -1,4 +1,4 @@
-export default function Card({ children, className = '' }) {
+﻿export default function Card({ children, className = '' }) {
   return (
     <div className={`bg-zinc-800 border border-zinc-700 p-6 ${className}`}>
       {children}
@@ -12,7 +12,7 @@ export function CardSection({ title, hint, children }) {
       {title && (
         <div className="mb-3">
           <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">{title}</h3>
-          {hint && <p className="text-xs text-zinc-500 mt-0.5">{hint}</p>}
+          {hint && <p className="text-xs text-zinc-400 mt-0.5">{hint}</p>}
         </div>
       )}
       {children}

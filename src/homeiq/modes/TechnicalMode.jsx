@@ -1,4 +1,4 @@
-import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
+﻿import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import { houseTypes, storeyOptions, basementTypes, constructionEras } from '../../data/houseDefaults'
 import { fuelTypes, heatingSystemTypes, waterHeaterTypes as whTypesFallback, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
 import { waterHeaterTypes } from '../../calculations/waterHeater'
@@ -7,7 +7,7 @@ import { SelectField, NumberField, AreaField, LengthField } from '../ui/FormFiel
 function SectionHeader({ label }) {
   return (
     <div className="flex items-center gap-4 pt-4 pb-2">
-      <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-mono whitespace-nowrap">{label}</span>
+      <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono whitespace-nowrap">{label}</span>
       <div className="h-px flex-1 bg-zinc-800" />
     </div>
   )
@@ -104,7 +104,7 @@ export default function TechnicalMode({ data, updateData }) {
 
       {/* ── Envelope — Insulation ─────────────────────────────── */}
       <SectionHeader label="Envelope — Insulation & Air Sealing" />
-      <p className="text-xs text-zinc-600 font-mono">R-values are nominal imperial (as labelled on insulation). Window/door values are U (W/m²·K).</p>
+      <p className="text-xs text-zinc-400 font-mono">R-values are nominal imperial (as labelled on insulation). Window/door values are U (W/m²·K).</p>
 
       <div className="grid grid-cols-2 gap-4">
         <NumberField label="Wall insulation" unit="R" value={env.wallR ?? 0}
@@ -136,7 +136,7 @@ export default function TechnicalMode({ data, updateData }) {
 
       {/* ── Envelope — Air Leakage Factors ───────────────────── */}
       <SectionHeader label="Envelope — Air Leakage Factors" />
-      <p className="text-xs text-zinc-600 font-mono">Unlocks targeted recommendations for chimney and rim joist losses.</p>
+      <p className="text-xs text-zinc-400 font-mono">Unlocks targeted recommendations for chimney and rim joist losses.</p>
 
       <div className="grid grid-cols-1 gap-4">
         {/* Chimney */}
@@ -175,7 +175,7 @@ export default function TechnicalMode({ data, updateData }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-[10px] text-zinc-600 font-mono">Uninsulated rim joists in basement</p>
+            <p className="mt-1 text-[10px] text-zinc-400 font-mono">Uninsulated rim joists in basement</p>
           </div>
           <div>
             <p className="text-sm font-medium text-zinc-300 mb-2">Recessed pot lights?</p>
@@ -195,14 +195,14 @@ export default function TechnicalMode({ data, updateData }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-[10px] text-zinc-600 font-mono">In ceiling below unconditioned attic</p>
+            <p className="mt-1 text-[10px] text-zinc-400 font-mono">In ceiling below unconditioned attic</p>
           </div>
         </div>
       </div>
 
       {/* ── Envelope — Areas ─────────────────────────────────── */}
       <SectionHeader label="Envelope — Areas" />
-      <p className="text-xs text-zinc-600 font-mono">Pre-filled from floor area geometry. Override with measured values if available.</p>
+      <p className="text-xs text-zinc-400 font-mono">Pre-filled from floor area geometry. Override with measured values if available.</p>
 
       <div className="grid grid-cols-2 gap-4">
         <AreaField label="Net wall area" value={env.netWallArea ?? 0}

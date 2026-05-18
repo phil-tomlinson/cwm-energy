@@ -1,4 +1,4 @@
-import { houseTypes, storeyOptions, basementTypes, constructionEras } from '../../data/houseDefaults'
+﻿import { houseTypes, storeyOptions, basementTypes, constructionEras } from '../../data/houseDefaults'
 import { displayArea, displayLength } from '../../utils/units'
 import Card, { CardSection } from '../ui/Card'
 import { SelectField, AreaField, LengthField } from '../ui/FormField'
@@ -28,7 +28,7 @@ export default function Step2Home({ data, updateData }) {
   return (
     <div>
       <h2 className="text-xl font-bold text-zinc-100 mb-1">Tell us about your home</h2>
-      <p className="text-zinc-500 text-sm mb-6">
+      <p className="text-zinc-400 text-sm mb-6">
         These details let us estimate your home's geometry and set smart defaults for insulation levels.
       </p>
 

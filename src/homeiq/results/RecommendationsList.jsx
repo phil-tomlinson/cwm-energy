@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import DiveDeeper from '@/components/DiveDeeper'
 
@@ -41,10 +41,10 @@ function RecCard({ rec, rank, onMarkDone, isDone }) {
             {CATEGORY_LABELS[rec.category]}
           </span>
 
-          <p className="text-xs text-zinc-500 mb-3 leading-relaxed">{rec.description}</p>
+          <p className="text-xs text-zinc-400 mb-3 leading-relaxed">{rec.description}</p>
 
           <DiveDeeper label="Technical details">
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 font-mono">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-400 font-mono">
               <span><span className="text-zinc-400">From:</span> {rec.currentValue}</span>
               <span><span className="text-zinc-400">To:</span> {rec.targetValue}</span>
             </div>
@@ -53,14 +53,14 @@ function RecCard({ rec, rank, onMarkDone, isDone }) {
 
         <div className="flex-shrink-0 text-right">
           <p className="text-2xl font-black text-emerald-400 font-mono">${Math.round(rec.annualSavingsCAD).toLocaleString()}</p>
-          <p className="text-xs text-zinc-500">saved/year</p>
+          <p className="text-xs text-zinc-400">saved/year</p>
           <div className="mt-2 px-3 py-1.5 bg-zinc-700 border border-zinc-600 text-center">
             <p className="text-sm font-bold text-zinc-200 font-mono">
               {rec.paybackYears < 100 ? `${rec.paybackYears.toFixed(1)} yr` : 'Long'}
             </p>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wide">payback</p>
+            <p className="text-[10px] text-zinc-400 uppercase tracking-wide">payback</p>
           </div>
-          <p className="text-xs text-zinc-600 mt-1 font-mono">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
+          <p className="text-xs text-zinc-400 mt-1 font-mono">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
         </div>
       </div>
 
@@ -70,8 +70,8 @@ function RecCard({ rec, rank, onMarkDone, isDone }) {
           onClick={() => onMarkDone(rec.id)}
           className={`text-xs font-mono uppercase tracking-wide transition-colors px-3 py-1.5 border ${
             isDone
-              ? 'border-zinc-600 text-zinc-500 hover:border-zinc-400 hover:text-zinc-300'
-              : 'border-zinc-600 text-zinc-500 hover:border-emerald-400 hover:text-emerald-400'
+              ? 'border-zinc-600 text-zinc-400 hover:border-zinc-400 hover:text-zinc-300'
+              : 'border-zinc-600 text-zinc-400 hover:border-emerald-400 hover:text-emerald-400'
           }`}
         >
           {isDone ? '↩ Restore to list' : '✓ Already done'}
@@ -85,7 +85,7 @@ export default function RecommendationsList({ recommendations, doneRecs = [], on
   const [showDone, setShowDone] = useState(false)
 
   if (!recommendations.length && !doneRecs.length) {
-    return <p className="text-zinc-500 text-sm">No additional recommendations — your home is already well-optimised!</p>
+    return <p className="text-zinc-400 text-sm">No additional recommendations — your home is already well-optimised!</p>
   }
 
   return (
@@ -104,7 +104,7 @@ export default function RecommendationsList({ recommendations, doneRecs = [], on
           ))}
         </div>
       ) : (
-        <p className="text-zinc-500 text-sm py-4">
+        <p className="text-zinc-400 text-sm py-4">
           All recommendations marked as done — nice work! Restore items below if you want to revisit them.
         </p>
       )}
@@ -114,7 +114,7 @@ export default function RecommendationsList({ recommendations, doneRecs = [], on
         <div className="mt-6">
           <button
             onClick={() => setShowDone(v => !v)}
-            className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-500 hover:text-emerald-400 transition-colors mb-3"
+            className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-400 hover:text-emerald-400 transition-colors mb-3"
           >
             <svg
               width="10" height="10" viewBox="0 0 10 10" fill="none"

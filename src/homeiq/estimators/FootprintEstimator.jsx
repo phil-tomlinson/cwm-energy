@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { displayLength, inputLength, lengthUnit } from '../../utils/units'
 
 export default function FootprintEstimator({ calculate, onApply, buttonLabel = 'Estimate from dimensions', units = 'metric' }) {
@@ -36,7 +36,7 @@ export default function FootprintEstimator({ calculate, onApply, buttonLabel = '
           <div className="grid grid-cols-2 gap-3 mb-2">
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">
-                Length <span className="text-zinc-600 font-mono">({lUnit})</span>
+                Length <span className="text-zinc-400 font-mono">({lUnit})</span>
               </label>
               <input
                 type="number" min="1" max="700" step={units === 'imperial' ? 1 : 0.5}
@@ -48,7 +48,7 @@ export default function FootprintEstimator({ calculate, onApply, buttonLabel = '
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1">
-                Width <span className="text-zinc-600 font-mono">({lUnit})</span>
+                Width <span className="text-zinc-400 font-mono">({lUnit})</span>
               </label>
               <input
                 type="number" min="1" max="700" step={units === 'imperial' ? 1 : 0.5}
@@ -59,7 +59,7 @@ export default function FootprintEstimator({ calculate, onApply, buttonLabel = '
               />
             </div>
           </div>
-          <p className="text-xs text-zinc-600 mb-3 font-mono">
+          <p className="text-xs text-zinc-400 mb-3 font-mono">
             {units === 'imperial'
               ? "No tape measure? Pace it out — one big stride ≈ 3 ft."
               : "No tape measure? Pace it out — one big step ≈ 1 m."}
@@ -71,7 +71,7 @@ export default function FootprintEstimator({ calculate, onApply, buttonLabel = '
                 <div className="mb-3 divide-y divide-zinc-700">
                   {result.rows.map((row, i) => (
                     <div key={i} className="flex justify-between py-1 text-xs">
-                      <span className="text-zinc-500">{row.label}</span>
+                      <span className="text-zinc-400">{row.label}</span>
                       <span className={`font-mono font-medium ${row.highlight ? 'text-emerald-400' : 'text-zinc-400'}`}>
                         {row.value}
                       </span>

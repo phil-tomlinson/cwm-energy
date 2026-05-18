@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from "next/link";
 import { useState } from "react";
 import AuthButton from "@/components/AuthButton";
@@ -33,7 +33,7 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-[11px] uppercase tracking-widest text-zinc-500 hover:text-zinc-100 transition-colors"
+              className="text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-100 transition-colors"
             >
               {l.label}
             </Link>

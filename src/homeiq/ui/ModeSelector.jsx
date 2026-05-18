@@ -1,4 +1,4 @@
-const MODES = [
+﻿const MODES = [
   {
     id: 'simple',
     label: 'Simple',
@@ -32,7 +32,7 @@ export default function ModeSelector({ mode, onChange }) {
             className={`flex-1 py-3 text-center transition-colors relative ${
               mode === m.id
                 ? 'text-emerald-400'
-                : 'text-zinc-600 hover:text-zinc-400'
+                : 'text-zinc-400 hover:text-zinc-400'
             }`}
           >
             <span className="text-xs uppercase tracking-widest font-mono font-bold">{m.label}</span>
@@ -49,7 +49,7 @@ export default function ModeSelector({ mode, onChange }) {
           <span className="text-[10px] uppercase tracking-widest text-emerald-400 border border-emerald-400/30 px-2 py-0.5 font-mono">
             {m.tag}
           </span>
-          <span className="text-xs text-zinc-500">{m.desc}</span>
+          <span className="text-xs text-zinc-400">{m.desc}</span>
         </div>
       ))}
     </div>

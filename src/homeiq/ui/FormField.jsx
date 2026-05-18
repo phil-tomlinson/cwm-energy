@@ -1,4 +1,4 @@
-import { displayArea, displayLength, inputArea, inputLength, areaUnit, lengthUnit } from '../../utils/units'
+﻿import { displayArea, displayLength, inputArea, inputLength, areaUnit, lengthUnit } from '../../utils/units'
 
 const inputClass = 'w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder-zinc-600'
 const selectClass = 'w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent'
@@ -16,7 +16,7 @@ export default function FormField({ label, hint, defaultNote, children, classNam
         )}
       </div>
       {children}
-      {hint && <p className="mt-1 text-xs text-zinc-500">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-zinc-400">{hint}</p>}
     </div>
   )
 }
@@ -52,7 +52,7 @@ export function NumberField({ label, hint, defaultNote, value, onChange, min, ma
           step={step}
           className={inputClass}
         />
-        {unit && <span className="text-sm text-zinc-500 whitespace-nowrap font-mono">{unit}</span>}
+        {unit && <span className="text-sm text-zinc-400 whitespace-nowrap font-mono">{unit}</span>}
       </div>
     </FormField>
   )

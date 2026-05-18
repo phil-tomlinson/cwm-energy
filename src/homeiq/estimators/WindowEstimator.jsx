@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 
 const WINDOW_TYPES = [
   { key: 'small',  label: 'Small',      desc: 'Bathroom, utility, basement', area: 0.5 },
@@ -59,7 +59,7 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
 
       {open && (
         <div className="mt-3 border border-zinc-600 bg-zinc-800 p-4">
-          <p className="text-xs text-zinc-500 mb-3 font-mono">
+          <p className="text-xs text-zinc-400 mb-3 font-mono">
             Count each window by approximate size. Areas include the frame.
           </p>
 
@@ -68,8 +68,8 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
             {WINDOW_TYPES.map(t => (
               <div key={t.key} className="text-center">
                 <div className="text-xs font-bold text-zinc-300">{t.label}</div>
-                <div className="text-xs text-zinc-500 font-mono">{t.area} m²</div>
-                <div className="text-xs text-zinc-600 italic hidden sm:block">{t.desc}</div>
+                <div className="text-xs text-zinc-400 font-mono">{t.area} m²</div>
+                <div className="text-xs text-zinc-400 italic hidden sm:block">{t.desc}</div>
               </div>
             ))}
           </div>
@@ -104,14 +104,14 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
                 Total: {estimated.toFixed(1)} m²
               </span>
               {estimated === 0 && (
-                <span className="text-xs text-zinc-600 ml-2">(enter counts above)</span>
+                <span className="text-xs text-zinc-400 ml-2">(enter counts above)</span>
               )}
             </div>
             <button
               type="button"
               onClick={handleApply}
               disabled={estimated === 0}
-              className="px-3 py-1.5 text-xs font-bold bg-emerald-400 text-zinc-950 hover:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 text-xs font-bold bg-emerald-400 text-zinc-950 hover:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors"
             >
               Use this estimate
             </button>

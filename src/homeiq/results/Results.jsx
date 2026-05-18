@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
@@ -10,10 +10,10 @@ function StatCard({ value, unit, label, sub }) {
   return (
     <div className="bg-zinc-800 border border-zinc-700 p-5 text-center">
       <p className="text-3xl font-black text-emerald-400 font-mono">
-        {value}<span className="text-lg font-normal text-zinc-500 ml-1">{unit}</span>
+        {value}<span className="text-lg font-normal text-zinc-400 ml-1">{unit}</span>
       </p>
       <p className="text-sm font-medium text-zinc-300 mt-1">{label}</p>
-      {sub && <p className="text-xs text-zinc-500 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-zinc-400 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -52,9 +52,9 @@ export default function Results({ results, onReset }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-mono mb-0.5">Analysis complete</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-0.5">Analysis complete</p>
           <h2 className="text-2xl font-black tracking-tight text-zinc-100">Your Results</h2>
-          <p className="text-sm text-zinc-500">{city}, {province} · {inputs.floorArea} m² {inputs.houseType}</p>
+          <p className="text-sm text-zinc-400">{city}, {province} · {inputs.floorArea} m² {inputs.houseType}</p>
         </div>
         <Button variant="outline" onClick={onReset}>← Start over</Button>
       </div>
@@ -174,7 +174,7 @@ export default function Results({ results, onReset }) {
       {/* Recommendations */}
       <div className="mb-4">
         <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest mb-1">Recommended upgrades</h3>
-        <p className="text-sm text-zinc-500 mb-4">
+        <p className="text-sm text-zinc-400 mb-4">
           Ranked by payback period — most cost-effective first. Mid-range Canadian cost estimates.
         </p>
         <RecommendationsList

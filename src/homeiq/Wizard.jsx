@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import ProgressBar from './ui/ProgressBar'
 import Button from './ui/Button'
@@ -143,8 +143,8 @@ export default function Wizard({ onComplete }) {
           className="text-xs border border-zinc-600 overflow-hidden flex"
           title="Switch unit system"
         >
-          <span className={`px-3 py-1.5 font-mono transition-colors ${data.units === 'metric' ? 'bg-emerald-400 text-zinc-950 font-bold' : 'bg-transparent text-zinc-500'}`}>m</span>
-          <span className={`px-3 py-1.5 font-mono transition-colors ${data.units === 'imperial' ? 'bg-emerald-400 text-zinc-950 font-bold' : 'bg-transparent text-zinc-500'}`}>ft</span>
+          <span className={`px-3 py-1.5 font-mono transition-colors ${data.units === 'metric' ? 'bg-emerald-400 text-zinc-950 font-bold' : 'bg-transparent text-zinc-400'}`}>m</span>
+          <span className={`px-3 py-1.5 font-mono transition-colors ${data.units === 'imperial' ? 'bg-emerald-400 text-zinc-950 font-bold' : 'bg-transparent text-zinc-400'}`}>ft</span>
         </button>
       </div>
 

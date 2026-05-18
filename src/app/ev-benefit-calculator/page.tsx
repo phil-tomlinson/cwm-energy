@@ -1,4 +1,4 @@
-import EVCalculatorTabs from '@/ev/EVCalculatorTabs'
+﻿import EVCalculatorTabs from '@/ev/EVCalculatorTabs'
 
 export const metadata = {
   title: 'EV Benefit Calculator — CWM Energy',
@@ -12,9 +12,9 @@ export default function EVBenefitCalculatorPage() {
       {/* Page header */}
       <div className="border-b border-zinc-800 bg-zinc-900 px-4 sm:px-6 py-4">
         <div className="max-w-5xl mx-auto">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-mono mb-0.5">Module 02</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-0.5">Module 02</p>
           <h1 className="text-lg font-black tracking-tight text-zinc-100">EV Benefit Calculator</h1>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Should you buy an EV? Let&apos;s actually look at the numbers.
           </p>
         </div>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -43,7 +43,7 @@ export default function AuthButton({ mobile = false }: { mobile?: boolean }) {
     ) : (
       <Link
         href="/auth/login"
-        className="text-[11px] uppercase tracking-widest text-zinc-500 hover:text-zinc-100 transition-colors"
+        className="text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-100 transition-colors"
       >
         Sign in
       </Link>
@@ -57,7 +57,7 @@ export default function AuthButton({ mobile = false }: { mobile?: boolean }) {
       <Link href="/account" className="text-xs uppercase tracking-widest text-emerald-400">
         {short}
       </Link>
-      <button onClick={signOut} className="text-xs uppercase tracking-widest text-zinc-500 text-left">
+      <button onClick={signOut} className="text-xs uppercase tracking-widest text-zinc-400 text-left">
         Sign out
       </button>
     </div>
@@ -71,7 +71,7 @@ export default function AuthButton({ mobile = false }: { mobile?: boolean }) {
       </Link>
       <button
         onClick={signOut}
-        className="text-[11px] uppercase tracking-widest text-zinc-600 hover:text-zinc-300 transition-colors"
+        className="text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-300 transition-colors"
       >
         Sign out
       </button>

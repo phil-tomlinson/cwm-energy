@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+﻿import { useEffect } from 'react'
 import { eraDefaults, exposedWallFactor } from '../../data/houseDefaults'
 import { buildEnvelopeFromDefaults } from '../../calculations/heatLoss'
 import Card, { CardSection } from '../ui/Card'
@@ -33,7 +33,7 @@ export default function Step3Envelope({ data, updateData }) {
   }, [data.era, data.houseType, data.floorArea, data.storeys, data.basementType])
 
   const env = data.envelope
-  if (!env) return <div className="text-zinc-500 text-sm p-4">Calculating defaults…</div>
+  if (!env) return <div className="text-zinc-400 text-sm p-4">Calculating defaults…</div>
 
   function update(field, value) {
     updateData({ envelope: { ...env, [field]: value } })
@@ -95,7 +95,7 @@ export default function Step3Envelope({ data, updateData }) {
   return (
     <div>
       <h2 className="text-xl font-bold text-zinc-100 mb-1">Building envelope</h2>
-      <p className="text-zinc-500 text-sm mb-2">
+      <p className="text-zinc-400 text-sm mb-2">
         We've pre-filled these values based on your home's age. Adjust anything you know for better accuracy.
       </p>
       <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-6">
@@ -307,7 +307,7 @@ export default function Step3Envelope({ data, updateData }) {
               <option value="gas_vented">Gas fireplace — vented (pilot light or non-sealed)</option>
               <option value="gas_sealed">Gas fireplace — sealed combustion</option>
             </select>
-            <p className="mt-1 text-xs text-zinc-500">Open or vented chimneys are a significant and often overlooked heat loss source.</p>
+            <p className="mt-1 text-xs text-zinc-400">Open or vented chimneys are a significant and often overlooked heat loss source.</p>
           </div>
 
           {/* Exposed rim joists */}
@@ -329,7 +329,7 @@ export default function Step3Envelope({ data, updateData }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-zinc-500">The band of framing between your foundation wall and first floor — spray foam here has excellent payback.</p>
+            <p className="mt-1 text-xs text-zinc-400">The band of framing between your foundation wall and first floor — spray foam here has excellent payback.</p>
           </div>
 
           {/* Recessed pot lights */}
@@ -351,7 +351,7 @@ export default function Step3Envelope({ data, updateData }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-zinc-500">Each uninsulated pot light is effectively a hole in your ceiling — they're sealed during attic insulation work.</p>
+            <p className="mt-1 text-xs text-zinc-400">Each uninsulated pot light is effectively a hole in your ceiling — they're sealed during attic insulation work.</p>
           </div>
         </CardSection>
       </Card>

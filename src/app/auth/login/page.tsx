@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useId } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -79,7 +79,7 @@ export default function LoginPage() {
               <span className="text-zinc-200 font-mono">{email.trim().toLowerCase()}</span>.
               Click it to sign in — no password needed.
             </p>
-            <p className="text-xs text-zinc-600 leading-relaxed">
+            <p className="text-xs text-zinc-400 leading-relaxed">
               Didn't receive it? Check your spam folder, or{' '}
               <button
                 className="text-emerald-400 underline hover:no-underline"
@@ -117,7 +117,7 @@ export default function LoginPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="border border-zinc-800 bg-zinc-900 p-6">
           <div className="mb-5">
-            <label htmlFor={id} className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+            <label htmlFor={id} className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
               Email address
             </label>
             <input
@@ -159,9 +159,9 @@ export default function LoginPage() {
             {phase === 'sending' ? 'Sending…' : 'Send magic link →'}
           </button>
 
-          <p className="mt-4 text-[11px] text-zinc-600 leading-relaxed text-center">
+          <p className="mt-4 text-[11px] text-zinc-400 leading-relaxed text-center">
             By signing in you agree to our{' '}
-            <Link href="/about" className="text-zinc-500 hover:text-zinc-300 underline">terms of use</Link>.
+            <Link href="/about" className="text-zinc-400 hover:text-zinc-300 underline">terms of use</Link>.
             We never share your email.
           </p>
         </form>

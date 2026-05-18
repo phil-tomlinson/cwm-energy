@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useRef, useCallback } from 'react'
 import { WEATHER_PROXY, CARBON_PROXY, maintTotal, fmt } from './evData'
 import DiveDeeper from '@/components/DiveDeeper'
@@ -160,21 +160,21 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
       {/* Year / Make / Model */}
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">Year</label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Year</label>
           <select value={year} onChange={e => onYr(e.target.value)} className={sc}>
             <option value="">Select</option>
             {yrs.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">Make</label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Make</label>
           <select value={make} onChange={e => onMk(e.target.value)} className={sc} disabled={!year || load === 'm'}>
             <option value="">{load === 'm' ? 'Loading…' : 'Select'}</option>
             {makes.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">Model</label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Model</label>
           <select value={mod} onChange={e => onMo(e.target.value)} className={sc} disabled={!make || load === 'mo'}>
             <option value="">{load === 'mo' ? 'Loading…' : 'Select'}</option>
             {mods.map(m => <option key={m} value={m}>{m}</option>)}
@@ -182,12 +182,12 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
         </div>
       </div>
 
-      {load === 'v' && <p className="text-xs text-zinc-500 font-mono mb-2">Loading variants…</p>}
+      {load === 'v' && <p className="text-xs text-zinc-400 font-mono mb-2">Loading variants…</p>}
 
       {/* Variant radio list */}
       {vars.length > 1 && (
         <div className="space-y-1 mb-3">
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">Variant</label>
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Variant</label>
           {vars.map((v, i) => {
             const lbl = [
               TYPE_LABEL[v.type] ?? v.type,
@@ -258,7 +258,7 @@ function VehicleInputPanel({
           {/* Price + starting mileage */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                 Purchase price ($CAD)
               </label>
               <input type="number" value={price} step={500} min={5000} max={300000}
@@ -266,7 +266,7 @@ function VehicleInputPanel({
                 className={ic} />
             </div>
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                 Starting mileage (km)
               </label>
               <input type="number" value={startKm} step={1000} min={0}
@@ -279,10 +279,10 @@ function VehicleInputPanel({
           {/* Used vehicle extras — shown only when starting mileage > 0 */}
           {startKm > 0 && (
             <div className="bg-zinc-950 border border-zinc-800 p-3 space-y-3">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
                 Already own this vehicle?
               </p>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
                 Your original purchase price is sunk — it no longer affects the decision.
                 What matters is the car's <span className="text-zinc-300">current resale value</span>: by keeping it
                 instead of selling it and buying the other vehicle, you're implicitly spending that amount.
@@ -290,28 +290,28 @@ function VehicleInputPanel({
 
               {/* Resale / opportunity cost */}
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                   Current resale value ($CAD)
                   <span className="normal-case opacity-60 ml-1">— opportunity cost</span>
                 </label>
                 <input type="number" value={resale} step={500} min={0} max={300000}
                   onChange={e => setResale(parseFloat(e.target.value) || 0)}
                   className={ic} />
-                <p className="text-[10px] text-zinc-600 mt-1 font-mono">
+                <p className="text-[10px] text-zinc-400 mt-1 font-mono">
                   Check Autotrader / Kijiji for a realistic estimate.
                 </p>
               </div>
 
               {/* Replacement cost */}
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                   Replacement vehicle cost ($CAD)
                   <span className="normal-case opacity-60 ml-1">— when this one reaches end of life</span>
                 </label>
                 <input type="number" value={replPrice} step={500} min={5000} max={300000}
                   onChange={e => setReplPrice(parseFloat(e.target.value) || 0)}
                   className={ic} />
-                <p className="text-[10px] text-zinc-600 mt-1 font-mono">
+                <p className="text-[10px] text-zinc-400 mt-1 font-mono">
                   Used vehicles reach end of life sooner — set what you'd spend on the next one.
                 </p>
               </div>
@@ -320,7 +320,7 @@ function VehicleInputPanel({
 
           {/* Lifespan */}
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
               Est. lifespan (km)
               <span className="normal-case opacity-60 ml-1">
                 {vehicle.type === 'ev'
@@ -336,7 +336,7 @@ function VehicleInputPanel({
           {/* Battery size (EVs / PHEVs) */}
           {(vehicle.type === 'ev' || vehicle.type === 'phev') && (
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                 Battery size (kWh)
                 <span className="normal-case opacity-60 ml-1">— for manufacturing CO₂ estimate</span>
               </label>
@@ -351,11 +351,11 @@ function VehicleInputPanel({
           {applyRebates && (
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                   Federal rebate ($)
                 </label>
                 {vehicle.type === 'ice' ? (
-                  <span className="text-zinc-600 font-mono text-sm">—</span>
+                  <span className="text-zinc-400 font-mono text-sm">—</span>
                 ) : (
                   <input type="number" value={fed} step={500} min={0} max={10000}
                     onChange={e => setFed(parseFloat(e.target.value) || 0)}
@@ -363,7 +363,7 @@ function VehicleInputPanel({
                 )}
               </div>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1.5">
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
                   Provincial rebate ($)
                 </label>
                 <input type="number" value={prov} step={500} min={0} max={15000}
@@ -375,13 +375,13 @@ function VehicleInputPanel({
 
           {/* Remaining life summary */}
           <div className="bg-zinc-950 border border-zinc-800 p-3">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">
               Remaining life estimate
             </p>
             <p className="font-mono text-lg font-semibold" style={{ color: accentColor }}>
               {fmt(remainingKm, 0)} km
             </p>
-            <p className="font-mono text-[11px] text-zinc-500 mt-0.5">
+            <p className="font-mono text-[11px] text-zinc-400 mt-0.5">
               ≈ {fmt(remainingYrs, 1)} years at {fmt(annualKm, 0)} km/yr
             </p>
           </div>
@@ -686,7 +686,7 @@ export default function EVCompare() {
 
         {/* City + run */}
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
             Your city
           </label>
           <div className="flex gap-2">
@@ -706,7 +706,7 @@ export default function EVCompare() {
             </button>
           </div>
           {(!vA || !vB) && (
-            <p className="text-[11px] text-zinc-600 mt-1.5">
+            <p className="text-[11px] text-zinc-400 mt-1.5">
               Select both vehicles below to enable the comparison.
             </p>
           )}
@@ -720,7 +720,7 @@ export default function EVCompare() {
             { label: 'Gas price',      unit: '$/L',     val: gasPrice,  set: setGasPrice,  step: 0.05,  min: 0.80,  max: 3.00   },
           ].map(({ label, unit, val, set, step, min, max }) => (
             <div key={label}>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
                 {label} <span className="normal-case opacity-70">({unit})</span>
               </label>
               <input
@@ -734,7 +734,7 @@ export default function EVCompare() {
 
         {/* Solar slider */}
         <div className="border-t border-zinc-700 pt-4">
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-2">
+          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
             Home solar <span className="normal-case opacity-70">(% from panels)</span>
           </label>
           <div className="flex items-center gap-3">
@@ -745,7 +745,7 @@ export default function EVCompare() {
               {solarPct}%
             </span>
           </div>
-          <p className="text-[11px] text-zinc-600 mt-1.5 leading-relaxed">
+          <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
             Solar charging is treated as 0 gCO₂e/kWh and $0/kWh.
           </p>
         </div>
@@ -763,7 +763,7 @@ export default function EVCompare() {
             </span>
           </label>
           {applyRebates && (
-            <p className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+            <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
               Federal amounts pre-filled per EVAP (BEV: $5,000 · PHEV: $2,500 · ICE: $0). Edit per your vehicle's eligibility.
               Verify at <a href="https://tc.gc.ca/ev" target="_blank" rel="noopener" className="text-emerald-400 hover:underline">tc.gc.ca/ev</a>.
             </p>
@@ -805,7 +805,7 @@ export default function EVCompare() {
 
       {/* Status */}
       {status === 'loading' && (
-        <div className="flex items-center gap-3 py-10 justify-center text-zinc-500 text-sm font-mono">
+        <div className="flex items-center gap-3 py-10 justify-center text-zinc-400 text-sm font-mono">
           <div className="w-5 h-5 border-2 border-zinc-600 border-t-emerald-400 rounded-full animate-spin" />
           Fetching grid data for {city}…
         </div>
@@ -844,7 +844,7 @@ export default function EVCompare() {
                     {r.solarPct > 0 && <span className="text-emerald-400">↗ {r.solarPct}% solar applied</span>}
                     {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
                   </div>
-                  <p className="text-[11px] text-zinc-600 font-mono">
+                  <p className="text-[11px] text-zinc-400 font-mono">
                     Grid intensity: {Math.round(r.grid)} gCO₂e/kWh
                     {r.solarPct > 0 && ` · EV effective: ${Math.round(r.effGrid)} gCO₂e/kWh`}
                     {' '}— <span className="italic">grams of CO₂ equivalent per kilowatt-hour of electricity used</span>
@@ -858,7 +858,7 @@ export default function EVCompare() {
             {/* ══ 01 — ECONOMICS ══ */}
             <SectionHeader num="01 — Economics" title="What does it cost to own and run each vehicle?" />
 
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mt-5 mb-2">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-5 mb-2">
               Annual fuel &amp; energy costs
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -891,7 +891,7 @@ export default function EVCompare() {
                         { k: '≈ years remaining',     val: `${fmt(remKm / annKm, 1)} yrs`, hi: false },
                       ].map(({ k, val, hi, sep }) => (
                         <div key={k} className={`flex justify-between items-baseline ${sep ? 'border-t border-zinc-800 pt-2 mt-2' : ''}`}>
-                          <span className="text-zinc-500">{k}</span>
+                          <span className="text-zinc-400">{k}</span>
                           <span className={`font-mono font-semibold ${hi ? 'text-emerald-400' : 'text-zinc-200'}`}>{val}</span>
                         </div>
                       ))}
@@ -904,11 +904,11 @@ export default function EVCompare() {
             {/* Annual savings callout (if types differ meaningfully) */}
             {(costA !== costB) && (
               <div className="border border-zinc-700 bg-zinc-800/40 p-4 mt-3">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1">Annual fuel difference</p>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">Annual fuel difference</p>
                 <p className="font-mono text-2xl font-semibold text-emerald-400">
                   ${fmt(Math.abs(costA - costB), 0)}/yr
                 </p>
-                <p className="text-xs text-zinc-500 mt-1">
+                <p className="text-xs text-zinc-400 mt-1">
                   {costA < costB
                     ? `${vehicleA.make} ${vehicleA.model} saves $${fmt(costB - costA, 0)} per year in fuel and energy costs.`
                     : `${vehicleB.make} ${vehicleB.model} saves $${fmt(costA - costB, 0)} per year in fuel and energy costs.`}
@@ -921,7 +921,7 @@ export default function EVCompare() {
               Total cost of ownership
             </p>
             <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative cost over 10 years</h3>
-            <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
+            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
               Purchase price + annual fuel + annual maintenance compound over time.
               When a vehicle reaches end of life, a replacement purchase is added — causing a visible step up in cost.
               {applyRebates && ' Rebates applied to each purchase.'}
@@ -933,10 +933,10 @@ export default function EVCompare() {
             {/* ══ 02 — EMISSIONS ══ */}
             <SectionHeader num="02 — Emissions" title="What's the carbon story?" />
 
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mt-5 mb-2">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-5 mb-2">
               Driving emissions on your grid
             </p>
-            <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
+            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
               Live carbon intensity for {r.cityName} ({Math.round(r.grid)} gCO₂e/kWh).
               EV emissions are entirely a function of your grid — Quebec and Alberta get very different answers.
             </p>
@@ -950,14 +950,14 @@ export default function EVCompare() {
                     <p className="text-sm font-bold text-zinc-100 mb-3 leading-snug">{v.make} {v.model}</p>
 
                     {/* Emissions bar */}
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">
                       Driving emissions
                     </p>
                     <p className="font-mono text-3xl font-semibold leading-none mb-0.5"
                       style={{ color: isLowest ? '#34d399' : '#e4e4e7' }}>
                       {fmt(co2km * 1000, 1)}
                     </p>
-                    <p className="font-mono text-[11px] text-zinc-500 mb-3">gCO₂e / km</p>
+                    <p className="font-mono text-[11px] text-zinc-400 mb-3">gCO₂e / km</p>
 
                     <div className="space-y-2 text-xs border-t border-zinc-800 pt-3">
                       {[
@@ -966,7 +966,7 @@ export default function EVCompare() {
                         ...(mfg.battery > 0 ? [{ k: '↳ of which battery', val: `${fmt(mfg.battery / 1000, 1)} t` }] : []),
                       ].map(({ k, val }) => (
                         <div key={k} className="flex justify-between items-baseline">
-                          <span className="text-zinc-500">{k}</span>
+                          <span className="text-zinc-400">{k}</span>
                           <span className="font-mono text-zinc-300">{val}</span>
                         </div>
                       ))}
@@ -979,10 +979,10 @@ export default function EVCompare() {
             {/* Carbon breakeven */}
             {breakevenKm !== null && (
               <div className="mt-5 border border-zinc-700 bg-zinc-800/40 p-4">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-1">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">
                   When does the EV become better for the planet?
                 </p>
-                <p className="text-xs text-zinc-500 mb-3 leading-relaxed">
+                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
                   Building a battery takes energy, so an EV starts with a higher carbon footprint than a gas car.
                   Every kilometre driven on cleaner electricity chips away at that gap.
                   The distance below is when the EV comes out ahead, lifetime total.
@@ -1000,7 +1000,7 @@ export default function EVCompare() {
                     <p className="font-mono text-2xl font-semibold text-emerald-400">
                       {fmt(Math.round(breakevenKm / 1000) * 1000, 0)}
                     </p>
-                    <p className="font-mono text-[11px] text-zinc-500 mb-2">km to carbon breakeven</p>
+                    <p className="font-mono text-[11px] text-zinc-400 mb-2">km to carbon breakeven</p>
                     <div className="bg-emerald-400/10 border border-emerald-400/20 p-3 text-xs text-zinc-400 leading-relaxed">
                       At <span className="text-emerald-400 font-semibold">{fmt(annKm, 0)} km/yr</span> →{' '}
                       <span className="text-emerald-400 font-semibold">{fmt(breakevenKm / annKm, 1)} years</span>{' '}
@@ -1028,7 +1028,7 @@ export default function EVCompare() {
               Lifetime emissions
             </p>
             <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative CO₂e over 10 years</h3>
-            <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
+            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
               Manufacturing carbon (at purchase) + driving emissions accumulate year by year.
               Where a lower-emission vehicle's line crosses below the other is the carbon breakeven point.
             </p>
@@ -1038,7 +1038,7 @@ export default function EVCompare() {
 
             {/* Lifespan data sources */}
             <DiveDeeper label="Where do the lifespan defaults come from?">
-              <ul className="text-[11px] text-zinc-500 space-y-2 leading-relaxed">
+              <ul className="text-[11px] text-zinc-400 space-y-2 leading-relaxed">
                 <li>
                   <span className="text-zinc-300 font-semibold">Gas / Hybrid ({fmt(LIFESPAN_KM.ice, 0)} km):</span>{' '}
                   S&P Global Mobility 2025 reports an average U.S. scrappage age of 12.8 years; at ~24,000 km/yr that's ~306,000 km.
@@ -1060,7 +1060,7 @@ export default function EVCompare() {
                   If you know your EV uses LFP, raise the lifespan slider to 500k–800k km.
                 </li>
               </ul>
-              <p className="text-[10px] text-zinc-600 mt-2 pt-2 border-t border-zinc-800">
+              <p className="text-[10px] text-zinc-400 mt-2 pt-2 border-t border-zinc-800">
                 All lifespan values are editable in the inputs above.
                 EV motors and inverters typically outlast the battery; a battery swap can extend the effective lifespan significantly.
               </p>

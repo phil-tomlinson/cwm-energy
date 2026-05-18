@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
@@ -67,7 +67,7 @@ export default function SaveToPlanBanner({
             </p>
           </div>
           {!authed && (
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-zinc-400">
               <Link href="/auth/login" className="text-emerald-400 hover:underline">
                 Sign in
               </Link>
@@ -92,7 +92,7 @@ export default function SaveToPlanBanner({
         <p className="text-xs text-red-400">Couldn't save — try again.</p>
         <button
           onClick={() => setPhase('idle')}
-          className="text-xs font-mono text-zinc-500 hover:text-zinc-300"
+          className="text-xs font-mono text-zinc-400 hover:text-zinc-300"
         >
           Dismiss
         </button>
@@ -107,7 +107,7 @@ export default function SaveToPlanBanner({
         <p className="text-xs font-semibold text-zinc-200">
           Happy with this comparison? Save it to your carbon reduction plan.
         </p>
-        <p className="text-[11px] text-zinc-500 mt-0.5">
+        <p className="text-[11px] text-zinc-400 mt-0.5">
           Combines with your home energy analysis for a single prioritised action list.
           {authed ? ' Saved to your account.' : ' Saved locally — sign in to sync across devices.'}
         </p>

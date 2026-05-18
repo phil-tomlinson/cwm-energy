@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import EVCalculator from './EVCalculator'
 import EVCompare    from './EVCompare'
@@ -28,7 +28,7 @@ export default function EVCalculatorTabs() {
 
         {/* "Choose a mode" label */}
         <div className="px-6 sm:px-8 mb-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-600 mb-2">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-400 mb-2">
             Select a tool
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function EVCalculatorTabs() {
                   transition-colors duration-150
                   ${active
                     ? 'bg-zinc-800 text-zinc-100'
-                    : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-300'}
+                    : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-300'}
                 `}
               >
                 {/* Top accent bar — only on active */}
@@ -59,7 +59,7 @@ export default function EVCalculatorTabs() {
                   <span className="text-sm font-bold tracking-tight leading-tight">{tab.label}</span>
                 </div>
 
-                <p className={`text-[10px] font-mono mt-1.5 ml-3.5 leading-relaxed ${active ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                <p className={`text-[10px] font-mono mt-1.5 ml-3.5 leading-relaxed ${active ? 'text-zinc-400' : 'text-zinc-400'}`}>
                   {tab.sub}
                 </p>
               </button>

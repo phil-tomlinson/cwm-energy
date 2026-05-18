@@ -1,4 +1,4 @@
-import { waterHeaterTypes } from '../../calculations/waterHeater'
+﻿import { waterHeaterTypes } from '../../calculations/waterHeater'
 import { getFuelCostPerGJ } from '../../data/energyPrices'
 import Card, { CardSection } from '../ui/Card'
 import { SelectField, NumberField } from '../ui/FormField'
@@ -22,7 +22,7 @@ export default function Step5WaterHeater({ data, updateData }) {
   return (
     <div>
       <h2 className="text-xl font-bold text-zinc-100 mb-1">Water heater</h2>
-      <p className="text-zinc-500 text-sm mb-6">
+      <p className="text-zinc-400 text-sm mb-6">
         Water heating is typically the second-largest energy use in a Canadian home after space heating.
       </p>
 

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 
 /**
@@ -17,7 +17,7 @@ export default function DiveDeeper({ label = 'Dive deeper', children }) {
       <button
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
-        className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-500 hover:text-emerald-400 transition-colors"
+        className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-400 hover:text-emerald-400 transition-colors"
       >
         {/* chevron */}
         <svg

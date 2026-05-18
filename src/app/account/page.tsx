@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
@@ -15,7 +15,7 @@ async function DeleteButton({ id }: { id: string }) {
   }
   return (
     <form action={del}>
-      <button className="text-[10px] font-mono uppercase tracking-widest text-zinc-600 hover:text-red-400 transition-colors">
+      <button className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 hover:text-red-400 transition-colors">
         Delete
       </button>
     </form>
@@ -28,7 +28,7 @@ export default async function AccountPage() {
   if (!supabase) {
     return (
       <div className="bg-zinc-950 min-h-screen flex items-center justify-center">
-        <p className="text-zinc-500 font-mono text-sm">Auth service not configured.</p>
+        <p className="text-zinc-400 font-mono text-sm">Auth service not configured.</p>
       </div>
     )
   }
@@ -61,11 +61,11 @@ export default async function AccountPage() {
       <div className="border-b border-zinc-800 bg-zinc-900 px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500 mb-0.5">Account</p>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5">Account</p>
             <h1 className="text-base font-black text-zinc-100 tracking-tight">{user.email}</h1>
           </div>
           <form action={signOut}>
-            <button className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 hover:text-zinc-200 transition-colors border border-zinc-700 px-3 py-1.5">
+            <button className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 hover:text-zinc-200 transition-colors border border-zinc-700 px-3 py-1.5">
               Sign out
             </button>
           </form>
@@ -79,7 +79,7 @@ export default async function AccountPage() {
           <div>
             <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Ready to act?</p>
             <p className="text-sm font-bold text-zinc-200">Build your carbon reduction plan</p>
-            <p className="text-xs text-zinc-500 mt-1">Cross-module prioritised actions — ranked by payback or emissions impact.</p>
+            <p className="text-xs text-zinc-400 mt-1">Cross-module prioritised actions — ranked by payback or emissions impact.</p>
           </div>
           <Link
             href="/plan"
@@ -96,14 +96,14 @@ export default async function AccountPage() {
         ].map(({ label, rows, href, module }) => (
           <section key={module}>
             <div className="flex items-center justify-between mb-4">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-500">{label}</p>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">{label}</p>
               <Link href={href} className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 hover:underline">
                 Run calculator →
               </Link>
             </div>
 
             {rows.length === 0 ? (
-              <div className="border border-zinc-800 bg-zinc-900 p-5 text-xs text-zinc-600">
+              <div className="border border-zinc-800 bg-zinc-900 p-5 text-xs text-zinc-400">
                 No saved results yet.{' '}
                 <Link href={href} className="text-emerald-400 hover:underline">Run the {label.toLowerCase()} calculator</Link> and save your results.
               </div>
@@ -113,7 +113,7 @@ export default async function AccountPage() {
                   <div key={row.id} className="border border-zinc-800 bg-zinc-900 px-4 py-3 flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-zinc-200">{row.label}</p>
-                      <p className="font-mono text-[10px] text-zinc-600 mt-0.5">{fmt(row.created_at)}</p>
+                      <p className="font-mono text-[10px] text-zinc-400 mt-0.5">{fmt(row.created_at)}</p>
                     </div>
                     <DeleteButton id={row.id} />
                   </div>

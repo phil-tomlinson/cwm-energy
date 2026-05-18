@@ -1,4 +1,4 @@
-import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
+﻿import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import Card from '../ui/Card'
 import { SelectField } from '../ui/FormField'
 
@@ -21,7 +21,7 @@ export default function Step1Location({ data, updateData }) {
   return (
     <div>
       <h2 className="text-xl font-bold text-zinc-100 mb-1">Where is your home?</h2>
-      <p className="text-zinc-500 text-sm mb-6">
+      <p className="text-zinc-400 text-sm mb-6">
         Your location determines outdoor temperatures and heating degree days — the foundation of all energy calculations.
       </p>
 
@@ -47,15 +47,15 @@ export default function Step1Location({ data, updateData }) {
             <div className="grid grid-cols-3 gap-3 text-center">
               <div>
                 <p className="text-lg font-bold text-emerald-400">{climate.hdd.toLocaleString()}</p>
-                <p className="text-xs text-zinc-500">Degree days<br />(HDD base 18°C)</p>
+                <p className="text-xs text-zinc-400">Degree days<br />(HDD base 18°C)</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-emerald-400">{climate.designTemp}°C</p>
-                <p className="text-xs text-zinc-500">Design outdoor<br />temperature</p>
+                <p className="text-xs text-zinc-400">Design outdoor<br />temperature</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-emerald-400">{climate.coldWaterTemp}°C</p>
-                <p className="text-xs text-zinc-500">Cold water<br />inlet temp</p>
+                <p className="text-xs text-zinc-400">Cold water<br />inlet temp</p>
               </div>
             </div>
           </div>

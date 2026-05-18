@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import { houseTypes, storeyOptions, constructionEras } from '../../data/houseDefaults'
 import { fuelTypes, heatingSystemTypes, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
@@ -72,7 +72,7 @@ export default function SimpleMode({ data, updateData }) {
 
       {/* Row 1: Province + City */}
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-3">Location</p>
+        <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-3">Location</p>
         <div className="grid grid-cols-2 gap-4">
           <SelectField
             label="Province"
@@ -91,7 +91,7 @@ export default function SimpleMode({ data, updateData }) {
 
       {/* Row 2: House type + Storeys */}
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-3">Your home</p>
+        <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-3">Your home</p>
         <div className="grid grid-cols-2 gap-4">
           <SelectField
             label="House type"
@@ -133,7 +133,7 @@ export default function SimpleMode({ data, updateData }) {
               }`}
             >
               <div className="text-xs font-bold">{p.label}</div>
-              <div className="text-[10px] text-zinc-600 font-mono">{p.sub}</div>
+              <div className="text-[10px] text-zinc-400 font-mono">{p.sub}</div>
             </button>
           ))}
         </div>
@@ -166,24 +166,24 @@ export default function SimpleMode({ data, updateData }) {
       {/* Climate summary */}
       {data.climate && (
         <div className="border border-zinc-700 bg-zinc-800/50 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono mb-3">
+          <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-3">
             Climate — {data.city}, {data.province}
           </p>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
               <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.hdd.toLocaleString()}</p>
               <p className="text-[10px] text-zinc-400 font-medium">{hddLabel(data.climate.hdd)}</p>
-              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">HDD base 18°C</p>
+              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">HDD base 18°C</p>
             </div>
             <div>
               <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.designTemp}°C</p>
               <p className="text-[10px] text-zinc-400 font-medium">{designTempLabel(data.climate.designTemp)}</p>
-              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Design temp</p>
+              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Design temp</p>
             </div>
             <div>
               <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.coldWaterTemp}°C</p>
               <p className="text-[10px] text-zinc-400 font-medium leading-tight">{coldWaterLabel(data.climate.coldWaterTemp)}</p>
-              <p className="text-[10px] text-zinc-600 font-mono mt-0.5">Cold water</p>
+              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Cold water</p>
             </div>
           </div>
 
@@ -208,7 +208,7 @@ export default function SimpleMode({ data, updateData }) {
         </div>
       )}
 
-      <p className="text-xs text-zinc-600 font-mono">
+      <p className="text-xs text-zinc-400 font-mono">
         Results will use era-typical insulation values. Switch to Refined for better accuracy.
       </p>
     </div>
