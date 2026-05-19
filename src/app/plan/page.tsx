@@ -116,7 +116,7 @@ function generatePlan(homeiqData: any, evData: any): PlanAction[] {
         }
       }
 
-    // ── Case-study mode (Ioniq 5 / Mach-E vs RAV4) ───────────────────────
+    // ── Case-study mode (Ioniq 5 / Mach-E vs CR-V) ───────────────────────
     } else {
       const { annualCosts, c2km, prices, annualKm, grid, cityName } = evData
 
@@ -126,13 +126,13 @@ function generatePlan(homeiqData: any, evData: any): PlanAction[] {
         const bestCost   = annualCosts[bestEVid]
         const bestCO2km  = c2km[bestEVid]
 
-        const annFuelSaving  = (annualCosts.rav4 ?? 0) - bestCost
-        const annMaintSaving = (maintTotal('rav4', annualKm * 10) - maintTotal(bestEVid, annualKm * 10)) / 10
+        const annFuelSaving  = (annualCosts.crv ?? 0) - bestCost
+        const annMaintSaving = (maintTotal('crv', annualKm * 10) - maintTotal(bestEVid, annualKm * 10)) / 10
         const annTotalSaving = annFuelSaving + annMaintSaving
-        const annCO2Saved    = ((c2km.rav4 ?? 0) - bestCO2km) * annualKm / 1000  // tonnes/yr
+        const annCO2Saved    = ((c2km.crv ?? 0) - bestCO2km) * annualKm / 1000  // tonnes/yr
 
-        // Price premium over RAV4 (what you pay extra vs just buying the gas car)
-        const pricePremium = (prices[bestEVid] ?? 0) - (prices.rav4 ?? 0)
+        // Price premium over CR-V (what you pay extra vs just buying the gas car)
+        const pricePremium = (prices[bestEVid] ?? 0) - (prices.crv ?? 0)
         const payback      = pricePremium > 0 && annTotalSaving > 0
           ? pricePremium / annTotalSaving
           : Infinity
@@ -142,7 +142,7 @@ function generatePlan(homeiqData: any, evData: any): PlanAction[] {
             id:               'ev_switch',
             category:         'transport',
             title:            `When replacing your vehicle, choose a ${bestEV.name}`,
-            description:      `At ${cityName ?? 'your location'}'s grid intensity (${Math.round(grid ?? 0)} gCO₂e/kWh), the ${bestEV.name} emits ${(bestCO2km * 1000).toFixed(0)} g CO₂e/km — versus ~${((c2km.rav4 ?? 0.243) * 1000).toFixed(0)} g/km for the RAV4. Fuel and maintenance savings add up to $${Math.round(annTotalSaving).toLocaleString('en-CA')}/year. The ${bestEV.sub.includes('LFP') ? 'LFP battery has lower manufacturing emissions and no cobalt or nickel' : 'NMC battery offers longer range but a higher manufacturing footprint'}.`,
+            description:      `At ${cityName ?? 'your location'}'s grid intensity (${Math.round(grid ?? 0)} gCO₂e/kWh), the ${bestEV.name} emits ${(bestCO2km * 1000).toFixed(0)} g CO₂e/km — versus ~${((c2km.crv ?? 0.194) * 1000).toFixed(0)} g/km for the CR-V. Fuel and maintenance savings add up to $${Math.round(annTotalSaving).toLocaleString('en-CA')}/year. The ${bestEV.sub.includes('LFP') ? 'LFP battery has lower manufacturing emissions and no cobalt or nickel' : 'NMC battery offers longer range but a higher manufacturing footprint'}.`,
             estimatedCostCAD: Math.max(0, pricePremium),
             annualSavingsCAD: annTotalSaving,
             co2SavedTonnes:   Math.max(0, annCO2Saved),

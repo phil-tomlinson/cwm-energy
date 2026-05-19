@@ -7,7 +7,7 @@ const TABS = [
   {
     id:    'case-study' as const,
     label: 'Case Study',
-    sub:   'Pre-loaded: Ioniq 5 · Mach-E · RAV4 · RAV4 Hybrid',
+    sub:   'Pre-loaded: Ioniq 5 · Mach-E · CR-V · RAV4 Hybrid Limited',
     desc:  'Explore curated EV vs. gas comparisons with real Canadian cost data.',
   },
   {

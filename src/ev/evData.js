@@ -1,4 +1,4 @@
-// ── Vehicle definitions ───────────────────────────────────────────────────
+﻿// ── Vehicle definitions ───────────────────────────────────────────────────
 // Sources: NRCan Fuel Consumption Ratings, GREET 2023 (Argonne National Lab)
 export const VEHICLES = {
   ioniq5: {
@@ -29,14 +29,14 @@ export const VEHICLES = {
     color:                '#f87171',  // red-400
     colorMuted:           'rgba(248,113,113,0.15)',
   },
-  rav4: {
-    id:                   'rav4',
-    name:                 'Toyota RAV4',
-    sub:                  '2.5L AWD Gas',
+  crv: {
+    id:                   'crv',
+    name:                 'Honda CR-V',
+    sub:                  'Sport AWD · 1.5T Gas',
     type:                 'ice',
     batteryKwh:           null,
     effKwh100km:          null,
-    fuelL100km:           8.5,    // NRCan combined AWD 2.5L (2023–2025 consistent)
+    fuelL100km:           8.4,    // NRCan combined AWD 1.5T (2026 Sport AWD)
     co2PerFuelL:          2.31,   // kg CO₂e/L gasoline (IPCC AR5)
     mfgKgCO2e:            8500,   // GREET 2023 mid-size ICE SUV
     batteryMfgKgCO2e:     0,
@@ -46,7 +46,7 @@ export const VEHICLES = {
   rav4h: {
     id:                   'rav4h',
     name:                 'Toyota RAV4 Hybrid',
-    sub:                  'NiMH Hybrid · AWD',
+    sub:                  'Limited AWD · NiMH Hybrid',
     type:                 'hybrid',
     batteryKwh:           null,
     effKwh100km:          null,
@@ -59,7 +59,7 @@ export const VEHICLES = {
   },
 }
 
-export const VEHICLE_ORDER = ['ioniq5', 'macheelfp', 'rav4', 'rav4h']
+export const VEHICLE_ORDER = ['ioniq5', 'macheelfp', 'crv', 'rav4h']
 
 // ── Service schedule ─────────────────────────────────────────────────────
 // Sources: CAA 2023 Driving Costs, Consumer Reports, manufacturer service manuals.
@@ -70,7 +70,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 8000,   cost: 85  },
+      crv:      { intervalKm: 8000,   cost: 85  },
       rav4h:     { intervalKm: 8000,   cost: 85  },
     },
   },
@@ -79,7 +79,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 150000, cost: 650 },
+      crv:      { intervalKm: 150000, cost: 650 },
       rav4h:     { intervalKm: 150000, cost: 650 },
     },
   },
@@ -88,7 +88,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 120000, cost: 220 },
+      crv:      { intervalKm: 120000, cost: 220 },
       rav4h:     { intervalKm: 120000, cost: 230 },
     },
   },
@@ -97,7 +97,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 30000,  cost: 45  },
+      crv:      { intervalKm: 30000,  cost: 45  },
       rav4h:     { intervalKm: 30000,  cost: 45  },
     },
   },
@@ -106,7 +106,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    { intervalKm: 20000, cost: 35 },
       macheelfp: { intervalKm: 20000, cost: 35 },
-      rav4:      { intervalKm: 20000, cost: 35 },
+      crv:      { intervalKm: 20000, cost: 35 },
       rav4h:     { intervalKm: 20000, cost: 35 },
     },
   },
@@ -115,7 +115,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    { intervalKm: 40000, cost: 65 },
       macheelfp: { intervalKm: 40000, cost: 65 },
-      rav4:      { intervalKm: 40000, cost: 65 },
+      crv:      { intervalKm: 40000, cost: 65 },
       rav4h:     { intervalKm: 60000, cost: 65 }, // less pedal use in hybrid
     },
   },
@@ -124,7 +124,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    { intervalKm: 100000, cost: 150 }, // EV heat pump + battery cooling
       macheelfp: { intervalKm: 100000, cost: 150 },
-      rav4:      { intervalKm: 80000,  cost: 130 },
+      crv:      { intervalKm: 80000,  cost: 130 },
       rav4h:     { intervalKm: 100000, cost: 130 },
     },
   },
@@ -133,7 +133,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 80000, cost: 180 },
+      crv:      { intervalKm: 60000, cost: 180 },
       rav4h:     null,  // Toyota sealed eCVT
     },
   },
@@ -142,16 +142,16 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 60000, cost: 120 },
+      crv:      { intervalKm: 60000, cost: 120 },
       rav4h:     { intervalKm: 60000, cost: 120 },
     },
   },
   {
-    name: 'Transfer case fluid', note: 'AWD · not applicable to EV architecture',
+    name: 'Transfer case fluid', note: 'AWD · EV + CR-V AWD coupling has no transfer case',
     vehicles: {
       ioniq5:    null,
       macheelfp: null,
-      rav4:      { intervalKm: 60000, cost: 90 },
+      crv:      null,  // no traditional transfer case on CR-V AWD,
       rav4h:     { intervalKm: 60000, cost: 90 },
     },
   },
@@ -160,7 +160,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    { intervalKm: 10000, cost: 30 },
       macheelfp: { intervalKm: 10000, cost: 30 },
-      rav4:      { intervalKm: 10000, cost: 30 },
+      crv:      { intervalKm: 10000, cost: 30 },
       rav4h:     { intervalKm: 10000, cost: 30 },
     },
   },
@@ -169,7 +169,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    { intervalKm: 40000, cost: 45 },
       macheelfp: { intervalKm: 40000, cost: 45 },
-      rav4:      { intervalKm: 40000, cost: 45 },
+      crv:      { intervalKm: 40000, cost: 45 },
       rav4h:     { intervalKm: 40000, cost: 45 },
     },
   },
@@ -178,7 +178,7 @@ export const SERVICE_ITEMS = [
     vehicles: {
       ioniq5:    { intervalKm: 150000, cost: 600 }, // regen does ~70% of braking
       macheelfp: { intervalKm: 150000, cost: 600 },
-      rav4:      { intervalKm: 80000,  cost: 700 },
+      crv:      { intervalKm: 80000,  cost: 700 },
       rav4h:     { intervalKm: 100000, cost: 700 }, // partial regen benefit
     },
   },

@@ -24,7 +24,7 @@ const CO2_PER_FUEL_L     = 2.31      // kg CO₂e/L gasoline (IPCC AR5)
 
 // Canada EV Affordability Program (EVAP, effective Feb 2026)
 // Replaces iZEV. Non-Canadian-made vehicles: $50k transaction value cap.
-const FEDERAL_REBATE_DEFAULT = { ioniq5: 5000, macheelfp: 5000, rav4: 0, rav4h: 0, custom: 0 }
+const FEDERAL_REBATE_DEFAULT = { ioniq5: 5000, macheelfp: 5000, crv: 0, rav4h: 0, custom: 0 }
 
 // Estimate manufacturing CO₂ for a custom vehicle
 function estimateMfgCO2(type, batteryKwh) {
@@ -161,7 +161,7 @@ function MaintTable({ activeVids, allVehicles, annualKm }) {
   const maintProxy = vid => {
     if (vid !== 'custom') return vid
     const t = allVehicles.custom?.type
-    return t === 'ev' ? 'ioniq5' : t === 'hybrid' ? 'rav4h' : 'rav4'
+    return t === 'ev' ? 'ioniq5' : t === 'hybrid' ? 'rav4h' : 'crv'
   }
 
   return (
@@ -533,12 +533,12 @@ export default function EVCalculator() {
   const [elecPrice,  setElecPrice]  = useState(0.134)
   const [gasPrice,   setGasPrice]   = useState(1.50)
   const [solarPct,   setSolarPct]   = useState(0)
-  const [prices,     setPrices]     = useState({ ioniq5: 59000, macheelfp: 52000, rav4: 37000, rav4h: 43000 })
+  const [prices,     setPrices]     = useState({ ioniq5: 59000, macheelfp: 52000, crv: 43375, rav4h: 47525 })
 
   // ── Rebates ─────────────────────────────────────────────────────────────
   const [applyRebates,     setApplyRebates]     = useState(false)
   const [federalRebates,   setFederalRebates]   = useState({ ...FEDERAL_REBATE_DEFAULT })
-  const [provincialRebates, setProvincialRebates] = useState({ ioniq5: 0, macheelfp: 0, rav4: 0, rav4h: 0, custom: 0 })
+  const [provincialRebates, setProvincialRebates] = useState({ ioniq5: 0, macheelfp: 0, crv: 0, rav4h: 0, custom: 0 })
 
   // ── Custom vehicle ───────────────────────────────────────────────────────
   const [customVehicle,  setCustomVehicle]  = useState(null)
@@ -576,7 +576,7 @@ export default function EVCalculator() {
   const maintProxy = vid => {
     if (vid !== 'custom') return vid
     const t = customVehicle?.type
-    return t === 'ev' ? 'ioniq5' : t === 'hybrid' ? 'rav4h' : 'rav4'
+    return t === 'ev' ? 'ioniq5' : t === 'hybrid' ? 'rav4h' : 'crv'
   }
 
   // ── Destroy charts ────────────────────────────────────────────────────────
@@ -617,14 +617,14 @@ export default function EVCalculator() {
         : (v.fuelL100km * CO2_PER_FUEL_L) / 100
     }
 
-    // RAV4 is always the baseline for emissions comparisons
-    const rav4C2km = (grid * VEHICLES.rav4.fuelL100km * CO2_PER_FUEL_L) / 100 / 100000  // slightly different form
+    // crv is always the baseline for emissions comparisons
+    const crvC2km = (grid * VEHICLES.crv.fuelL100km * CO2_PER_FUEL_L) / 100 / 100000  // slightly different form
     const getC2km = (vid) => {
       const v = allVeh[vid]
       if (v.type === 'ev' || v.type === 'phev') return (effectiveGrid * v.effKwh100km) / 100000
       return (v.fuelL100km * CO2_PER_FUEL_L) / 100
     }
-    const rav4CO2km = getC2km('rav4')
+    const crvCO2km = getC2km('crv')
 
     const zonePlugin = (aboveLabel, belowLabel, refColor) => ({
       id: 'zonePlugin',
@@ -638,7 +638,7 @@ export default function EVCalculator() {
         ctx.fillRect(x.left, y.top, x.right - x.left, y100 - y.top)
         ctx.font = `600 10px ${FONT}`; ctx.fillStyle = refColor
         ctx.textAlign = 'left'
-        ctx.fillText('100% — RAV4 Gas baseline', x.left + 6, y100 - 6)
+        ctx.fillText('100% — crv Gas baseline', x.left + 6, y100 - 6)
         ctx.font = `500 9px ${FONT}`
         ctx.fillStyle = 'rgba(251,146,60,0.6)'; ctx.textAlign = 'right'
         ctx.fillText(aboveLabel, x.right - 6, y.top + 14)
@@ -649,14 +649,14 @@ export default function EVCalculator() {
     })
 
     // ── 1. Lifetime emissions chart ─────────────────────────────────────
-    const rav4Tonnes = Array.from({ length: maxYears + 1 }, (_, yr) =>
-      (VEHICLES.rav4.mfgKgCO2e + rav4CO2km * yr * annKm) / 1000
+    const crvTonnes = Array.from({ length: maxYears + 1 }, (_, yr) =>
+      (VEHICLES.crv.mfgKgCO2e + crvCO2km * yr * annKm) / 1000
     )
     const lifetimePct = (vid) => {
       const co2 = getC2km(vid)
       return Array.from({ length: maxYears + 1 }, (_, yr) => {
         const km   = yr * annKm
-        const base = VEHICLES.rav4.mfgKgCO2e + rav4CO2km * km
+        const base = VEHICLES.crv.mfgKgCO2e + crvCO2km * km
         return ((allVeh[vid].mfgKgCO2e + co2 * km) / Math.max(base, 1)) * 100
       })
     }
@@ -664,14 +664,14 @@ export default function EVCalculator() {
     if (chartLifetimeRef.current) {
       chartInstances.current.lifetime = new Chart(chartLifetimeRef.current, {
         type: 'line',
-        plugins: [zonePlugin('above baseline (more CO₂ than gas car so far)', 'below baseline (less CO₂ than gas car so far)', VEHICLES.rav4.color)],
+        plugins: [zonePlugin('above baseline (more CO₂ than gas car so far)', 'below baseline (less CO₂ than gas car so far)', VEHICLES.crv.color)],
         data: {
           labels: years,
           datasets: vids.map(vid => ({
-            label:       allVeh[vid].name + (vid === 'rav4' ? ' (100% baseline)' : ''),
-            data:        vid === 'rav4' ? years.map(() => 100) : lifetimePct(vid),
+            label:       allVeh[vid].name + (vid === 'crv' ? ' (100% baseline)' : ''),
+            data:        vid === 'crv' ? years.map(() => 100) : lifetimePct(vid),
             borderColor: allVeh[vid].color,
-            borderWidth: vid === 'rav4' ? 3 : 2.5,
+            borderWidth: vid === 'crv' ? 3 : 2.5,
             borderDash:  vid === 'rav4h' ? [5, 3] : [],
             pointRadius: 0, fill: false, tension: 0.08,
           })),
@@ -690,9 +690,9 @@ export default function EVCalculator() {
                 },
                 label: ctx => {
                   const yr    = ctx.dataIndex
-                  const gasT  = rav4Tonnes[yr]
+                  const gasT  = crvTonnes[yr]
                   const evT   = (ctx.parsed.y / 100) * gasT
-                  if (ctx.dataset.label?.includes('baseline')) return ` RAV4 Gas: ${fmt(gasT, 1)} t CO₂e (baseline)`
+                  if (ctx.dataset.label?.includes('baseline')) return ` crv Gas: ${fmt(gasT, 1)} t CO₂e (baseline)`
                   const saving = gasT - evT
                   return ` ${ctx.dataset.label}: ${fmt(evT, 1)} t — ${saving >= 0 ? 'saves' : 'owes'} ${fmt(Math.abs(saving), 1)} t vs gas`
                 },
@@ -701,7 +701,7 @@ export default function EVCalculator() {
           },
           scales: {
             x: { ...baseScales.x, title: { display: true, text: 'years of ownership', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
-            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of RAV4 Gas cumulative CO₂e', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
+            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of crv Gas cumulative CO₂e', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
           },
         },
       })
@@ -718,21 +718,21 @@ export default function EVCalculator() {
       )
     }
 
-    const rav4Raw  = cumCostData('rav4')
+    const crvRaw  = cumCostData('crv')
     const allRaw   = Object.fromEntries(vids.map(vid => [vid, cumCostData(vid)]))
-    const toPct    = raw => raw.map((v, i) => (v / Math.max(rav4Raw[i], 1)) * 100)
+    const toPct    = raw => raw.map((v, i) => (v / Math.max(crvRaw[i], 1)) * 100)
 
     if (chartTCORef.current) {
       chartInstances.current.tco = new Chart(chartTCORef.current, {
         type: 'line',
-        plugins: [zonePlugin('above baseline (higher total cost than gas car so far)', 'below baseline (lower total cost than gas car so far)', VEHICLES.rav4.color)],
+        plugins: [zonePlugin('above baseline (higher total cost than gas car so far)', 'below baseline (lower total cost than gas car so far)', VEHICLES.crv.color)],
         data: {
           labels: years,
           datasets: vids.map(vid => ({
-            label:       allVeh[vid].name + (vid === 'rav4' ? ' (100% baseline)' : ''),
-            data:        vid === 'rav4' ? years.map(() => 100) : toPct(allRaw[vid]),
+            label:       allVeh[vid].name + (vid === 'crv' ? ' (100% baseline)' : ''),
+            data:        vid === 'crv' ? years.map(() => 100) : toPct(allRaw[vid]),
             borderColor: allVeh[vid].color,
-            borderWidth: vid === 'rav4' ? 3 : 2.5,
+            borderWidth: vid === 'crv' ? 3 : 2.5,
             borderDash:  vid === 'rav4h' ? [5, 3] : [],
             pointRadius: 0, fill: false, tension: 0.08,
           })),
@@ -751,9 +751,9 @@ export default function EVCalculator() {
                 },
                 label: ctx => {
                   const yr    = ctx.dataIndex
-                  const gasAmt = rav4Raw[yr]
+                  const gasAmt = crvRaw[yr]
                   const amt    = (ctx.parsed.y / 100) * gasAmt
-                  if (ctx.dataset.label?.includes('baseline')) return ` RAV4 Gas: $${fmt(gasAmt, 0)} total (baseline)`
+                  if (ctx.dataset.label?.includes('baseline')) return ` crv Gas: $${fmt(gasAmt, 0)} total (baseline)`
                   const saving = gasAmt - amt
                   return saving > 0
                     ? ` ${ctx.dataset.label}: $${fmt(amt, 0)} — saves $${fmt(saving, 0)} vs gas`
@@ -764,7 +764,7 @@ export default function EVCalculator() {
           },
           scales: {
             x: { ...baseScales.x, title: { display: true, text: 'years of ownership', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
-            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of RAV4 Gas cumulative cost', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
+            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of crv Gas cumulative cost', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
           },
         },
       })
@@ -875,12 +875,12 @@ export default function EVCalculator() {
         cityName: w.name, country: w.sys.country,
         c2km, annualCosts, lc,
         breakeven: {
-          ioniqVsRav4:   breakeven('ioniq5',    'rav4'),
-          ioniqVsRav4h:  breakeven('ioniq5',    'rav4h'),
-          macheVsRav4:   breakeven('macheelfp', 'rav4'),
-          macheVsRav4h:  breakeven('macheelfp', 'rav4h'),
-          customVsRav4:  customVehicle ? breakeven('custom', 'rav4')  : null,
-          customVsRav4h: customVehicle ? breakeven('custom', 'rav4h') : null,
+          ioniqVscrv:   breakeven('ioniq5',    'crv'),
+          ioniqVsrav4h:  breakeven('ioniq5',    'rav4h'),
+          macheVscrv:   breakeven('macheelfp', 'crv'),
+          macheVsrav4h:  breakeven('macheelfp', 'rav4h'),
+          customVscrv:  customVehicle ? breakeven('custom', 'crv')  : null,
+          customVsrav4h: customVehicle ? breakeven('custom', 'rav4h') : null,
         },
         solarPct,
         prices, customPrice, effectivePrices,
@@ -996,8 +996,8 @@ export default function EVCalculator() {
             {[
               { key: 'ioniq5',    label: 'Ioniq 5 AWD LR' },
               { key: 'macheelfp', label: 'Mach-E SR RWD'  },
-              { key: 'rav4',      label: 'RAV4 AWD'       },
-              { key: 'rav4h',     label: 'RAV4 Hybrid AWD'},
+              { key: 'crv',      label: 'CR-V Sport AWD'       },
+              { key: 'rav4h',     label: 'RAV4 Hybrid Limited'   },
             ].map(({ key, label }) => (
               <div key={key}>
                 <label className="block font-mono text-[10px] text-zinc-400 mb-1">{label}</label>
@@ -1143,20 +1143,20 @@ export default function EVCalculator() {
               {solarPct > 0 && ` Solar: ${solarPct}% of EV charging at $0/kWh.`}
             </p>
 
-            {/* Annual savings vs RAV4 */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Annual savings vs RAV4 Gas</p>
+            {/* Annual savings vs crv */}
+            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Annual savings vs crv Gas</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-              <StatCard label="Ioniq 5 — fuel saved"   value={`$${fmt(r.annualCosts.rav4 - r.annualCosts.ioniq5, 0)}`}    unit="/ year"  accent color={VEHICLES.ioniq5.color} />
-              <StatCard label="Mach-E — fuel saved"    value={`$${fmt(r.annualCosts.rav4 - r.annualCosts.macheelfp, 0)}`} unit="/ year"  accent color={VEHICLES.macheelfp.color} />
-              <StatCard label="Ioniq 5 — CO₂ saved"    value={fmt((r.c2km.rav4 - r.c2km.ioniq5) * annualKm / 1000, 2)}   unit="tonnes / year" color={VEHICLES.ioniq5.color} />
-              <StatCard label="Mach-E — CO₂ saved"     value={fmt((r.c2km.rav4 - r.c2km.macheelfp) * annualKm / 1000, 2)} unit="tonnes / year" color={VEHICLES.macheelfp.color} />
+              <StatCard label="Ioniq 5 — fuel saved"   value={`$${fmt(r.annualCosts.crv - r.annualCosts.ioniq5, 0)}`}    unit="/ year"  accent color={VEHICLES.ioniq5.color} />
+              <StatCard label="Mach-E — fuel saved"    value={`$${fmt(r.annualCosts.crv - r.annualCosts.macheelfp, 0)}`} unit="/ year"  accent color={VEHICLES.macheelfp.color} />
+              <StatCard label="Ioniq 5 — CO₂ saved"    value={fmt((r.c2km.crv - r.c2km.ioniq5) * annualKm / 1000, 2)}   unit="tonnes / year" color={VEHICLES.ioniq5.color} />
+              <StatCard label="Mach-E — CO₂ saved"     value={fmt((r.c2km.crv - r.c2km.macheelfp) * annualKm / 1000, 2)} unit="tonnes / year" color={VEHICLES.macheelfp.color} />
             </div>
 
             {/* TCO chart */}
             <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Total cost of ownership</p>
-            <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative cost over 10 years — % of RAV4 Gas cost</h3>
+            <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative cost over 10 years — % of crv Gas cost</h3>
             <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
-              RAV4 Gas is 100%. EVs start above it (higher purchase price) but their lower running costs compound over time.
+              crv Gas is 100%. EVs start above it (higher purchase price) but their lower running costs compound over time.
               When a line crosses below 100%, it has become cheaper in total. Hover any year to see actual dollars.
               {applyRebates && ' Rebates applied to purchase price.'}
             </p>
@@ -1282,15 +1282,15 @@ export default function EVCalculator() {
               The number below is how far you need to drive before the EV comes out ahead, lifetime total.
             </p>
             <div className={`grid grid-cols-2 ${vids.includes('custom') ? 'sm:grid-cols-3' : 'sm:grid-cols-4'} gap-3 mb-4`}>
-              <BreakevenCard evV={allVeh.ioniq5}    compV={allVeh.rav4}  breakKm={r.breakeven.ioniqVsRav4}  annualKm={annualKm} />
-              <BreakevenCard evV={allVeh.ioniq5}    compV={allVeh.rav4h} breakKm={r.breakeven.ioniqVsRav4h} annualKm={annualKm} />
-              <BreakevenCard evV={allVeh.macheelfp} compV={allVeh.rav4}  breakKm={r.breakeven.macheVsRav4}  annualKm={annualKm} />
-              <BreakevenCard evV={allVeh.macheelfp} compV={allVeh.rav4h} breakKm={r.breakeven.macheVsRav4h} annualKm={annualKm} />
-              {vids.includes('custom') && (customVehicle?.type === 'ev' || customVehicle?.type === 'phev') && r.breakeven.customVsRav4 != null && (
-                <BreakevenCard evV={allVeh.custom} compV={allVeh.rav4}  breakKm={r.breakeven.customVsRav4}  annualKm={annualKm} />
+              <BreakevenCard evV={allVeh.ioniq5}    compV={allVeh.crv}  breakKm={r.breakeven.ioniqVscrv}  annualKm={annualKm} />
+              <BreakevenCard evV={allVeh.ioniq5}    compV={allVeh.rav4h} breakKm={r.breakeven.ioniqVsrav4h} annualKm={annualKm} />
+              <BreakevenCard evV={allVeh.macheelfp} compV={allVeh.crv}  breakKm={r.breakeven.macheVscrv}  annualKm={annualKm} />
+              <BreakevenCard evV={allVeh.macheelfp} compV={allVeh.rav4h} breakKm={r.breakeven.macheVsrav4h} annualKm={annualKm} />
+              {vids.includes('custom') && (customVehicle?.type === 'ev' || customVehicle?.type === 'phev') && r.breakeven.customVscrv != null && (
+                <BreakevenCard evV={allVeh.custom} compV={allVeh.crv}  breakKm={r.breakeven.customVscrv}  annualKm={annualKm} />
               )}
-              {vids.includes('custom') && (customVehicle?.type === 'ev' || customVehicle?.type === 'phev') && r.breakeven.customVsRav4h != null && (
-                <BreakevenCard evV={allVeh.custom} compV={allVeh.rav4h} breakKm={r.breakeven.customVsRav4h} annualKm={annualKm} />
+              {vids.includes('custom') && (customVehicle?.type === 'ev' || customVehicle?.type === 'phev') && r.breakeven.customVsrav4h != null && (
+                <BreakevenCard evV={allVeh.custom} compV={allVeh.rav4h} breakKm={r.breakeven.customVsrav4h} annualKm={annualKm} />
               )}
             </div>
             <DiveDeeper label="How is this calculated?">
@@ -1308,9 +1308,9 @@ export default function EVCalculator() {
             {/* Lifetime emissions chart */}
             <div className="mt-6 mb-2">
               <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Lifetime emissions</p>
-              <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative lifecycle CO₂e — % of RAV4 Gas emissions</h3>
+              <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative lifecycle CO₂e — % of crv Gas emissions</h3>
               <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
-                RAV4 Gas is pegged at 100%. EVs start above it (manufacturing debt), then arc down as cleaner driving accumulates.
+                crv Gas is pegged at 100%. EVs start above it (manufacturing debt), then arc down as cleaner driving accumulates.
                 When a line crosses below 100%, that vehicle has emitted less CO₂ than the gas car over its lifetime.
                 Hover any year to see actual tonnes.
               </p>
@@ -1328,9 +1328,9 @@ export default function EVCalculator() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
             {[
               { title: "Yes, EVs start with a higher footprint. Here's why.",
-                body: "Building a battery is energy-intensive — mining lithium, cobalt, and nickel; refining them; assembling cells. The Ioniq 5's 77.4 kWh NMC pack accounts for roughly 6,500 kg CO₂e before the car moves an inch. Add the rest of the vehicle and you're at ~14,500 kg, versus ~8,500 kg for a gas RAV4. The question isn't whether EVs have a manufacturing penalty — it's how long it takes to pay it back through cleaner driving." },
+                body: "Building a battery is energy-intensive — mining lithium, cobalt, and nickel; refining them; assembling cells. The Ioniq 5's 77.4 kWh NMC pack accounts for roughly 6,500 kg CO₂e before the car moves an inch. Add the rest of the vehicle and you're at ~14,500 kg, versus ~8,500 kg for a CR-V. The question isn't whether EVs have a manufacturing penalty — it's how long it takes to pay it back through cleaner driving." },
               { title: "Why Quebec and Alberta get very different answers",
-                body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (~28 gCO₂e/kWh hydro grid), an Ioniq 5 emits roughly 5 g CO₂e/km. In Alberta (~385 gCO₂e/kWh gas-heavy grid), the same car emits around 68 g/km — still better than a gas RAV4's ~243 g/km, but the advantage is thinner and the breakeven takes longer. This tool fetches live grid data for your specific city." },
+                body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (~28 gCO₂e/kWh hydro grid), an Ioniq 5 emits roughly 5 g CO₂e/km. In Alberta (~385 gCO₂e/kWh gas-heavy grid), the same car emits around 68 g/km — still better than a CR-V's ~194 g/km, but the advantage is thinner and the breakeven takes longer. This tool fetches live grid data for your specific city." },
               { title: "LFP vs NMC — not all batteries are equal",
                 body: "The Ioniq 5 uses NMC811 chemistry — energy-dense but cobalt-intensive, at ~84 kg CO₂e/kWh of battery. The Mach-E Standard Range uses LFP (lithium iron phosphate) cells — no cobalt or nickel, at ~52 kg CO₂e/kWh. On a 72 kWh pack that's roughly 2,300 kg CO₂e less manufacturing, which shortens the emissions breakeven by years on a dirtier grid." },
               { title: "Why we use NRCan numbers",
