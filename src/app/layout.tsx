@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import DevModal from "@/components/DevModal";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
+        <DevModal />
         <Nav />
         <main className="flex-1">{children}</main>
         <Footer />

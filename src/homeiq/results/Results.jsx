@@ -5,6 +5,7 @@ import Button from '../ui/Button'
 import HeatLossChart from './HeatLossChart'
 import RecommendationsList from './RecommendationsList'
 import DiveDeeper from '@/components/DiveDeeper'
+import Disclaimer from '@/components/Disclaimer'
 
 function StatCard({ value, unit, label, sub }) {
   return (
@@ -22,6 +23,7 @@ export default function Results({ results, onReset }) {
   const { heatLoss, waterHeater, recommendations, inputs } = results
   const city     = inputs.city
   const province = inputs.province
+  const isSimple = inputs.mode === 'simple'
 
   const totalAnnualCost = heatLoss.annualCost + waterHeater.annualCost
   const totalEnergyGJ   = heatLoss.annualFuelGJ + waterHeater.inputEnergyGJ
@@ -63,17 +65,24 @@ export default function Results({ results, onReset }) {
       <div className="border border-emerald-400/30 bg-emerald-400/5 p-5 mb-6">
         <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">Bottom line</p>
         <p className="text-sm font-semibold text-zinc-200 leading-snug mb-1">
-          Your home spends{' '}
-          <span className="text-emerald-400">${Math.round(totalAnnualCost).toLocaleString()}/year</span>{' '}
+          Your home spends roughly{' '}
+          <span className="text-emerald-400">~${(Math.round(totalAnnualCost / 100) * 100).toLocaleString()}/year</span>{' '}
           on heating and hot water.
         </p>
         {topRec ? (
           <p className="text-sm text-zinc-400">
             Your best opportunity:{' '}
             <span className="text-zinc-200">{topRec.title}</span>
-            {' '}— saves roughly{' '}
-            <span className="text-zinc-200">${Math.round(topRec.annualSavingsCAD).toLocaleString()}/year</span>{' '}
-            and pays for itself in {paybackText}.
+            {' '}— could save roughly{' '}
+            <span className="text-zinc-200">~${(Math.round(topRec.annualSavingsCAD / 50) * 50).toLocaleString()}/year</span>{' '}
+            and may pay for itself in {paybackText}.
+          </p>
+        ) : isSimple ? (
+          <p className="text-sm text-zinc-400">
+            You've got the obvious stuff covered.{' '}
+            Simple mode uses era-typical defaults — switch to{' '}
+            <span className="text-zinc-300 font-medium">Refined mode</span>{' '}
+            for a personalised deep dive.
           </p>
         ) : (
           <p className="text-sm text-zinc-400">Your home is already well-optimised — no major upgrades identified.</p>
@@ -83,26 +92,26 @@ export default function Results({ results, onReset }) {
       {/* Summary stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <StatCard
-          value={heatLoss.totalHeatLossGJ.toFixed(1)}
+          value={`~${heatLoss.totalHeatLossGJ.toFixed(0)}`}
           unit="GJ"
           label="Annual heat loss"
           sub="through envelope"
         />
         <StatCard
-          value={`$${Math.round(heatLoss.annualCost).toLocaleString()}`}
+          value={`~$${(Math.round(heatLoss.annualCost / 50) * 50).toLocaleString()}`}
           unit=""
           label="Heating cost / yr"
         />
         <StatCard
-          value={`$${Math.round(waterHeater.annualCost).toLocaleString()}`}
+          value={`~$${(Math.round(waterHeater.annualCost / 50) * 50).toLocaleString()}`}
           unit=""
           label="Water heating / yr"
         />
         <StatCard
-          value={`$${Math.round(totalAnnualCost).toLocaleString()}`}
+          value={`~$${(Math.round(totalAnnualCost / 100) * 100).toLocaleString()}`}
           unit=""
           label="Total energy / yr"
-          sub={`${totalEnergyGJ.toFixed(0)} GJ input`}
+          sub={`~${totalEnergyGJ.toFixed(0)} GJ input`}
         />
       </div>
 
@@ -181,8 +190,29 @@ export default function Results({ results, onReset }) {
           recommendations={activeRecs}
           doneRecs={doneRecs}
           onToggleDone={toggleDone}
+          mode={inputs.mode}
         />
       </div>
+
+      {/* Simple-mode upgrade nudge */}
+      {isSimple && (
+        <div className="border border-zinc-700 bg-zinc-800/40 p-5 mt-8">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Want a deeper look?</p>
+          <p className="text-sm text-zinc-300 leading-relaxed mb-4">
+            These results are based on era-typical insulation defaults for your home age.{' '}
+            <span className="text-zinc-100">Refined mode</span> lets you enter your actual R-values, window specs, and air leakage — it often surfaces specific, high-value opportunities that era defaults miss.
+          </p>
+          <button
+            onClick={onReset}
+            className="text-xs font-mono uppercase tracking-widest border border-emerald-400/40 text-emerald-400 px-4 py-2 hover:bg-emerald-400/10 transition-colors"
+          >
+            ← Start over with Refined mode
+          </button>
+        </div>
+      )}
+
+      {/* Disclaimer */}
+      <Disclaimer context="homeiq" />
 
       {/* Methodology */}
       <div className="mt-8">

@@ -1,4 +1,5 @@
 ﻿import EVCalculatorTabs from '@/ev/EVCalculatorTabs'
+import Disclaimer from '@/components/Disclaimer'
 
 export const metadata = {
   title: 'EV Benefit Calculator — CWM Energy',
@@ -21,10 +22,11 @@ export default function EVBenefitCalculatorPage() {
       </div>
 
       {/* Calculator */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-6">
         <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8">
           <EVCalculatorTabs />
         </div>
+        <Disclaimer context="ev" />
       </div>
     </div>
   )
