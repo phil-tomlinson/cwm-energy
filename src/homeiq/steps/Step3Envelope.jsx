@@ -5,6 +5,7 @@ import Card, { CardSection } from '../ui/Card'
 import { NumberField, AreaField } from '../ui/FormField'
 import WindowEstimator from '../estimators/WindowEstimator'
 import FootprintEstimator from '../estimators/FootprintEstimator'
+import DiveDeeper from '@/components/DiveDeeper'
 
 const BASEMENT_HEIGHT = 2.1
 const BELOW_GRADE_FRACTION = 0.55
@@ -308,6 +309,26 @@ export default function Step3Envelope({ data, updateData }) {
               <option value="gas_sealed">Gas fireplace — sealed combustion</option>
             </select>
             <p className="mt-1 text-xs text-zinc-400">Open or vented chimneys are a significant and often overlooked heat loss source.</p>
+            <DiveDeeper label="How do I identify my fireplace type?">
+              <div className="space-y-2.5 text-xs text-zinc-400 leading-relaxed">
+                <div>
+                  <p className="text-zinc-300 font-medium">Masonry fireplace</p>
+                  <p>A brick or stone opening built into the wall, designed for burning wood logs. Has a metal throat damper — a lever or chain inside the firebox that opens and closes. The firebox is open to the room when in use. May have been retrofit with a gas log set.</p>
+                </div>
+                <div>
+                  <p className="text-zinc-300 font-medium">Wood stove / sealed insert</p>
+                  <p>A cast-iron or steel unit with a sealed door and glass window. Either freestanding on legs, or inserted into an existing masonry opening. Minimal leakage when the door is closed.</p>
+                </div>
+                <div>
+                  <p className="text-zinc-300 font-medium">Gas fireplace — vented (B-vent)</p>
+                  <p>Has a round metal flue pipe running up through the house to a cap on the roof, or connects to a masonry chimney. The glass front is decorative — not sealed to the room. You may notice cool air or drafts near the unit when the pilot is off. Often has a small always-on pilot flame.</p>
+                </div>
+                <div>
+                  <p className="text-zinc-300 font-medium">Gas fireplace — sealed combustion (direct-vent)</p>
+                  <p>Look for a round vent cap on an <em>exterior wall</em> — typically low on the side of the house, with two concentric pipes (one for intake, one for exhaust). The glass front is sealed and doesn't open. No chimney running up through the interior. This is the most airtight type.</p>
+                </div>
+              </div>
+            </DiveDeeper>
           </div>
 
           {/* Exposed rim joists */}

@@ -37,6 +37,7 @@ const DEFAULT_STATE = {
     recessedLights:   false,
   },
   heating: {
+    systemId:     'furnace_80',
     fuelType:     'naturalGas',
     systemType:   'furnace_80',
     efficiency:   0.80,

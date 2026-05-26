@@ -1,7 +1,7 @@
 ﻿'use client'
 import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import { houseTypes, storeyOptions, constructionEras } from '../../data/houseDefaults'
-import { fuelTypes, heatingSystemTypes, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
+import { HEATING_SYSTEMS, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
 import { SelectField, AreaField, NumberField } from '../ui/FormField'
 import DiveDeeper from '@/components/DiveDeeper'
 
@@ -41,7 +41,8 @@ export default function SimpleMode({ data, updateData }) {
   const units = data.units
   const citiesInProvince = getCitiesForProvince(data.province)
   const prices = provincialPrices[data.province] ?? {}
-  const availFuels = fuelTypes.filter(f => prices[f.value] != null)
+  const availSystems = HEATING_SYSTEMS.filter(s => prices[s.fuelType] != null)
+  const systemId = data.heating.systemId ?? availSystems[0]?.id ?? ''
 
   function handleProvinceChange(provinceCode) {
     const firstCity = getCitiesForProvince(provinceCode)[0]
@@ -53,16 +54,17 @@ export default function SimpleMode({ data, updateData }) {
     updateData({ city: cityName, climate: getClimateData(data.province, cityName) })
   }
 
-  function handleFuelChange(newFuel) {
-    const systems = heatingSystemTypes[newFuel] ?? []
-    const first = systems[0]
+  function handleSystemChange(newId) {
+    const sys = HEATING_SYSTEMS.find(s => s.id === newId)
+    if (!sys) return
     updateData({
       envelope: null,
       heating: {
-        fuelType: newFuel,
-        systemType: first?.value ?? '',
-        efficiency: first?.efficiency ?? 0.8,
-        fuelCostPerGJ: getFuelCostPerGJ(data.province, newFuel) ?? 10,
+        systemId:     newId,
+        systemType:   newId,
+        fuelType:     sys.fuelType,
+        efficiency:   sys.efficiency,
+        fuelCostPerGJ: getFuelCostPerGJ(data.province, sys.fuelType) ?? 10,
       },
     })
   }
@@ -146,12 +148,13 @@ export default function SimpleMode({ data, updateData }) {
         />
       </div>
 
-      {/* Row 5: Heating fuel */}
+      {/* Row 5: Heating system */}
       <SelectField
-        label="Primary heating fuel"
-        value={data.heating.fuelType}
-        onChange={handleFuelChange}
-        options={availFuels}
+        label="What type of heating system do you have?"
+        value={systemId}
+        onChange={handleSystemChange}
+        options={availSystems.map(s => ({ value: s.id, label: s.label }))}
+        hint={HEATING_SYSTEMS.find(s => s.id === systemId)?.hint}
       />
 
       {/* Row 6: Occupants */}

@@ -81,11 +81,18 @@ function RecCard({ rec, rank, onMarkDone, isDone }) {
   )
 }
 
-export default function RecommendationsList({ recommendations, doneRecs = [], onToggleDone }) {
+export default function RecommendationsList({ recommendations, doneRecs = [], onToggleDone, mode }) {
   const [showDone, setShowDone] = useState(false)
 
   if (!recommendations.length && !doneRecs.length) {
-    return <p className="text-zinc-400 text-sm">No additional recommendations — your home is already well-optimised!</p>
+    return mode === 'simple'
+      ? (
+        <p className="text-zinc-400 text-sm leading-relaxed">
+          Nothing stands out with era-typical defaults — but that doesn't mean there's nothing to find.
+          Try <span className="text-zinc-300 font-medium">Refined mode</span> to enter your actual insulation values and get specific, personalised recommendations.
+        </p>
+      )
+      : <p className="text-zinc-400 text-sm">No additional recommendations — your home is already well-optimised!</p>
   }
 
   return (

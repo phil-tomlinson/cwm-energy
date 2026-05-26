@@ -1,8 +1,9 @@
 ﻿import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import { houseTypes, storeyOptions, basementTypes, constructionEras } from '../../data/houseDefaults'
-import { fuelTypes, heatingSystemTypes, waterHeaterTypes as whTypesFallback, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
+import { HEATING_SYSTEMS, waterHeaterTypes as whTypesFallback, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
 import { waterHeaterTypes } from '../../calculations/waterHeater'
 import { SelectField, NumberField, AreaField, LengthField } from '../ui/FormField'
+import DiveDeeper from '@/components/DiveDeeper'
 
 function SectionHeader({ label }) {
   return (
@@ -17,8 +18,10 @@ export default function TechnicalMode({ data, updateData }) {
   const units = data.units
   const env = data.envelope ?? {}
   const prices = provincialPrices[data.province] ?? {}
-  const availFuels = fuelTypes.filter(f => prices[f.value] != null)
-  const systemOptions = heatingSystemTypes[data.heating.fuelType] ?? []
+  const availSystems = HEATING_SYSTEMS.filter(s => prices[s.fuelType] != null)
+  const systemId     = data.heating.systemId ?? availSystems[0]?.id ?? ''
+  const currentSystem = HEATING_SYSTEMS.find(s => s.id === systemId) ?? availSystems[0]
+  const isCOP        = currentSystem?.effUnit === 'cop'
 
   function updateEnv(fields) {
     updateData({ envelope: { ...env, ...fields } })
@@ -30,22 +33,19 @@ export default function TechnicalMode({ data, updateData }) {
     updateData({ province: provinceCode, city: firstCity?.city ?? '', climate, envelope: null })
   }
 
-  function handleFuelChange(newFuel) {
-    const systems = heatingSystemTypes[newFuel] ?? []
-    const first = systems[0]
+  function handleSystemChange(newId) {
+    const sys = HEATING_SYSTEMS.find(s => s.id === newId)
+    if (!sys) return
     updateData({
       heating: {
-        fuelType: newFuel,
-        systemType: first?.value ?? '',
-        efficiency: first?.efficiency ?? 0.8,
-        fuelCostPerGJ: getFuelCostPerGJ(data.province, newFuel) ?? 10,
+        ...data.heating,
+        systemId:     newId,
+        systemType:   newId,
+        fuelType:     sys.fuelType,
+        efficiency:   sys.efficiency,
+        fuelCostPerGJ: getFuelCostPerGJ(data.province, sys.fuelType) ?? data.heating.fuelCostPerGJ ?? 10,
       },
     })
-  }
-
-  function handleSystemChange(systemValue) {
-    const sys = systemOptions.find(s => s.value === systemValue)
-    updateData({ heating: { ...data.heating, systemType: systemValue, efficiency: sys?.efficiency ?? data.heating.efficiency } })
   }
 
   function handleWHTypeChange(typeValue) {
@@ -153,6 +153,26 @@ export default function TechnicalMode({ data, updateData }) {
             <option value="gas_vented">Gas fireplace — vented (pilot light or non-sealed)</option>
             <option value="gas_sealed">Gas fireplace — sealed combustion</option>
           </select>
+          <DiveDeeper label="How do I identify my fireplace type?">
+            <div className="space-y-2.5 text-xs text-zinc-400 leading-relaxed">
+              <div>
+                <p className="text-zinc-300 font-medium">Masonry fireplace</p>
+                <p>A brick or stone opening built into the wall, designed for burning wood logs. Has a metal throat damper — a lever or chain inside the firebox. The firebox is open to the room when in use. May have been retrofit with a gas log set.</p>
+              </div>
+              <div>
+                <p className="text-zinc-300 font-medium">Wood stove / sealed insert</p>
+                <p>A cast-iron or steel unit with a sealed door and glass window. Either freestanding on legs, or inserted into an existing masonry opening. Minimal leakage when the door is closed.</p>
+              </div>
+              <div>
+                <p className="text-zinc-300 font-medium">Gas fireplace — vented (B-vent)</p>
+                <p>Has a round metal flue pipe running up through the house to a roof cap, or connects to a masonry chimney. The glass front is decorative — not sealed to the room. You may notice drafts near the unit when the pilot is off.</p>
+              </div>
+              <div>
+                <p className="text-zinc-300 font-medium">Gas fireplace — sealed combustion (direct-vent)</p>
+                <p>Look for a round vent cap on an exterior wall — typically low on the side of the house, with two concentric pipes (intake + exhaust). The glass front is sealed and doesn't open. No chimney runs through the interior. This is the most airtight type.</p>
+              </div>
+            </div>
+          </DiveDeeper>
         </div>
 
         {/* Rim joists + pot lights */}
@@ -229,23 +249,22 @@ export default function TechnicalMode({ data, updateData }) {
 
       {/* ── Heating ──────────────────────────────────────────── */}
       <SectionHeader label="Heating System" />
-      <div className="grid grid-cols-2 gap-4">
-        <SelectField label="Primary fuel" value={data.heating.fuelType}
-          onChange={handleFuelChange} options={availFuels} />
-        {systemOptions.length > 0 && (
-          <SelectField label="System type" value={data.heating.systemType}
-            onChange={handleSystemChange} options={systemOptions} />
-        )}
-      </div>
+      <SelectField
+        label="Heating system"
+        value={systemId}
+        onChange={handleSystemChange}
+        options={availSystems.map(s => ({ value: s.id, label: s.label }))}
+        hint={currentSystem?.hint}
+      />
       <div className="grid grid-cols-2 gap-4">
         <NumberField
-          label={data.heating.fuelType === 'electricity' ? 'Efficiency (COP)' : 'Efficiency (AFUE %)'}
-          value={data.heating.fuelType === 'electricity' ? data.heating.efficiency : Math.round(data.heating.efficiency * 100)}
-          onChange={v => updateData({ heating: { ...data.heating, efficiency: data.heating.fuelType === 'electricity' ? v : v / 100 } })}
-          min={data.heating.fuelType === 'electricity' ? 0.9 : 50}
-          max={data.heating.fuelType === 'electricity' ? 6.0 : 100}
-          step={data.heating.fuelType === 'electricity' ? 0.1 : 1}
-          unit={data.heating.fuelType === 'electricity' ? 'COP' : '%'}
+          label={isCOP ? 'Efficiency (COP)' : 'Efficiency (AFUE %)'}
+          value={isCOP ? data.heating.efficiency : Math.round(data.heating.efficiency * 100)}
+          onChange={v => updateData({ heating: { ...data.heating, efficiency: isCOP ? v : v / 100 } })}
+          min={isCOP ? 0.9 : 50}
+          max={isCOP ? 6.0 : 100}
+          step={isCOP ? 0.1 : 1}
+          unit={isCOP ? 'COP' : '%'}
         />
         <NumberField label="Fuel cost" unit="$/GJ"
           value={data.heating.fuelCostPerGJ ?? 10}
