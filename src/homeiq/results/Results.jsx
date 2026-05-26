@@ -6,6 +6,7 @@ import HeatLossChart from './HeatLossChart'
 import RecommendationsList from './RecommendationsList'
 import DiveDeeper from '@/components/DiveDeeper'
 import Disclaimer from '@/components/Disclaimer'
+import LeadCaptureForm from '@/components/LeadCaptureForm'
 
 function StatCard({ value, unit, label, sub }) {
   return (
@@ -46,6 +47,18 @@ export default function Results({ results, onReset }) {
   const doneRecs   = recommendations.filter(r =>  doneIds.includes(r.id))
 
   const topRec = activeRecs[0]
+
+  // Map top recommendation to a lead-capture interest category
+  const leadInterest = (() => {
+    const id = topRec?.id ?? ''
+    if (/heat.?pump|ashp|gshp|ccashp/i.test(id))               return 'heat_pump'
+    if (/furnace|boiler|heating/i.test(id))                     return 'heat_pump'
+    if (/insulation|airSeal|window|basement|attic|wall/i.test(id)) return 'insulation'
+    if (/water.?heat|hpwh/i.test(id))                           return 'water_heater'
+    if (topRec)                                                  return 'home_efficiency'
+    return null  // no recommendations — don't show lead capture
+  })()
+
   const paybackText = topRec?.paybackYears < 1
     ? 'less than a year'
     : `about ${Math.round(topRec?.paybackYears)} year${Math.round(topRec?.paybackYears) === 1 ? '' : 's'}`
@@ -193,6 +206,31 @@ export default function Results({ results, onReset }) {
           mode={inputs.mode}
         />
       </div>
+
+      {/* Lead capture — contextual to top recommendation */}
+      {leadInterest && (
+        <div className="mt-6">
+          <LeadCaptureForm
+            interest={leadInterest}
+            prefill={{
+              province:  inputs.province,
+              city:      inputs.city,
+              houseType: inputs.houseType,
+            }}
+            context={{
+              floorArea:        inputs.floorArea,
+              era:              inputs.era,
+              topRec:           topRec ? {
+                id:              topRec.id,
+                title:           topRec.title,
+                annualSavingsCAD: topRec.annualSavingsCAD,
+                paybackYears:    topRec.paybackYears,
+              } : null,
+              source: 'homeiq_results',
+            }}
+          />
+        </div>
+      )}
 
       {/* Simple-mode upgrade nudge */}
       {isSimple && (

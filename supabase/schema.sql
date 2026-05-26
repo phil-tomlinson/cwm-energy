@@ -22,3 +22,46 @@ create policy "Users own their results"
 
 -- Index for fast per-user queries
 create index if not exists saved_results_user_id_idx on saved_results (user_id);
+
+-- ── Contractor leads ──────────────────────────────────────────────────────────
+-- Captures quote/assessment requests from calculator users.
+-- Anon users can INSERT; reads are restricted to service-role (admin dashboard).
+create table if not exists leads (
+  id          uuid        primary key default gen_random_uuid(),
+  created_at  timestamptz default now(),
+
+  -- Contact info
+  name        text        not null,
+  email       text        not null,
+  phone       text,
+
+  -- Location (pre-filled from calculator inputs)
+  province    text,
+  city        text,
+
+  -- What they want quotes for
+  -- 'solar' | 'heat_pump' | 'insulation' | 'water_heater' | 'home_efficiency' | 'general'
+  interest    text        not null default 'general',
+
+  -- Snapshot of relevant calculator data at time of submission
+  context     jsonb,
+
+  -- Admin workflow
+  status      text        not null default 'new'
+                check (status in ('new', 'contacted', 'converted', 'invalid')),
+  notes       text
+);
+
+alter table leads enable row level security;
+
+-- Anyone can submit a lead (anon insert)
+create policy "Anyone can submit a lead"
+  on leads for insert
+  to anon, authenticated
+  with check (true);
+
+-- Only service-role (Supabase dashboard / admin) can read leads.
+-- No SELECT policy for anon or authenticated — reads go through service-role key only.
+
+create index if not exists leads_created_at_idx on leads (created_at desc);
+create index if not exists leads_status_idx     on leads (status);
