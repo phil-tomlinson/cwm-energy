@@ -4,8 +4,9 @@ import { useState } from "react";
 import AuthButton from "@/components/AuthButton";
 
 const links = [
-  { href: "/calculator",           label: "Home" },
-  { href: "/ev-benefit-calculator", label: "EVs"  },
+  { href: "/calculator",            label: "Home"  },
+  { href: "/ev-benefit-calculator", label: "EVs"   },
+  { href: "/solar",                 label: "Solar" },
   { href: "/plan",                  label: "Plan"  },
   { href: "/about",                 label: "About" },
   { href: "/contact",               label: "Contact" },

@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { VEHICLES, maintTotal } from '@/ev/evData'
+import SolarCard from '@/solar/SolarCard'
+import Disclaimer from '@/components/Disclaimer'
 
 // ── Types ────────────────────────────────────────────────────────────────
 type Mode = 'bills' | 'emissions'
@@ -413,7 +415,7 @@ export default function PlanPage() {
         {/* ── Data sources ── */}
         <div>
           <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-3">Using data from</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
               {
                 key:   'homeiq',
@@ -434,6 +436,13 @@ export default function PlanPage() {
                     ? `${[evData.vehicleA?.make, evData.vehicleA?.model].filter(Boolean).join(' ')} vs ${[evData.vehicleB?.make, evData.vehicleB?.model].filter(Boolean).join(' ')}`
                     : `${evData.cityName ?? ''} · ${(evData.annualKm ?? 0).toLocaleString('en-CA')} km/yr`
                   : null,
+              },
+              {
+                key:   'solar',
+                label: 'Solar Estimator',
+                href:  '/solar',
+                data:  homeiqData,   // solar pre-fills from HomeIQ — lit when HomeIQ is present
+                meta:  homeiqData ? `Pre-filled from HomeIQ · configure below` : null,
               },
             ].map(({ key, label, href, data, meta }) => (
               <div key={key} className={`border p-4 flex items-start gap-3 ${data ? 'border-emerald-400/30 bg-emerald-400/5' : 'border-zinc-800 bg-zinc-900'}`}>
@@ -499,10 +508,10 @@ export default function PlanPage() {
                 <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-4">Full plan summary</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {[
-                    { label: 'Total investment',     value: `$${fmt(last.cumCost)}` },
-                    { label: 'Annual savings',        value: `$${fmt(last.cumSavings)}/yr` },
-                    { label: 'Plan payback',          value: last.cumSavings > 0 ? `${fmt(last.cumCost / last.cumSavings, 1)} years` : '—' },
-                    { label: 'CO₂ cut per year',     value: `${fmt(last.cumCO2, 1)} tonnes` },
+                    { label: 'Total investment',  value: `~$${fmt(Math.round(last.cumCost    / 500) * 500)}` },
+                    { label: 'Annual savings',    value: `~$${fmt(Math.round(last.cumSavings / 100) * 100)}/yr` },
+                    { label: 'Plan payback',      value: last.cumSavings > 0 ? `~${Math.round(last.cumCost / last.cumSavings)} years` : '—' },
+                    { label: 'CO₂ cut per year',  value: `~${fmt(last.cumCO2, 1)} tonnes` },
                   ].map(({ label, value }) => (
                     <div key={label}>
                       <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-1">{label}</p>
@@ -537,6 +546,12 @@ export default function PlanPage() {
           </>
         )}
 
+        {/* ── Solar estimator ── */}
+        <SolarCard homeiqData={homeiqData} evData={evData} detailHref="/solar" />
+
+        {/* ── Disclaimer ── */}
+        <Disclaimer context="plan" />
+
         {/* ── Long-range vision ── */}
         <div className="border-t border-zinc-800 pt-8">
           <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">The bigger picture</p>
@@ -550,8 +565,8 @@ export default function PlanPage() {
             {[
               { label: '01 Home',      status: 'live',   href: '/calculator' },
               { label: '02 EVs',       status: 'live',   href: '/ev-benefit-calculator' },
-              { label: '03 Flights',   status: 'coming', href: null },
-              { label: '04 Diet',      status: 'coming', href: null },
+              { label: '03 Solar',     status: 'live',   href: '/solar' },
+              { label: '04 Flights',   status: 'coming', href: null },
             ].map(({ label, status, href }) => (
               <div key={label} className={`border p-3 ${status === 'live' ? 'border-emerald-400/30' : 'border-zinc-800'}`}>
                 <p className={`font-mono text-xs font-semibold ${status === 'live' ? 'text-zinc-200' : 'text-zinc-400'}`}>{label}</p>
