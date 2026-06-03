@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import SolarCard from './SolarCard'
 import Disclaimer from '@/components/Disclaimer'
-import LeadCaptureForm from '@/components/LeadCaptureForm'
 
 // ── Standalone solar calculator ────────────────────────────────────────────
 // Reads HomeIQ + EV data from localStorage (same keys used by plan/page.tsx),
@@ -48,23 +47,6 @@ export default function SolarCalculator() {
 
       {/* Main solar card — no detailHref here (we're already on the detail page) */}
       <SolarCard homeiqData={homeiqData} evData={evData} />
-
-      {/* Lead capture — only for non-apartment house types */}
-      {homeiqData?.inputs?.houseType !== 'apartment' && (
-        <LeadCaptureForm
-          interest="solar"
-          prefill={{
-            province: homeiqData?.inputs?.province ?? null,
-            city:     homeiqData?.inputs?.city     ?? null,
-            houseType: homeiqData?.inputs?.houseType ?? null,
-          }}
-          context={{
-            floorArea: homeiqData?.inputs?.floorArea ?? null,
-            storeys:   homeiqData?.inputs?.storeys   ?? null,
-            source:    'solar_calculator',
-          }}
-        />
-      )}
 
       {/* Disclaimer */}
       <Disclaimer context="solar" />
