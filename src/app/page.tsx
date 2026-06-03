@@ -67,7 +67,7 @@ export default function Home() {
             <span className="text-emerald-400">Your Energy.</span>
           </h1>
 
-          <p className="text-zinc-400 text-lg sm:text-xl max-w-xl leading-relaxed mb-10 font-light">
+          <p className="text-zinc-300 text-lg sm:text-xl max-w-xl leading-relaxed mb-10 font-light">
             Science-based tools that show exactly where your carbon goes —
             and the most cost-effective ways to cut it. No guesswork.
           </p>
@@ -99,7 +99,7 @@ export default function Home() {
           {stats.map((s) => (
             <div key={s.value} className="py-6 sm:py-4 sm:px-8 first:pl-0 last:pr-0">
               <div className="text-3xl font-black font-mono text-emerald-400 mb-1">{s.value}</div>
-              <div className="text-xs text-zinc-400 leading-snug uppercase tracking-wide">{s.label}</div>
+              <div className="text-sm text-zinc-300 leading-relaxed">{s.label}</div>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-zinc-400">{m.num}</span>
                   <span
-                    className={`text-[9px] uppercase tracking-widest px-2 py-0.5 font-mono ${
+                    className={`text-[10px] uppercase tracking-widest px-2 py-0.5 font-mono ${
                       m.live
                         ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/30"
                         : "bg-zinc-800 text-zinc-400 border border-zinc-700"
@@ -138,12 +138,12 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-xl font-black tracking-tight text-zinc-100">{m.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed flex-1">{m.desc}</p>
+                <p className="text-sm text-zinc-300 leading-relaxed flex-1">{m.desc}</p>
 
                 {m.live && (
                   <Link
                     href={m.href}
-                    className="self-start text-[10px] uppercase tracking-widest text-emerald-400 font-mono border-b border-emerald-400/30 pb-0.5 hover:border-emerald-400 transition-colors"
+                    className="self-start text-xs uppercase tracking-widest text-emerald-400 font-mono border-b border-emerald-400/30 pb-0.5 hover:border-emerald-400 transition-colors"
                   >
                     Open tool →
                   </Link>

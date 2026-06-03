@@ -14,7 +14,7 @@ export default function Footer() {
               © {new Date().getFullYear()} CWM Energy · Built in Calgary, AB
             </span>
           </div>
-          <p className="text-[10px] font-mono text-zinc-600 max-w-sm leading-relaxed">
+          <p className="text-xs font-mono text-zinc-500 max-w-sm leading-relaxed">
             Estimates only — figures can be substantially wrong. Not financial, engineering, or
             professional advice. No warranty. Verify with a qualified local professional before acting.
           </p>
@@ -33,13 +33,13 @@ export default function Footer() {
               <Link
                 key={l.label}
                 href={l.href}
-                className="text-[10px] uppercase tracking-widest text-zinc-400 hover:text-zinc-300 transition-colors font-mono"
+                className="text-xs text-zinc-400 hover:text-zinc-300 transition-colors font-mono"
               >
                 {l.label}
               </Link>
             ))}
           </div>
-          <p className="text-[10px] font-mono text-zinc-600">
+          <p className="text-xs font-mono text-zinc-500">
             By using this site you agree to our{' '}
             <Link href="/terms" className="hover:text-zinc-500 underline">Terms of Use</Link>.
           </p>

@@ -72,11 +72,12 @@ function Field({ label, type = 'text', value, onChange, required, placeholder, h
         onChange={e => onChange(e.target.value)}
         required={required}
         placeholder={placeholder}
-        className="w-full bg-zinc-800 border border-zinc-600 text-zinc-100 placeholder-zinc-600
-                   px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-400
-                   focus:border-emerald-400 transition-colors"
+        className="w-full bg-zinc-800 border border-zinc-600 text-zinc-100 placeholder-zinc-500
+                   px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400
+                   focus:border-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-400
+                   transition-colors"
       />
-      {hint && <p className="text-[10px] text-zinc-500 mt-0.5">{hint}</p>}
+      {hint && <p className="text-xs text-zinc-400 mt-1">{hint}</p>}
     </div>
   )
 }
@@ -170,7 +171,7 @@ export default function LeadCaptureForm({ interest = 'general', prefill = {}, co
           </span>
         </div>
         <h3 className="text-sm font-bold text-zinc-100">{copy.headline}</h3>
-        <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">{copy.sub}</p>
+        <p className="text-xs text-zinc-300 mt-0.5 leading-relaxed">{copy.sub}</p>
       </div>
 
       {/* Body */}
@@ -243,7 +244,8 @@ export default function LeadCaptureForm({ interest = 'general', prefill = {}, co
               disabled={!consent || status === 'submitting'}
               className="w-full bg-emerald-400 text-zinc-950 font-bold text-xs uppercase tracking-widest
                          px-6 py-3 hover:bg-emerald-300 transition-colors
-                         disabled:opacity-40 disabled:cursor-not-allowed"
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
             >
               {status === 'submitting' ? 'Sending…' : copy.button + ' →'}
             </button>

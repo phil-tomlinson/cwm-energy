@@ -34,7 +34,7 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-[11px] uppercase tracking-widest text-zinc-400 hover:text-zinc-100 transition-colors"
+              className="text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               {l.label}
             </Link>
@@ -46,7 +46,7 @@ export default function Nav() {
 
         {/* Mobile toggle */}
         <button
-          className="sm:hidden text-zinc-400 p-2"
+          className="sm:hidden text-zinc-400 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
@@ -61,7 +61,7 @@ export default function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-xs uppercase tracking-widest text-zinc-400"
+              className="text-xs uppercase tracking-widest text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
               onClick={() => setOpen(false)}
             >
               {l.label}

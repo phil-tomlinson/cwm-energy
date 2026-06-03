@@ -10,6 +10,29 @@ const VALID_INTERESTS = [
   'solar', 'heat_pump', 'insulation', 'water_heater', 'home_efficiency', 'general',
 ] as const
 
+// ── Rate limiting ─────────────────────────────────────────────────────────────
+// Simple in-memory sliding window: max 5 submissions per IP per 10 minutes.
+// Resets automatically; stale entries are pruned on each request.
+const rateMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT  = 5
+const RATE_WINDOW = 10 * 60 * 1000 // 10 minutes in ms
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  // Prune expired entries to keep the map from growing unbounded
+  for (const [key, val] of rateMap) {
+    if (now > val.resetAt) rateMap.delete(key)
+  }
+  const entry = rateMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW })
+    return false
+  }
+  if (entry.count >= RATE_LIMIT) return true
+  entry.count++
+  return false
+}
+
 function supabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY   // server-only, not exposed to browser
@@ -19,6 +42,12 @@ function supabase() {
 }
 
 export async function POST(req: NextRequest) {
+  // ── Rate limit ───────────────────────────────────────────────────────────────
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+  }
+
   // ── Parse body ──────────────────────────────────────────────────────────────
   let body: Record<string, unknown>
   try {
@@ -36,7 +65,9 @@ export async function POST(req: NextRequest) {
   const interest = VALID_INTERESTS.includes(body.interest as typeof VALID_INTERESTS[number])
     ? (body.interest as string)
     : 'general'
-  const context  = body.context && typeof body.context === 'object' ? body.context : null
+  const rawContext = body.context && typeof body.context === 'object' ? body.context : null
+  const contextStr = rawContext ? JSON.stringify(rawContext) : null
+  const context    = contextStr && contextStr.length <= 4096 ? rawContext : null
 
   const errors: string[] = []
   if (!name  || name.length  < 2)  errors.push('name: must be at least 2 characters')
@@ -50,7 +81,7 @@ export async function POST(req: NextRequest) {
   const db = supabase()
   if (!db) {
     // Supabase not configured — log and return success so the UX isn't broken
-    console.warn('[/api/leads] Supabase not configured; lead not stored:', { name, email, interest })
+    console.warn('[/api/leads] Supabase not configured; lead not stored:', { interest })
     return NextResponse.json({ ok: true, warn: 'storage_unavailable' })
   }
 

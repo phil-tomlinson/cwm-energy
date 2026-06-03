@@ -24,6 +24,19 @@ body {
   background-size: 24px 24px;
 }
 
+/* Focus-visible ring for keyboard navigation — applies to elements without custom focus handling */
+@layer base {
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid #34d399;
+    outline-offset: 2px;
+  }
+}
+
 /* Noise overlay for raw texture */
 .noise::after {
   content: '';

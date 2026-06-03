@@ -74,7 +74,7 @@ export default function LoginPage() {
             </div>
             <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">Check your inbox</p>
             <h1 className="text-xl font-black text-zinc-100 tracking-tight mb-3">Magic link sent</h1>
-            <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+            <p className="text-sm text-zinc-300 leading-relaxed mb-6">
               We sent a sign-in link to{' '}
               <span className="text-zinc-200 font-mono">{email.trim().toLowerCase()}</span>.
               Click it to sign in — no password needed.
@@ -109,7 +109,7 @@ export default function LoginPage() {
           </Link>
           <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">Sign in</p>
           <h1 className="text-2xl font-black text-zinc-100 tracking-tight">Save your results.</h1>
-          <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
+          <p className="text-sm text-zinc-300 mt-2 leading-relaxed">
             Enter your email and we'll send you a magic link — no password, no friction.
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="border border-zinc-800 bg-zinc-900 p-6">
           <div className="mb-5">
-            <label htmlFor={id} className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+            <label htmlFor={id} className="block text-sm font-medium text-zinc-300 mb-2">
               Email address
             </label>
             <input
@@ -132,7 +132,7 @@ export default function LoginPage() {
               placeholder="you@example.com"
               aria-invalid={!!validationErr}
               aria-describedby={validationErr ? `${id}-error` : undefined}
-              className={`w-full bg-zinc-950 border px-4 py-3 text-sm font-mono text-zinc-100 placeholder-zinc-700 focus:outline-none transition-colors ${
+              className={`w-full bg-zinc-950 border px-4 py-3 text-sm font-mono text-zinc-100 placeholder-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors ${
                 validationErr
                   ? 'border-red-400 focus:border-red-400'
                   : 'border-zinc-700 focus:border-emerald-400'
@@ -154,12 +154,12 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={phase === 'sending' || (touched && !isValid)}
-            className="w-full bg-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-widest py-3 hover:bg-emerald-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-widest py-3 hover:bg-emerald-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
           >
             {phase === 'sending' ? 'Sending…' : 'Send magic link →'}
           </button>
 
-          <p className="mt-4 text-[11px] text-zinc-400 leading-relaxed text-center">
+          <p className="mt-4 text-xs text-zinc-400 leading-relaxed text-center">
             By signing in you agree to our{' '}
             <Link href="/about" className="text-zinc-400 hover:text-zinc-300 underline">terms of use</Link>.
             We never share your email.
