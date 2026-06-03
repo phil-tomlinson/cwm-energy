@@ -25,11 +25,11 @@ const modules = [
   },
   {
     num: "03",
-    tag: "Coming Soon",
-    title: "Flights",
-    desc: "A single return flight can outweigh months of driving. See the real impact.",
-    href: "#",
-    live: false,
+    tag: "Available Now",
+    title: "Solar PV Estimator",
+    desc: "How much could rooftop solar generate on your home? Annual output, savings, and payback — based on your province, roof type, and system size.",
+    href: "/solar",
+    live: true,
   },
   {
     num: "04",
@@ -68,8 +68,8 @@ export default function Home() {
           </h1>
 
           <p className="text-zinc-300 text-lg sm:text-xl max-w-xl leading-relaxed mb-10 font-light">
-            Science-based tools that show exactly where your carbon goes —
-            and the most cost-effective ways to cut it. No guesswork.
+            Cutting energy waste saves money and cuts emissions — almost always the same upgrade.
+            We show you exactly where to act first, and what it&apos;s worth.
           </p>
 
           {/* CTAs */}
@@ -78,7 +78,7 @@ export default function Home() {
               href="/calculator"
               className="inline-flex items-center gap-3 bg-emerald-400 text-zinc-950 px-6 py-3.5 font-bold text-sm uppercase tracking-widest hover:bg-emerald-300 transition-colors"
             >
-              Start Home Analysis
+              Find Your Savings
               <span className="text-lg">→</span>
             </Link>
             <Link
@@ -158,9 +158,13 @@ export default function Home() {
       <section className="border-y border-zinc-800 bg-zinc-900 px-4 sm:px-6 py-16">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-100 leading-tight">
-            Sustainability doesn&apos;t mean doing less.
+            Cutting bills and cutting carbon
             <br />
-            <span className="text-emerald-400">It means doing better.</span>
+            <span className="text-emerald-400">are usually the same thing.</span>
+          </p>
+          <p className="text-sm text-zinc-400 mt-4 max-w-md mx-auto leading-relaxed">
+            Efficiency isn&apos;t a trade-off. The upgrade that saves you the most money is almost always
+            the one that does the most for the planet.
           </p>
         </div>
       </section>
@@ -171,7 +175,7 @@ export default function Home() {
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-3">Start here</p>
             <h2 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
-              Your home.<br />
+              Your energy.<br />
               <span className="text-emerald-400">Your numbers.</span>
             </h2>
           </div>
@@ -179,7 +183,7 @@ export default function Home() {
             href="/calculator"
             className="shrink-0 inline-flex items-center gap-3 bg-emerald-400 text-zinc-950 px-8 py-4 font-black text-sm uppercase tracking-widest hover:bg-emerald-300 transition-colors"
           >
-            Run the Analysis →
+            Find Your Savings →
           </Link>
         </div>
       </section>
