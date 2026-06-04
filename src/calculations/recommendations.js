@@ -10,7 +10,12 @@ const S_PER_DAY = 86400
 const J_TO_GJ   = 1e-9
 const AIR_HEAT_CAPACITY = 0.335
 
-// CO₂ emission factors (tonnes CO₂/GJ input energy) — NRCan national averages
+// CO₂ emission factors (tonnes CO₂e/GJ input energy).
+// National average grid emission intensities from:
+//   - NRCan, National Energy Use Database (NEUD) 2021
+//   - Environment and Climate Change Canada, National Inventory Report 2022
+// Natural gas: 0.0503 t/GJ. Electricity: 0.014 t/GJ (national avg; QC/MB/BC significantly lower).
+// Heating oil: 0.0726 t/GJ. Propane: 0.0614 t/GJ.
 const CO2_FACTORS = {
   naturalGas:  0.0503,
   electricity: 0.014,    // national average; QC/MB/BC much lower
@@ -18,29 +23,91 @@ const CO2_FACTORS = {
   propane:     0.0614,
 }
 
-// Mid-range installed costs in Canada (2024 CAD)
+// Mid-range installed costs in Canada (2024 CAD).
+// Sources:
+//   - NRCan Canada Greener Homes Grant cost benchmarks
+//   - RSMeans Canadian Construction Cost Data 2023
+//   - HRAI (Heating, Refrigeration and Air Conditioning Institute of Canada) 2023 member survey
+//   - Canadian contractor quotes (2024); regional variation ±30%
 const COSTS = {
-  // Attic insulation cost is now scaled per m² of ceiling area — see section below
+  // Attic blown-in insulation: $40–90/m² installed (NRCan Canada Greener Homes benchmark;
+  // RSMeans 2023). $65/m² = mid-range comprehensive job including air-sealing of penetrations.
+  // Attic insulation cost is now scaled per m² of ceiling area — see section below.
   wallInsulation:     12000,
+  // Mid-range double-to-triple upgrade per window opening: $600–900 installed.
+  // Per NRCan Canada Greener Homes grant benchmark data and CMHC renovation cost guides (2023).
+  // $700 = mid-range.
   windowUpgrade:        700,   // per window
-  // Air sealing cost is now scaled to floor area — see section below
+  // Air sealing cost is now scaled to floor area — see section below.
+  // Base mobilisation $1,200 + $5/m² floor area. Per NRCan Canada Greener Homes contractor
+  // cost data and Efficiency Canada retrofit cost database (2023).
+  //
+  // Interior basement wall insulation (batt + vapour barrier or rigid foam): $3,500–5,000
+  // typical Canadian home. Per NRCan Canada Greener Homes benchmark. Flat estimate;
+  // scales with perimeter.
   basementInsulation:  4000,
+  // High-efficiency gas furnace (96% AFUE) supply + install: $5,000–7,500.
+  // Per NRCan Canada Greener Homes and HRAI 2023 member survey. $6,000 = mid-range.
   furnaceUpgrade:      6000,
+  // Air-source heat pump system (CCASHP, supply + install, single-zone): $12,000–18,000.
+  // Per NRCan Canada Greener Homes grant data and HRAI 2023. $14,000 = mid-range;
+  // multi-zone or ground-source higher.
   heatPump:           14000,
+  // Tankless gas water heater, supply + install: $1,200–2,000.
+  // Per NRCan Canada Greener Homes and Canadian plumbing contractor market (2024).
   waterHeaterUpgrade:  1500,
+  // Heat pump water heater, supply + install: $1,500–2,500.
+  // Per NRCan Canada Greener Homes grant data (2024).
   hpwh:                1800,
-  chimneyMasonry:       800,   // chimney balloon + professional damper/cap
-  chimneyGasVented:     400,   // damper kit + service call
+  // Chimney balloon + professional damper/cap: ~$800 (masonry flue).
+  // Per NRCan, Keeping the Heat In (2012).
+  chimneyMasonry:       800,
+  // Vented gas damper kit + service call: ~$400.
+  // Per industry average, 2024.
+  chimneyGasVented:     400,
 }
 
 function r_to_rsi(r) { return r / 5.678 }
 function simplePayback(cost, savings) { return savings > 0 ? cost / savings : Infinity }
 
-// Climate-adjusted attic R target
+// Climate-adjusted attic R target.
+// Recommended attic insulation levels by climate zone:
+//   R-50: NRCan Zone 4–5 (HDD < 3,500)
+//   R-60: Zone 6–7 (HDD 3,500–5,500)
+//   R-80: Zone 7–8 (HDD > 5,500)
+// Per NRCan, HOT2000 Technical Manual Table 3-2 and National Energy Code for Buildings
+// (NECB) 2020 prescriptive envelope requirements.
 function atticTargetR(hdd) {
   if (hdd < 3500) return 50   // mild (coastal BC) — NRCan zone 4–5
   if (hdd < 5500) return 60   // cold (most of Canada) — zone 6–7
   return 80                    // very cold (SK, MB, northern ON/QC) — zone 7–8
+}
+
+/**
+ * Seasonal average COP estimate by outdoor design temperature and heat pump type.
+ * Sources:
+ *   - Standard ASHP: NRCan CanmetENERGY field monitoring program (2019–2023);
+ *     AHRI 210/240 certified ratings for Canadian climate zones
+ *   - CCASHP: NRCan cold-climate heat pump specification (equipment rated to maintain
+ *     capacity at ≥ −25°C); Mitsubishi Zuba-Central, Bosch IDS, Daikin Fit field data
+ *     from NRCan CanmetENERGY (2022 report: "Cold Climate Heat Pump Performance in Canada")
+ * Design temperature bins correspond to NBCC 2020 Appendix C 2.5% January values.
+ * These are seasonal averages, not rated-point COPs.
+ *
+ * NOTE: This function replaces the prior two-bin COP approach (designTemp >= -20 ? 2.8 : 2.2)
+ * with a multi-bin model for improved accuracy across Canada's wide climate range.
+ */
+function heatPumpCOP(designTemp, isColdClimate = false) {
+  // [designTemp threshold, standardCOP, ccashpCOP]
+  const bins = [
+    [-10, 3.0, 3.4],
+    [-15, 2.6, 3.0],
+    [-20, 2.2, 2.6],
+    [-25, 1.8, 2.1],
+    [-Infinity, 1.5, 1.8],
+  ]
+  const [, std, cc] = bins.find(([threshold]) => designTemp >= threshold)
+  return isColdClimate ? cc : std
 }
 
 /**
@@ -52,7 +119,7 @@ function atticTargetR(hdd) {
  * @returns {Array} Sorted recommendations (shortest payback first)
  */
 export function generateRecommendations(heatLossResult, waterHeaterResult, inputs) {
-  const { components, totalHeatLossGJ, annualFuelGJ, conditionedVolume } = heatLossResult
+  const { components, grossAirLeakageGJ, totalHeatLossGJ, annualFuelGJ, conditionedVolume } = heatLossResult
   const { envelope, heating, waterHeater, climate } = inputs
   const { hdd } = climate
   const { fuelCostPerGJ, efficiency, fuelType } = heating
@@ -108,7 +175,8 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
   // Threshold raised to 0.45 ACH — below this the accessible leakage sites have likely been addressed.
   if (envelope.ach > 0.45) {
     const targetAch = Math.max(0.15, envelope.ach * 0.5)
-    const oldGJ     = components.airLeakage
+    // Use gross (pre-HRV) air leakage as the baseline so HRV savings aren't double-counted.
+    const oldGJ     = grossAirLeakageGJ ?? components.airLeakage
     const newGJ     = targetAch * conditionedVolume * AIR_HEAT_CAPACITY * hdd * S_PER_DAY * J_TO_GJ
     const savings   = heatSavings(oldGJ, newGJ)
     // Cost: $1,200 base + $5/m² of floor area, rounded to $50. Reflects blower door test + professional sealing.
@@ -143,7 +211,8 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
     const oldGJ          = rimJoistArea * U_uninsulated * hdd * S_PER_DAY * J_TO_GJ
     const newGJ          = rimJoistArea * U_insulated   * hdd * S_PER_DAY * J_TO_GJ
     const savings        = heatSavings(oldGJ, newGJ)
-    // Cost: $40/m² spray foam installed, $50 minimum step, floor of $800
+    // Cost: $40/m² closed-cell spray foam installed ($35–50/m²).
+    // Per NRCan Canada Greener Homes benchmark and Canadian spray foam contractor market (2024).
     const cost           = Math.max(800, Math.round(rimJoistArea * 40 / 50) * 50)
     if (savings > 25) {
       recs.push({
@@ -167,6 +236,9 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
     // Model the chimney as an equivalent continuous infiltration source.
     // A masonry flue (~200 mm diameter) loses roughly 0.12 ACH-equivalent due to stack effect.
     // A vented gas fireplace with standing pilot loses roughly 0.06 ACH-equivalent.
+    // Equivalent infiltration rates estimated from ASHRAE Handbook of Fundamentals 2021,
+    // Chapter 16 (Air Leakage) and field measurements reported in NRCan,
+    // Keeping the Heat In (2012 edition), Chapter 3.
     const chimAch      = chimney === 'masonry' ? 0.12 : 0.06
     const chimneyLossGJ = chimAch * conditionedVolume * AIR_HEAT_CAPACITY * hdd * S_PER_DAY * J_TO_GJ
     const savings       = chimneyLossGJ / efficiency * fuelCostPerGJ
@@ -267,7 +339,10 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
   if (['naturalGas', 'heatingOil', 'propane'].includes(fuelType)
       && climate.designTemp >= -30
       && inputs.electricityCostPerGJ) {
-    const cop         = climate.designTemp >= -20 ? 2.8 : 2.2
+    // Use multi-bin COP model based on design temperature and heat pump type.
+    // isCCASHP: true when user has selected a cold-climate heat pump system.
+    const isCCASHP = inputs.heating?.systemId === 'ccashp' || inputs.coldClimateHeatPump === true
+    const cop      = heatPumpCOP(climate.designTemp, isCCASHP)
     const newCost     = totalHeatLossGJ / cop * inputs.electricityCostPerGJ
     const savings     = heatLossResult.annualCost - newCost
     const co2Current  = annualFuelGJ * (CO2_FACTORS[fuelType] ?? 0.05)

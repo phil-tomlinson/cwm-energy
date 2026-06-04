@@ -1,8 +1,18 @@
-// Default building envelope values by Canadian construction era.
-// R-values are nominal imperial (ft²·°F·h/BTU) as labeled on insulation products.
-// Window U-values are in W/(m²·K).
-// ACH = natural air changes per hour (at typical pressures, not blower-door).
-// windowFraction = window area as a fraction of gross above-grade wall area.
+/**
+ * Era-based envelope defaults for Canadian residential construction.
+ * Sources:
+ *   - NRCan HOT2000 Technical Manual, Table 2-1 (typical envelope by era)
+ *   - CMHC Canadian Housing Observer / Housing Statistics (housing stock characteristics)
+ *   - NRCan Survey of Household Energy Use (SHEU) 2011
+ *   - NRCan EnerGuide for Houses: baseline characteristics by construction period
+ * Values represent mid-range for each era; actual homes vary significantly.
+ * ACH values are natural infiltration rates (not blower-door ACH50).
+ *
+ * R-values are nominal imperial (ft²·°F·h/BTU) as labeled on insulation products.
+ * Window U-values are in W/(m²·K).
+ * ACH = natural air changes per hour (at typical pressures, not blower-door).
+ * windowFraction = window area as a fraction of gross above-grade wall area.
+ */
 
 export const constructionEras = [
   { value: 'pre1946',    label: 'Before 1946' },
@@ -96,6 +106,8 @@ export const basementTypes = [
 
 // Fraction of gross wall area that is exposed (not shared party walls).
 // Affects calculated above-grade wall area and basement perimeter.
+// Exposed wall fractions estimated from typical Canadian housing stock geometry.
+// Per NRCan, Residential Energy Use Handbook; CMHC housing type surveys.
 export const exposedWallFactor = {
   detached:  1.0,
   semi:      0.6,   // ~2 of 4 sides exposed

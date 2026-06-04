@@ -1,7 +1,7 @@
 ﻿import { houseTypes, storeyOptions, basementTypes, constructionEras } from '../../data/houseDefaults'
 import { displayArea, displayLength } from '../../utils/units'
 import Card, { CardSection } from '../ui/Card'
-import { SelectField, AreaField, LengthField } from '../ui/FormField'
+import { SelectField, AreaField, LengthField, NumberField } from '../ui/FormField'
 
 const COMMON_HEIGHTS_M = [2.13, 2.44, 2.74, 3.05]   // 7 ft, 8 ft, 9 ft, 10 ft
 
@@ -80,6 +80,20 @@ export default function Step2Home({ data, updateData }) {
             units={units}
           />
         </CardSection>
+
+        {['full_heated', 'full_unheated', 'partial'].includes(data.basementType) && (
+          <CardSection
+            title="Basement wall height"
+            hint="Floor-to-ceiling height of your basement. Typically 2.1 m (7 ft) in older homes, 2.4–2.7 m in newer construction."
+          >
+            <LengthField
+              label="Basement wall height"
+              value={data.basementWallHeight ?? 2.1}
+              onChange={v => updateData({ basementWallHeight: v, envelope: null })}
+              units={units}
+            />
+          </CardSection>
+        )}
 
         <CardSection
           title="Construction era"

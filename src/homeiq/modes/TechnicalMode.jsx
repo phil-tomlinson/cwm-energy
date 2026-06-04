@@ -1,4 +1,5 @@
-﻿import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
+﻿import { useState } from 'react'
+import { provinces, getCitiesForProvince, getClimateData } from '../../data/climateData'
 import { houseTypes, storeyOptions, basementTypes, constructionEras } from '../../data/houseDefaults'
 import { HEATING_SYSTEMS, waterHeaterTypes as whTypesFallback, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
 import { waterHeaterTypes } from '../../calculations/waterHeater'
@@ -15,6 +16,16 @@ function SectionHeader({ label }) {
 }
 
 export default function TechnicalMode({ data, updateData }) {
+  const [achMode, setAchMode] = useState('natural')  // 'natural' | 'ach50'
+  const [ach50Value, setAch50Value] = useState(() => Math.round((data.envelope?.ach ?? 0.5) * 17 * 10) / 10)
+
+  // Keep the ACH50 display in sync when the underlying natural ACH changes externally.
+  useEffect(() => {
+    if (data.envelope?.ach != null) {
+      setAch50Value(Math.round(data.envelope.ach * 17 * 10) / 10)
+    }
+  }, [data.envelope?.ach])
+
   const units = data.units
   const env = data.envelope ?? {}
   const prices = provincialPrices[data.province] ?? {}
@@ -101,6 +112,15 @@ export default function TechnicalMode({ data, updateData }) {
         <LengthField label="Ceiling height" value={data.ceilingHeight}
           onChange={v => updateData({ ceilingHeight: v })} units={units} />
       </div>
+      {['full_heated', 'full_unheated', 'partial'].includes(data.basementType) && (
+        <LengthField
+          label="Basement wall height"
+          value={data.basementWallHeight ?? 2.1}
+          onChange={v => updateData({ basementWallHeight: v, envelope: null })}
+          units={units}
+          hint="Floor-to-ceiling height of basement. Typically 2.1 m (7 ft) in older homes, 2.4–2.7 m in newer construction."
+        />
+      )}
 
       {/* ── Envelope — Insulation ─────────────────────────────── */}
       <SectionHeader label="Envelope — Insulation & Air Sealing" />
@@ -129,10 +149,46 @@ export default function TechnicalMode({ data, updateData }) {
         <NumberField label="Door U-value" unit="W/m²K" value={env.doorU ?? 0}
           onChange={v => updateEnv({ doorU: v })} min={0.5} max={5.0} step={0.1}
           hint="Typical steel door ≈ 1.8" />
-        <NumberField label="Air leakage" unit="ACH" value={env.ach ?? 0}
-          onChange={v => updateEnv({ ach: v })} min={0.02} max={3.0} step={0.05}
-          hint="Blower door @ natural pressure. Tight = 0.1 · Leaky = 1.0+" />
+        <div>
+          {/* ACH mode toggle */}
+          <div className="flex gap-0 mb-1 text-xs font-mono overflow-hidden border border-zinc-600">
+            {[{ key: 'natural', label: 'Natural ACH' }, { key: 'ach50', label: 'ACH50' }].map(opt => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setAchMode(opt.key)}
+                className={`flex-1 px-2 py-1 transition-colors ${
+                  achMode === opt.key
+                    ? 'bg-emerald-400 text-zinc-950 font-bold'
+                    : 'bg-transparent text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {achMode === 'natural' ? (
+            <NumberField label="Air leakage" unit="ACH" value={env.ach ?? 0}
+              onChange={v => updateEnv({ ach: v })} min={0.02} max={3.0} step={0.05}
+              hint="Natural ACH. Tight = 0.1 · Leaky = 1.0+" />
+          ) : (
+            <>
+              <NumberField label="ACH50 (blower door)" unit="ACH50" value={ach50Value}
+                onChange={v => {
+                  setAch50Value(v)
+                  updateEnv({ ach: parseFloat((v / 17).toFixed(2)) })
+                }} min={1} max={20} step={0.5} />
+              <p className="text-[10px] text-emerald-400 font-mono mt-0.5">
+                → Natural ACH: {parseFloat((ach50Value / 17).toFixed(2))} (÷17 per NRCan Sherman-Grimsrud)
+              </p>
+            </>
+          )}
+        </div>
       </div>
+      <NumberField label="South-facing windows" unit="%" value={Math.round((data.solarInputs?.southFraction ?? 0.25) * 100)}
+        onChange={v => updateData({ solarInputs: { ...(data.solarInputs ?? {}), southFraction: v / 100 } })}
+        min={0} max={60} step={5}
+        hint="% of window area facing south (within 30°). Default 25% = ~equal distribution across 4 facades." />
 
       {/* ── Envelope — Air Leakage Factors ───────────────────── */}
       <SectionHeader label="Envelope — Air Leakage Factors" />
@@ -217,6 +273,37 @@ export default function TechnicalMode({ data, updateData }) {
             </div>
             <p className="mt-1 text-[10px] text-zinc-400 font-mono">In ceiling below unconditioned attic</p>
           </div>
+        </div>
+
+        {/* HRV / ERV */}
+        <div>
+          <p className="text-sm font-medium text-zinc-300 mb-2">HRV / ERV installed?</p>
+          <div className="flex gap-2 mb-2">
+            {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
+              <button
+                key={String(opt.value)}
+                type="button"
+                onClick={() => updateData({ hrv: { ...(data.hrv ?? { effectiveness: 0.75 }), has: opt.value } })}
+                className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                  (data.hrv?.has ?? false) === opt.value
+                    ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
+                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {data.hrv?.has && (
+            <NumberField
+              label="Sensible effectiveness"
+              unit="%"
+              value={Math.round((data.hrv?.effectiveness ?? 0.75) * 100)}
+              onChange={v => updateData({ hrv: { ...(data.hrv ?? {}), effectiveness: v / 100 } })}
+              min={55} max={85} step={5}
+              hint="HRV: 70–80%. ERV: 60–75%. Per CSA C439." />
+          )}
+          <p className="mt-1 text-[10px] text-zinc-400 font-mono">HRV/ERV reduces effective infiltration heat loss by the effectiveness fraction</p>
         </div>
       </div>
 

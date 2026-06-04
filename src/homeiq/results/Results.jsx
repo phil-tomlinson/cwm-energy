@@ -102,6 +102,13 @@ export default function Results({ results, onReset }) {
         )}
       </div>
 
+      {/* Solar gain callout */}
+      {heatLoss?.solarGainGJ > 0 && (
+        <div className="border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 mb-4 text-sm text-emerald-300">
+          South-facing windows offset an estimated {heatLoss.solarGainGJ.toFixed(1)} GJ/year of heating load.
+        </div>
+      )}
+
       {/* Summary stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <StatCard

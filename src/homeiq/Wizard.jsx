@@ -28,6 +28,9 @@ const DEFAULT_STATE = {
   storeys:      2,
   floorArea:    180,
   ceilingHeight: 2.44,
+  // Typical Canadian residential basement wall height of 2.1 m (7 ft) in older homes,
+  // 2.4–2.7 m in newer construction. Per NRCan HOT2000 Technical Manual default assumptions.
+  basementWallHeight: 2.1,
   era:          '1980_1999',
   basementType: 'full_heated',
   envelope:     null,
@@ -36,6 +39,12 @@ const DEFAULT_STATE = {
     exposedRimJoists: false,
     recessedLights:   false,
   },
+  // HRV/ERV: heat recovery ventilator presence and sensible effectiveness (0–1).
+  // Typical HRV effectiveness: 70–80%. ERV: 60–75%. Per CSA C439 / NRCan EnerGuide.
+  hrv: { has: false, effectiveness: 0.75 },
+  // Solar inputs: fraction of total window area facing south (within 30° of due south).
+  // Default 25% assumes roughly equal distribution across 4 facades.
+  solarInputs: { southFraction: 0.25 },
   heating: {
     systemId:     'furnace_80',
     fuelType:     'naturalGas',
@@ -65,7 +74,7 @@ export default function Wizard({ onComplete }) {
     if (newMode === 'technical' && !data.envelope) {
       const era = eraDefaults[data.era]
       const envelope = buildEnvelopeFromDefaults(
-        data.houseType, data.floorArea, data.storeys, data.basementType, era
+        data.houseType, data.floorArea, data.storeys, data.basementType, era, data.basementWallHeight ?? 2.1
       )
       setData(prev => ({ ...prev, mode: newMode, envelope }))
     } else {
@@ -83,7 +92,7 @@ export default function Wizard({ onComplete }) {
   function runCalculations() {
     const era = eraDefaults[data.era]
     const envelope = data.envelope ?? buildEnvelopeFromDefaults(
-      data.houseType, data.floorArea, data.storeys, data.basementType, era
+      data.houseType, data.floorArea, data.storeys, data.basementType, era, data.basementWallHeight ?? 2.1
     )
 
     const fuelCostPerGJ      = data.heating.fuelCostPerGJ ?? getFuelCostPerGJ(data.province, data.heating.fuelType)
@@ -91,13 +100,16 @@ export default function Wizard({ onComplete }) {
     const electricityCostPerGJ = getFuelCostPerGJ(data.province, 'electricity')
 
     const heatLossResult = calculateHeatLoss({
-      climate:      data.climate,
+      climate:             data.climate,
       envelope,
-      floorArea:    data.floorArea,
-      storeys:      data.storeys,
-      basementType: data.basementType,
-      ceilingHeight: data.ceilingHeight ?? 2.44,
-      heating: { efficiency: data.heating.efficiency, fuelCostPerGJ },
+      floorArea:           data.floorArea,
+      storeys:             data.storeys,
+      basementType:        data.basementType,
+      ceilingHeight:       data.ceilingHeight ?? 2.44,
+      basementWallHeight:  data.basementWallHeight ?? 2.1,
+      heating:             { efficiency: data.heating.efficiency, fuelCostPerGJ },
+      hrv:                 data.hrv ?? { has: false, effectiveness: 0 },
+      solarInputs:         data.solarInputs ?? { southFraction: 0 },
     })
 
     const waterHeaterResult = calculateWaterHeater(
@@ -112,7 +124,7 @@ export default function Wizard({ onComplete }) {
       heatLossResult, waterHeaterResult,
       {
         envelope,
-        heating: { fuelType: data.heating.fuelType, efficiency: data.heating.efficiency, fuelCostPerGJ },
+        heating: { systemId: data.heating.systemId, fuelType: data.heating.fuelType, efficiency: data.heating.efficiency, fuelCostPerGJ },
         waterHeater:        data.waterHeater,
         climate:            data.climate,
         electricityCostPerGJ,

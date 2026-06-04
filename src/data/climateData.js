@@ -1,7 +1,12 @@
-// Canadian climate data for residential energy calculations.
-// hdd:        Heating Degree Days, base 18°C (NRCan/Environment Canada)
-// designTemp: 2.5% January design temperature °C (NBCC Appendix C)
-// coldWaterTemp: Average annual groundwater/cold water inlet temperature °C
+/**
+ * Canadian city climate data for residential energy calculations.
+ * HDD (Heating Degree Days, base 18°C): NRCan RETScreen database / Environment and Climate Change Canada
+ *   climate normals 1981–2010 (updated where 1991–2020 data available).
+ * Design temperature (2.5% January): NBCC 2020, Appendix C, Table C-2
+ *   (outdoor design temperature at 2.5% annual probability of exceedance).
+ * Cold water inlet temperature: NRCan HOT2000 default ground water temperatures by region,
+ *   derived from Environment Canada mean annual ground temperature data.
+ */
 
 export const provinces = [
   { code: 'BC', name: 'British Columbia' },

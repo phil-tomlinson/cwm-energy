@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { eraDefaults, exposedWallFactor } from '../../data/houseDefaults'
 import { buildEnvelopeFromDefaults } from '../../calculations/heatLoss'
 import Card, { CardSection } from '../ui/Card'
@@ -7,8 +7,7 @@ import WindowEstimator from '../estimators/WindowEstimator'
 import FootprintEstimator from '../estimators/FootprintEstimator'
 import DiveDeeper from '@/components/DiveDeeper'
 
-const BASEMENT_HEIGHT = 2.1
-const BELOW_GRADE_FRACTION = 0.55
+const DEFAULT_BASEMENT_HEIGHT = 2.1
 
 const ACH_DESCRIPTORS = [
   { max: 0.2,  label: 'Very tight (new construction, blower-door tested)' },
@@ -23,15 +22,27 @@ function achDescription(ach) {
 }
 
 export default function Step3Envelope({ data, updateData }) {
+  const [achMode, setAchMode] = useState('natural')  // 'natural' | 'ach50'
+  const [ach50Value, setAch50Value] = useState(() => Math.round((data.envelope?.ach ?? 0.5) * 17 * 10) / 10)
+
+  // Keep the ACH50 display in sync when the underlying natural ACH changes externally
+  // (e.g. era change rebuilds the envelope with a new default ACH).
+  useEffect(() => {
+    if (data.envelope?.ach != null) {
+      setAch50Value(Math.round(data.envelope.ach * 17 * 10) / 10)
+    }
+  }, [data.envelope?.ach])
+
   useEffect(() => {
     if (!data.envelope) {
       const defaults = eraDefaults[data.era]
       const envelope = buildEnvelopeFromDefaults(
-        data.houseType, data.floorArea, data.storeys, data.basementType, defaults
+        data.houseType, data.floorArea, data.storeys, data.basementType, defaults,
+        data.basementWallHeight ?? DEFAULT_BASEMENT_HEIGHT
       )
       updateData({ envelope })
     }
-  }, [data.era, data.houseType, data.floorArea, data.storeys, data.basementType])
+  }, [data.era, data.houseType, data.floorArea, data.storeys, data.basementType, data.basementWallHeight])
 
   const env = data.envelope
   if (!env) return <div className="text-zinc-400 text-sm p-4">Calculating defaults…</div>
@@ -73,14 +84,16 @@ export default function Step3Envelope({ data, updateData }) {
   }
 
   function basementWallEstimate(l, w) {
+    const bwh = data.basementWallHeight ?? DEFAULT_BASEMENT_HEIGHT
+    const bgFraction = (bwh - 0.3) / bwh
     const perimeter = 2 * (l + w)
-    const area = perimeter * BASEMENT_HEIGHT * BELOW_GRADE_FRACTION * ef
+    const area = perimeter * bwh * bgFraction * ef
     return {
       value: area,
       rows: [
-        { label: 'Perimeter',                                    value: `${perimeter.toFixed(1)} m` },
-        { label: `× ${BASEMENT_HEIGHT} m wall × ${BELOW_GRADE_FRACTION} below grade`, value: `${(perimeter * BASEMENT_HEIGHT * BELOW_GRADE_FRACTION).toFixed(1)} m²` },
-        { label: `× ${ef} exposed factor (${data.houseType})`,  value: `${area.toFixed(1)} m²`, highlight: true },
+        { label: 'Perimeter',                                          value: `${perimeter.toFixed(1)} m` },
+        { label: `× ${bwh} m wall × ${bgFraction.toFixed(2)} below grade`, value: `${(perimeter * bwh * bgFraction).toFixed(1)} m²` },
+        { label: `× ${ef} exposed factor (${data.houseType})`,        value: `${area.toFixed(1)} m²`, highlight: true },
       ],
     }
   }
@@ -189,6 +202,14 @@ export default function Step3Envelope({ data, updateData }) {
               hint="Single pane ≈ 5.0 | Double ≈ 2.8 | Triple ≈ 1.6"
             />
           </div>
+          <NumberField
+            label="South-facing windows"
+            value={Math.round((data.solarInputs?.southFraction ?? 0.25) * 100)}
+            onChange={v => updateData({ solarInputs: { ...(data.solarInputs ?? {}), southFraction: v / 100 } })}
+            min={0} max={60} step={5} unit="%"
+            defaultNote="25%"
+            hint="% of total window area facing south (within 30° of due south). South windows are the primary source of passive solar gain. Default 25% assumes a roughly equal distribution across 4 facades."
+          />
         </CardSection>
 
         <CardSection title="Exterior doors">
@@ -277,14 +298,55 @@ export default function Step3Envelope({ data, updateData }) {
           title="Air leakage"
           hint="How many times per hour indoor air is replaced by outdoor air through gaps and cracks."
         >
-          <NumberField
-            label="Air changes per hour (ACH)"
-            value={env.ach}
-            onChange={v => update('ach', v)}
-            min={0.05} max={2.0} step={0.05}
-            defaultNote={`${era.ach} ACH`}
-          />
-          <p className="text-xs text-emerald-400 mt-1">{achDescription(env.ach)}</p>
+          {/* ACH mode toggle */}
+          <div className="flex gap-0 mb-3 text-xs font-mono overflow-hidden border border-zinc-600">
+            {[{ key: 'natural', label: 'Natural ACH' }, { key: 'ach50', label: 'ACH50 (blower door)' }].map(opt => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setAchMode(opt.key)}
+                className={`flex-1 px-3 py-1.5 transition-colors ${
+                  achMode === opt.key
+                    ? 'bg-emerald-400 text-zinc-950 font-bold'
+                    : 'bg-transparent text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {achMode === 'natural' ? (
+            <>
+              <NumberField
+                label="Air changes per hour (ACH)"
+                value={env.ach}
+                onChange={v => update('ach', v)}
+                min={0.05} max={2.0} step={0.05}
+                defaultNote={`${era.ach} ACH`}
+              />
+              <p className="text-xs text-emerald-400 mt-1">{achDescription(env.ach)}</p>
+            </>
+          ) : (
+            <>
+              <NumberField
+                label="ACH50 (blower door result)"
+                value={ach50Value}
+                onChange={v => {
+                  setAch50Value(v)
+                  const naturalAch = parseFloat((v / 17).toFixed(2))
+                  update('ach', naturalAch)
+                }}
+                min={1} max={20} step={0.5} unit="ACH50"
+              />
+              <p className="text-xs text-emerald-400 mt-1">
+                → Natural ACH: {parseFloat((ach50Value / 17).toFixed(2))} (used in calculation)
+              </p>
+              <p className="text-xs text-zinc-400 mt-1">
+                ACH50 ÷ 17 = estimated natural ACH. Divisor of 17 per NRCan simplified Sherman-Grimsrud infiltration model for Canadian climate conditions (NRCan, Keeping the Heat In, 2012, Appendix B). Typical values: {'<'}2 very tight | 3–5 well-sealed | 6–10 average | {'>'}10 leaky.
+              </p>
+            </>
+          )}
         </CardSection>
       </Card>
 
@@ -374,6 +436,45 @@ export default function Step3Envelope({ data, updateData }) {
             </div>
             <p className="mt-1 text-xs text-zinc-400">Each uninsulated pot light is effectively a hole in your ceiling — they're sealed during attic insulation work.</p>
           </div>
+        </CardSection>
+      </Card>
+
+      {/* ── HRV / ERV ── */}
+      <Card>
+        <CardSection
+          title="Heat recovery ventilator (HRV / ERV)"
+          hint="An HRV or ERV recovers heat from outgoing stale air and transfers it to incoming fresh air, reducing ventilation heat loss."
+        >
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">My home has an HRV or ERV</label>
+            <div className="flex gap-2">
+              {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => updateData({ hrv: { ...(data.hrv ?? { effectiveness: 0.75 }), has: opt.value } })}
+                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                    (data.hrv?.has ?? false) === opt.value
+                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
+                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {data.hrv?.has && (
+            <NumberField
+              label="Sensible heat recovery effectiveness"
+              value={Math.round((data.hrv?.effectiveness ?? 0.75) * 100)}
+              onChange={v => updateData({ hrv: { ...(data.hrv ?? {}), effectiveness: v / 100 } })}
+              min={55} max={85} step={5} unit="%"
+              defaultNote="75%"
+              hint="Typical HRV effectiveness: 70–80%. ERV: 60–75%. Found on your unit's spec sheet or EnerGuide label. Source: CSA C439 / NRCan EnerGuide rating."
+            />
+          )}
         </CardSection>
       </Card>
     </div>

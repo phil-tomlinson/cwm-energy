@@ -1,7 +1,15 @@
-// Approximate Canadian retail energy prices (2024).
-// Natural gas: $/GJ   |   Electricity: $/kWh   |   Oil & Propane: $/L
-// Sources: provincial utility websites, NRCan Energy Prices report.
-// Note: actual rates vary by utility and usage tier. Users should verify with their bill.
+/**
+ * Provincial residential energy prices (approximate, 2024).
+ * Sources:
+ *   - Natural gas: NRCan, Energy Fact Book 2023-24; provincial utility rate schedules
+ *     (BC Hydro, ATCO, SaskEnergy, Enbridge, etc.)
+ *   - Electricity: NRCan, Electricity Facts 2023; Hydro-Québec Comparison of Electricity Prices
+ *     in Major North American Cities (2024 edition)
+ *   - Heating oil: NRCan, Weekly Retail Petroleum Product Prices (2024 average)
+ *   - Propane: NRCan Energy Prices Report 2023; provincial distributor averages
+ * Prices are approximate mid-range residential rates. Actual bills vary by consumption tier,
+ * time-of-use pricing, and distributor. Update annually.
+ */
 
 export const fuelTypes = [
   { value: 'naturalGas',   label: 'Natural gas' },
@@ -61,15 +69,18 @@ export const provincialPrices = {
 }
 
 // Convert raw fuel price to $/GJ for uniform cost calculations:
-//   Natural gas price is already in $/GJ
-//   Electricity: 1 kWh = 0.0036 GJ  →  multiplier = 1/0.0036 = 277.78
-//   Heating oil: ~38.2 MJ/L          →  multiplier = 1000/38.2  = 26.18
-//   Propane:     ~25.3 MJ/L          →  multiplier = 1000/25.3  = 39.53
+//   Natural gas price is already in $/GJ (sold in GJ in Canada)
+//   Electricity: 1 kWh = 0.0036 GJ → $/kWh × 277.78 = $/GJ
+//     (ASHRAE / SI unit conversion: 1 kWh = 3600 J = 3.6×10⁻³ GJ → 1/0.0036 = 277.78)
+//   Heating oil: ~38.2 MJ/L net calorific value (NRCan, Energy Density Reference Table)
+//     → 1/0.0382 GJ/L = 26.18 $/GJ multiplier; converts $/L to $/GJ
+//   Propane: ~25.3 MJ/L net calorific value (NRCan, Energy Density Reference Table)
+//     → 1/0.0253 = 39.53; multiplier converts $/L to $/GJ
 const priceMultipliers = {
   naturalGas:  1,
-  electricity: 277.78,
-  heatingOil:  26.18,
-  propane:     39.53,
+  electricity: 277.78,   // 1 kWh = 0.0036 GJ → ASHRAE / SI unit conversion
+  heatingOil:  26.18,    // Heating oil: ~38.2 MJ/L net calorific value (NRCan)
+  propane:     39.53,    // Propane: ~25.3 MJ/L net calorific value (NRCan)
 }
 
 export function getFuelCostPerGJ(province, fuelType) {
