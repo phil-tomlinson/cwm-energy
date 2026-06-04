@@ -6,6 +6,13 @@
 //   estimatedCostCAD  — mid-range Canadian installed cost (2024 CAD)
 //   paybackYears      — simple payback (cost / savings)
 
+import {
+  calculateSolar,
+  estimateRoofCapacity,
+  solarSizePresets,
+  DEFAULT_INSTALL_COST_PER_KW,
+} from './solar'
+
 const S_PER_DAY = 86400
 const J_TO_GJ   = 1e-9
 const AIR_HEAT_CAPACITY = 0.335
@@ -65,6 +72,19 @@ const COSTS = {
   // Vented gas damper kit + service call: ~$400.
   // Per industry average, 2024.
   chimneyGasVented:     400,
+  // Smart thermostat (Ecobee/Nest) + basic installation: $250–400 supply + $75 labour.
+  // Per Home Depot / Best Buy Canada market pricing (2024) + HVAC contractor call.
+  smartThermostat:       350,
+  // Above-grade wall insulation (exterior rigid foam + re-siding, or interior batt):
+  // $60–100/m² installed. $75/m² mid-range. Scaled per wall area in the recommendation.
+  // Per NRCan Canada Greener Homes benchmark; CMHC Renovation Cost Guides (2023).
+  wallInsulationPerM2:    75,
+  // Drain water heat recovery unit, supply + plumber install: $900–1,800.
+  // Per NRCan Canada Greener Homes grant benchmark and Canadian plumber quotes (2024).
+  drainWaterHR:          1400,
+  // Aeroseal duct sealing (contractor, typical 150–250 m² home): $2,000–3,500.
+  // Per Aeroseal Canada dealer pricing and HRAI contractor survey (2024). $2,800 mid-range.
+  aeroSeal:              2800,
 }
 
 function r_to_rsi(r) { return r / 5.678 }
@@ -406,6 +426,160 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         co2SavedTonnes:   0,
         description:      'A heat pump water heater pulls warmth from the surrounding air to heat water — using 3–4× less electricity than a standard electric tank. Works best in a utility room, basement, or garage with at least 28 m² of space around it. See cwm.energy/rebates for current Alberta rebate programs.',
       })
+    }
+  }
+
+  // ── 11. Smart thermostat ─────────────────────────────────────────────────
+  // Only meaningful for central forced-air systems (gas, propane, oil).
+  if (['naturalGas', 'propane', 'heatingOil'].includes(fuelType)) {
+    const savingsFraction = 0.10   // NRCan/ENERGY STAR: 8–12% typical heating reduction
+    const savings         = heatLossResult.annualCost * savingsFraction
+    const savedFuelGJ     = annualFuelGJ * savingsFraction
+    if (savings > 50) {
+      recs.push({
+        id:               'smartThermostat',
+        category:         'heating',
+        title:            'Install a smart thermostat',
+        currentValue:     'Manual or basic programmable thermostat',
+        targetValue:      'Smart thermostat (learning schedule, remote control)',
+        annualSavingsCAD: savings,
+        annualSavedGJ:    savedFuelGJ,
+        estimatedCostCAD: COSTS.smartThermostat,
+        paybackYears:     simplePayback(COSTS.smartThermostat, savings),
+        co2SavedTonnes:   savedFuelGJ * (CO2_FACTORS[fuelType] ?? 0.05),
+        description:      'A smart thermostat learns your schedule and turns down the heat while you\'re away or asleep — typically cutting space heating costs by 8–12% with no changes to how your home feels. Installation is a 20-minute DIY job for most forced-air systems; the device pays for itself inside two heating seasons. Look for the ENERGY STAR certification and rebates from your utility (many Canadian utilities offer $50–75 rebates). Check cwm.energy/rebates for current Alberta programs.',
+      })
+    }
+  }
+
+  // ── 12. Above-grade wall insulation ──────────────────────────────────────
+  // Derive wall area from the existing heat loss figure to avoid needing
+  // envelope.netWallArea explicitly (it may not be exposed in all input modes).
+  const wallHeatLoss = components.walls ?? 0
+  const wallR        = envelope.wallR ?? 0
+  if (wallR > 0 && wallR < 20 && wallHeatLoss > 0) {
+    const targetWallR = 24
+    const oldGJ       = wallHeatLoss
+    // Heat loss ∝ 1/R; proportional scaling: newGJ = oldGJ × (R_old / R_new)
+    const newGJ       = oldGJ * (wallR / targetWallR)
+    const savings     = heatSavings(oldGJ, newGJ)
+    // Back-calculate wall area from the heat loss formula: Q = A × U × HDD × s_per_day × j_to_gj
+    const wallArea    = oldGJ / ((1 / r_to_rsi(wallR)) * hdd * S_PER_DAY * J_TO_GJ)
+    const cost        = Math.max(5000, Math.round(wallArea * COSTS.wallInsulationPerM2 / 500) * 500)
+    if (savings > 150) {
+      recs.push({
+        id:               'wallInsulation',
+        category:         'envelope',
+        title:            `Upgrade above-grade wall insulation to R-${targetWallR}`,
+        currentValue:     `R-${wallR} (current above-grade walls)`,
+        targetValue:      `R-${targetWallR} (added rigid foam or batt)`,
+        annualSavingsCAD: savings,
+        annualSavedGJ:    (oldGJ - newGJ) / efficiency,
+        estimatedCostCAD: cost,
+        paybackYears:     simplePayback(cost, savings),
+        co2SavedTonnes:   (oldGJ - newGJ) / efficiency * (CO2_FACTORS[fuelType] ?? 0.05),
+        description:      'Walls are typically the largest surface area on a home and a major source of heat loss in homes built before the 1990s. The two main approaches: exterior rigid foam (added outside the sheathing before re-siding — the better thermal option, no interior disruption) or interior batt insulation (cheaper but requires removing drywall and loses a few centimetres of floor space in each room). Exterior insulation also eliminates thermal bridging through studs, which accounts for 15–20% of wall heat loss that nominal R-values don\'t capture. Check cwm.energy/rebates for current federal and provincial programs.',
+      })
+    }
+  }
+
+  // ── 13. Drain water heat recovery ────────────────────────────────────────
+  // Recovers heat from shower drain water to preheat cold water entering the
+  // water heater. Applicable to any fuel type with a conventional tank or tankless.
+  // Showers ≈ 37% of DHW use; DWHR recovers ≈ 35% of that heat.
+  {
+    const showerFraction    = 0.37
+    const recoveryEff       = 0.35
+    const dhwSavingsFraction = showerFraction * recoveryEff   // ≈ 13%
+    const savings            = waterHeaterResult.annualCost * dhwSavingsFraction
+    const savedDhwGJ         = waterHeaterResult.inputEnergyGJ * dhwSavingsFraction
+    if (savings > 50) {
+      recs.push({
+        id:               'drainWaterHR',
+        category:         'water',
+        title:            'Install drain water heat recovery',
+        currentValue:     'Cold water feeds water heater directly',
+        targetValue:      'DWHR unit on shower drain (35% heat recovery)',
+        annualSavingsCAD: savings,
+        annualSavedGJ:    savedDhwGJ,
+        estimatedCostCAD: COSTS.drainWaterHR,
+        paybackYears:     simplePayback(COSTS.drainWaterHR, savings),
+        co2SavedTonnes:   savedDhwGJ * (CO2_FACTORS[waterHeater.fuelType ?? fuelType] ?? 0.05),
+        description:      'A drain water heat recovery (DWHR) unit is a vertical copper coil fitted around your shower\'s drain pipe. As warm drain water flows down, it preheats the cold water entering your water heater — recovering 25–40% of the heat that would otherwise go down the drain. Installation is a plumbing job (2–3 hours), with no moving parts and a 30+ year lifespan. Works with any water heater fuel type and is compatible with tankless units. Eligible for Canada Greener Homes and some provincial utility rebates. Most effective for households with one or two heavy shower users.',
+      })
+    }
+  }
+
+  // ── 14. Aeroseal duct sealing ─────────────────────────────────────────────
+  // Applicable to homes with forced-air heating (gas, propane, oil, heat pump).
+  // Typical existing-home duct leakage: 15–25% of conditioned air lost to
+  // unconditioned spaces (attic, basement, walls). Aeroseal targets ≤5%.
+  const hasForcedAir = ['naturalGas', 'propane', 'heatingOil'].includes(fuelType)
+    || /ashp|ccashp|heatpump/i.test(inputs.heating?.systemId ?? '')
+  if (hasForcedAir) {
+    const leakageFraction = 0.15   // conservative: 15% of conditioned air leaks
+    const targetFraction  = 0.03   // Aeroseal target: ≤5%; use 3% for mid-range
+    const savingsFraction = leakageFraction - targetFraction   // 12%
+    const savings         = heatLossResult.annualCost * savingsFraction
+    const savedFuelGJ     = annualFuelGJ * savingsFraction
+    if (savings > 100) {
+      recs.push({
+        id:               'aeroSeal',
+        category:         'heating',
+        title:            'Aeroseal duct sealing',
+        currentValue:     'Estimated ~15% of conditioned air lost through duct leaks',
+        targetValue:      '≤5% duct leakage (Aeroseal certified)',
+        annualSavingsCAD: savings,
+        annualSavedGJ:    savedFuelGJ,
+        estimatedCostCAD: COSTS.aeroSeal,
+        paybackYears:     simplePayback(COSTS.aeroSeal, savings),
+        co2SavedTonnes:   savedFuelGJ * (CO2_FACTORS[fuelType] ?? 0.05),
+        description:      'Aeroseal is a contractor-applied process that pressurises your duct system and injects a mist of non-toxic adhesive particles. The particles are carried by air flow to wherever it\'s leaking — gaps at joints, disconnected runs, or holes in the plenum — and bond on contact, sealing from the inside without opening walls. A typical job takes 4–6 hours and reduces duct leakage to below 5%. The contractor measures before and after leakage so you get a certified result. Most effective for homes with ducts in unconditioned spaces (attic, garage, crawlspace) where leaks directly heat or cool the outdoors instead of your living space.',
+      })
+    }
+  }
+
+  // ── 15. Solar PV ─────────────────────────────────────────────────────────
+  // Only for homes with a roof (not apartments). Uses the existing solar
+  // calculation engine with a medium-preset system size and default south-facing
+  // roof assumption. Points to /solar for the full interactive tool.
+  if (inputs.houseType !== 'apartment' && inputs.electricityCostPerGJ) {
+    const capacity    = estimateRoofCapacity({
+      houseType: inputs.houseType ?? 'detached',
+      floorArea:  floorArea,
+      storeys:    inputs.storeys ?? 2,
+      roofType:   'ew',   // south-facing slope — optimistic default
+    })
+
+    if (capacity.maxKW > 0) {
+      const presets   = solarSizePresets(capacity.maxKW)
+      const medium    = presets.find(p => p.label === 'Medium') ?? presets[1] ?? presets[0]
+      const systemKW  = medium?.kw ?? Math.min(6, capacity.maxKW)
+
+      const solar = calculateSolar({
+        systemKW,
+        province:         inputs.province,
+        orientation:      'south',
+        hasEV:            false,
+        installCostPerKW: DEFAULT_INSTALL_COST_PER_KW,
+        incentives:       0,
+      })
+
+      if (solar.annualSavingsCAD > 50) {
+        recs.push({
+          id:               'solar',
+          category:         'generation',
+          title:            `Install rooftop solar (${systemKW} kW estimate)`,
+          currentValue:     'Grid electricity only',
+          targetValue:      `${systemKW} kW solar PV · ~${solar.annualGenKWh.toLocaleString()} kWh/yr`,
+          annualSavingsCAD: solar.annualSavingsCAD,
+          annualSavedGJ:    solar.annualGenKWh * 3.6e-3,   // kWh → GJ
+          estimatedCostCAD: solar.grossCostCAD,
+          paybackYears:     solar.paybackYears,
+          co2SavedTonnes:   solar.co2AvoidedTonnes,
+          description:      `A ${systemKW} kW system on a south-facing roof in ${inputs.province} would generate roughly ${solar.annualGenKWh.toLocaleString()} kWh per year — covering a significant share of your electricity use and effectively locking in that portion of your energy cost for 25+ years. This is a rough estimate assuming a standard south-facing slope. Use the full solar tool at cwm.energy/solar to configure your actual roof type, orientation, and system size, and to see the net-metering rules for ${inputs.province}. Check cwm.energy/rebates for current federal and provincial solar incentives.`,
+        })
+      }
     }
   }
 

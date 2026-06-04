@@ -10,7 +10,7 @@ type Mode = 'bills' | 'emissions'
 
 interface PlanAction {
   id:               string
-  category:         'envelope' | 'heating' | 'water' | 'transport'
+  category:         'envelope' | 'heating' | 'water' | 'transport' | 'generation'
   title:            string
   description:      string
   estimatedCostCAD: number
@@ -42,10 +42,11 @@ const GRANTS: Record<string, string> = {
 
 // ── Category styling ─────────────────────────────────────────────────────
 const CAT_STYLE: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  envelope:  { label: 'Envelope',   color: 'text-emerald-400', bg: 'bg-emerald-400/10',  border: 'border-emerald-400/30' },
-  heating:   { label: 'Heating',    color: 'text-orange-400',  bg: 'bg-orange-400/10',   border: 'border-orange-400/30'  },
-  water:     { label: 'Hot Water',  color: 'text-blue-400',    bg: 'bg-blue-400/10',     border: 'border-blue-400/30'    },
-  transport: { label: 'Transport',  color: 'text-purple-400',  bg: 'bg-purple-400/10',   border: 'border-purple-400/30'  },
+  envelope:   { label: 'Envelope',    color: 'text-emerald-400', bg: 'bg-emerald-400/10',  border: 'border-emerald-400/30' },
+  heating:    { label: 'Heating',     color: 'text-orange-400',  bg: 'bg-orange-400/10',   border: 'border-orange-400/30'  },
+  water:      { label: 'Hot Water',   color: 'text-blue-400',    bg: 'bg-blue-400/10',     border: 'border-blue-400/30'    },
+  transport:  { label: 'Transport',   color: 'text-purple-400',  bg: 'bg-purple-400/10',   border: 'border-purple-400/30'  },
+  generation: { label: 'Generation',  color: 'text-yellow-400',  bg: 'bg-yellow-400/10',   border: 'border-yellow-400/30'  },
 }
 
 // ── Plan generator ───────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ function generatePlan(homeiqData: any, evData: any): PlanAction[] {
     for (const r of homeiqData.recommendations) {
       actions.push({
         id:               r.id,
-        category:         r.category === 'water' ? 'water' : r.category === 'heating' ? 'heating' : 'envelope',
+        category:         (['water', 'heating', 'generation'].includes(r.category) ? r.category : 'envelope') as PlanAction['category'],
         title:            r.title,
         description:      r.description,
         estimatedCostCAD: r.estimatedCostCAD,

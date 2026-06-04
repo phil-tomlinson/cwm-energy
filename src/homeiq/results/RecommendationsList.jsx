@@ -4,15 +4,17 @@ import Link from 'next/link'
 import DiveDeeper from '@/components/DiveDeeper'
 
 const CATEGORY_LABELS = {
-  envelope: 'Building envelope',
-  heating:  'Heating system',
-  water:    'Water heating',
+  envelope:   'Building envelope',
+  heating:    'Heating system',
+  water:      'Water heating',
+  generation: 'Solar generation',
 }
 
 const CATEGORY_COLORS = {
-  envelope: 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20',
-  heating:  'bg-orange-400/10 text-orange-400 border border-orange-400/20',
-  water:    'bg-blue-400/10 text-blue-400 border border-blue-400/20',
+  envelope:   'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20',
+  heating:    'bg-orange-400/10 text-orange-400 border border-orange-400/20',
+  water:      'bg-blue-400/10 text-blue-400 border border-blue-400/20',
+  generation: 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/20',
 }
 
 const HEATING_IDS = new Set(['furnaceUpgrade', 'heatPump'])
