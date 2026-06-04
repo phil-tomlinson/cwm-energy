@@ -6,7 +6,6 @@ import HeatLossChart from './HeatLossChart'
 import RecommendationsList from './RecommendationsList'
 import DiveDeeper from '@/components/DiveDeeper'
 import Disclaimer from '@/components/Disclaimer'
-import LeadCaptureForm from '@/components/LeadCaptureForm'
 
 function StatCard({ value, unit, label, sub }) {
   return (
@@ -29,6 +28,17 @@ export default function Results({ results, onReset }) {
   const totalAnnualCost = heatLoss.annualCost + waterHeater.annualCost
   const totalEnergyGJ   = heatLoss.annualFuelGJ + waterHeater.inputEnergyGJ
 
+  // ── Priority toggle (bills vs carbon) ───────────────────────────────────
+  const [priority, setPriority] = useState(() => {
+    try { return localStorage.getItem('homeiq-priority') ?? 'bills' }
+    catch { return 'bills' }
+  })
+
+  function changePriority(p) {
+    setPriority(p)
+    try { localStorage.setItem('homeiq-priority', p) } catch {}
+  }
+
   // ── "Mark as done" state ─────────────────────────────────────────────────
   const [doneIds, setDoneIds] = useState(() => {
     try { return JSON.parse(localStorage.getItem('homeiq-completed') ?? '[]') }
@@ -43,21 +53,43 @@ export default function Results({ results, onReset }) {
     })
   }
 
+  // ── Plan selection ────────────────────────────────────────────────────────
+  // Mutually exclusive alternatives — selecting one removes the other from plan
+  const EXCLUSIVE_ALTS = {
+    furnaceUpgrade:     'heatPump',
+    heatPump:           'furnaceUpgrade',
+    waterHeaterUpgrade: 'hpwh',
+    hpwh:               'waterHeaterUpgrade',
+  }
+
+  const [planSelected, setPlanSelected] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cwm_plan_selected_recs') ?? '[]') }
+    catch { return [] }
+  })
+
+  function addToPlan(recId) {
+    const alt = EXCLUSIVE_ALTS[recId]
+    setPlanSelected(prev => {
+      let next = alt ? prev.filter(id => id !== alt) : [...prev]
+      next = next.includes(recId) ? next.filter(id => id !== recId) : [...next, recId]
+      try {
+        localStorage.setItem('cwm_plan_selected_recs', JSON.stringify(next))
+        localStorage.setItem('cwm_homeiq', JSON.stringify(results))
+      } catch {}
+      return next
+    })
+  }
+
   const activeRecs = recommendations.filter(r => !doneIds.includes(r.id))
   const doneRecs   = recommendations.filter(r =>  doneIds.includes(r.id))
 
-  const topRec = activeRecs[0]
-
-  // Map top recommendation to a lead-capture interest category
-  const leadInterest = (() => {
-    const id = topRec?.id ?? ''
-    if (/heat.?pump|ashp|gshp|ccashp/i.test(id))               return 'heat_pump'
-    if (/furnace|boiler|heating/i.test(id))                     return 'heat_pump'
-    if (/insulation|airSeal|window|basement|attic|wall/i.test(id)) return 'insulation'
-    if (/water.?heat|hpwh/i.test(id))                           return 'water_heater'
-    if (topRec)                                                  return 'home_efficiency'
-    return null  // no recommendations — don't show lead capture
-  })()
+  // Top rec respects the active priority
+  const sortedActive = [...activeRecs].sort((a, b) =>
+    priority === 'bills'
+      ? a.paybackYears - b.paybackYears
+      : b.co2SavedTonnes - a.co2SavedTonnes
+  )
+  const topRec = sortedActive[0]
 
   const paybackText = topRec?.paybackYears < 1
     ? 'less than a year'
@@ -200,44 +232,47 @@ export default function Results({ results, onReset }) {
         </DiveDeeper>
       </Card>
 
-      {/* Recommendations */}
+      {/* Priority toggle + Recommendations */}
       <div className="mb-4">
-        <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest mb-1">Recommended upgrades</h3>
-        <p className="text-sm text-zinc-400 mb-4">
-          Ranked by payback period — most cost-effective first. Mid-range Canadian cost estimates.
-        </p>
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest mb-0.5">Recommended upgrades</h3>
+            <p className="text-xs text-zinc-400">
+              {priority === 'bills'
+                ? 'Sorted by fastest payback — most cost-effective first.'
+                : 'Sorted by most carbon saved per year.'}
+              {' '}Mid-range Canadian cost estimates.
+            </p>
+          </div>
+          <div className="flex border border-zinc-700 shrink-0">
+            {([
+              ['bills',  'Cut bills first'],
+              ['carbon', 'Cut carbon first'],
+            ]).map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => changePriority(id)}
+                className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors border-r last:border-r-0 border-zinc-700 ${
+                  priority === id
+                    ? 'bg-emerald-400 text-zinc-950 font-bold'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <RecommendationsList
           recommendations={activeRecs}
           doneRecs={doneRecs}
           onToggleDone={toggleDone}
           mode={inputs.mode}
+          priority={priority}
+          planSelected={planSelected}
+          onAddToPlan={addToPlan}
         />
       </div>
-
-      {/* Lead capture — contextual to top recommendation */}
-      {leadInterest && (
-        <div className="mt-6">
-          <LeadCaptureForm
-            interest={leadInterest}
-            prefill={{
-              province:  inputs.province,
-              city:      inputs.city,
-              houseType: inputs.houseType,
-            }}
-            context={{
-              floorArea:        inputs.floorArea,
-              era:              inputs.era,
-              topRec:           topRec ? {
-                id:              topRec.id,
-                title:           topRec.title,
-                annualSavingsCAD: topRec.annualSavingsCAD,
-                paybackYears:    topRec.paybackYears,
-              } : null,
-              source: 'homeiq_results',
-            }}
-          />
-        </div>
-      )}
 
       {/* Simple-mode upgrade nudge */}
       {isSimple && (

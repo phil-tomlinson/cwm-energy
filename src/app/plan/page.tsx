@@ -337,16 +337,18 @@ function StepCard({
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function PlanPage() {
-  const [mode,         setMode]         = useState<Mode>('bills')
-  const [homeiqData,   setHomeiqData]   = useState<any>(null)
-  const [evData,       setEvData]       = useState<any>(null)
-  const [authed,       setAuthed]       = useState(false)
-  const [vendorQuotes, setVendorQuotes] = useState<Record<string, number>>({})
+  const [mode,          setMode]          = useState<Mode>('bills')
+  const [homeiqData,    setHomeiqData]    = useState<any>(null)
+  const [evData,        setEvData]        = useState<any>(null)
+  const [authed,        setAuthed]        = useState(false)
+  const [vendorQuotes,  setVendorQuotes]  = useState<Record<string, number>>({})
+  const [selectedRecs,  setSelectedRecs]  = useState<string[]>([])
 
   useEffect(() => {
-    try { const h = localStorage.getItem('cwm_homeiq');      if (h) setHomeiqData(JSON.parse(h))   } catch {}
-    try { const e = localStorage.getItem('cwm_ev');          if (e) setEvData(JSON.parse(e))        } catch {}
-    try { const q = localStorage.getItem('cwm_plan_quotes'); if (q) setVendorQuotes(JSON.parse(q)) } catch {}
+    try { const h = localStorage.getItem('cwm_homeiq');           if (h) setHomeiqData(JSON.parse(h))    } catch {}
+    try { const e = localStorage.getItem('cwm_ev');               if (e) setEvData(JSON.parse(e))         } catch {}
+    try { const q = localStorage.getItem('cwm_plan_quotes');      if (q) setVendorQuotes(JSON.parse(q))  } catch {}
+    try { const s = localStorage.getItem('cwm_plan_selected_recs'); if (s) setSelectedRecs(JSON.parse(s)) } catch {}
 
     import('@/lib/supabase/client').then(({ createClient }) => {
       const sb = createClient()
@@ -366,8 +368,15 @@ export default function PlanPage() {
     })
   }
 
-  const hasData    = homeiqData || evData
-  const rawActions = hasData ? generatePlan(homeiqData, evData) : []
+  const hasData = homeiqData || evData
+
+  // If the user has explicitly selected recs via "Add to my plan", show only those.
+  // Otherwise fall back to showing everything (backward-compatible).
+  const filteredHomeiq = homeiqData && selectedRecs.length > 0
+    ? { ...homeiqData, recommendations: (homeiqData.recommendations ?? []).filter((r: any) => selectedRecs.includes(r.id)) }
+    : homeiqData
+
+  const rawActions = hasData ? generatePlan(filteredHomeiq, evData) : []
   // Apply vendor quote overrides — recalculate payback from real cost
   const quoted     = rawActions.map(a => {
     const q = vendorQuotes[a.id]
