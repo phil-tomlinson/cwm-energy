@@ -148,11 +148,11 @@ export default function Step3Envelope({ data, updateData }) {
 
       {/* ── Above-grade walls ── */}
       <Card className="mb-4">
-        <CardSection title="Above-grade walls" hint="Net wall area (total exterior wall minus windows and doors).">
+        <CardSection title="Above-grade walls" hint="Exterior wall area, excluding windows and doors.">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <AreaField
-                label="Net wall area"
+                label="Exterior wall area"
                 value={env.netWallArea}
                 onChange={v => update('netWallArea', v)}
                 units={units}
@@ -240,7 +240,7 @@ export default function Step3Envelope({ data, updateData }) {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <AreaField
-                    label="Below-grade wall area"
+                    label="Underground wall area"
                     value={env.basementWallArea}
                     onChange={v => update('basementWallArea', v)}
                     units={units}
@@ -300,7 +300,7 @@ export default function Step3Envelope({ data, updateData }) {
         >
           {/* ACH mode toggle */}
           <div className="flex gap-0 mb-3 text-xs font-mono overflow-hidden border border-zinc-600">
-            {[{ key: 'natural', label: 'Natural ACH' }, { key: 'ach50', label: 'ACH50 (blower door)' }].map(opt => (
+            {[{ key: 'natural', label: 'Estimate' }, { key: 'ach50', label: 'I have a blower door number' }].map(opt => (
               <button
                 key={opt.key}
                 type="button"
@@ -319,7 +319,7 @@ export default function Step3Envelope({ data, updateData }) {
           {achMode === 'natural' ? (
             <>
               <NumberField
-                label="Air changes per hour (ACH)"
+                label="How draughty is your home? (ACH)"
                 value={env.ach}
                 onChange={v => update('ach', v)}
                 min={0.05} max={2.0} step={0.05}
@@ -343,7 +343,7 @@ export default function Step3Envelope({ data, updateData }) {
                 → Natural ACH: {parseFloat((ach50Value / 17).toFixed(2))} (used in calculation)
               </p>
               <p className="text-xs text-zinc-400 mt-1">
-                ACH50 ÷ 17 = estimated natural ACH. Divisor of 17 per NRCan simplified Sherman-Grimsrud infiltration model for Canadian climate conditions (NRCan, Keeping the Heat In, 2012, Appendix B). Typical values: {'<'}2 very tight | 3–5 well-sealed | 6–10 average | {'>'}10 leaky.
+                Typical blower door results: under 2 = very tight | 3–5 = well-sealed | 6–10 = average | over 10 = leaky. We divide by 17 to convert to the natural air leakage rate used in the calculation.
               </p>
             </>
           )}
@@ -442,11 +442,11 @@ export default function Step3Envelope({ data, updateData }) {
       {/* ── HRV / ERV ── */}
       <Card>
         <CardSection
-          title="Heat recovery ventilator (HRV / ERV)"
-          hint="An HRV or ERV recovers heat from outgoing stale air and transfers it to incoming fresh air, reducing ventilation heat loss."
+          title="Heat recovery ventilator"
+          hint="An HRV or ERV captures heat from stale outgoing air and uses it to pre-warm fresh incoming air, cutting ventilation heat loss by 60–80%."
         >
           <div className="mb-4">
-            <label className="block text-sm font-medium text-zinc-300 mb-2">My home has an HRV or ERV</label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">My home has an HRV or ERV (heat recovery ventilator)</label>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
                 <button
@@ -467,12 +467,12 @@ export default function Step3Envelope({ data, updateData }) {
 
           {data.hrv?.has && (
             <NumberField
-              label="Sensible heat recovery effectiveness"
+              label="Heat recovery rate"
               value={Math.round((data.hrv?.effectiveness ?? 0.75) * 100)}
               onChange={v => updateData({ hrv: { ...(data.hrv ?? {}), effectiveness: v / 100 } })}
               min={55} max={85} step={5} unit="%"
               defaultNote="75%"
-              hint="Typical HRV effectiveness: 70–80%. ERV: 60–75%. Found on your unit's spec sheet or EnerGuide label. Source: CSA C439 / NRCan EnerGuide rating."
+              hint="How much heat the unit recaptures — typically 70–80% for an HRV, 60–75% for an ERV. Found on the unit's spec sheet or EnerGuide label."
             />
           )}
         </CardSection>

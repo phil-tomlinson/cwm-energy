@@ -153,7 +153,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
     const cost = Math.max(3000, Math.round(envelope.ceilingArea * 65 / 100) * 100)
     if (savings > 40) {
       const recessedNote = recessedLights
-        ? ' Recessed pot lights will be sealed with airtight covers or replaced during this work — this step alone can eliminate 10–20% of attic air leakage.'
+        ? ' Your recessed ceiling lights (pot lights) will be fitted with airtight covers or replaced during this work — each one is effectively a small hole in your ceiling, and sealing them can eliminate 10–20% of attic air leakage.'
         : ''
       recs.push({
         id:               'atticInsulation',
@@ -166,7 +166,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: cost,
         paybackYears:     simplePayback(cost, savings),
         co2SavedTonnes:   (oldGJ - newGJ) / efficiency * (CO2_FACTORS[fuelType] ?? 0.05),
-        description: `Blown-in cellulose or fibreglass is the most cost-effective attic upgrade in Canada. A reputable contractor will air-seal all top-plate penetrations, bathroom fan rough-ins, and chimney bypasses before adding insulation — this air sealing step accounts for much of the heat saving.${recessedNote} Eligible for Canada Greener Homes grants.`,
+        description: `Blown-in cellulose or fibreglass is the most cost-effective attic upgrade in Canada. A good contractor will air-seal all the gaps where pipes, wires, and bathroom fans punch through the ceiling before adding insulation — this sealing step often accounts for as much saving as the insulation itself.${recessedNote} Eligible for Canada Greener Homes grants.`,
       })
     }
   }
@@ -193,7 +193,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: cost,
         paybackYears:     simplePayback(cost, savings),
         co2SavedTonnes:   (oldGJ - newGJ) / efficiency * (CO2_FACTORS[fuelType] ?? 0.05),
-        description: 'A blower door test pinpoints your home\'s leakage sites, then a contractor seals them — all from the attic and basement. No drywall removal required. Primary targets: top-plate penetrations and pot light cans (attic side), basement rim joists (spray foam), and weatherstripping at doors. In older homes this reliably achieves a 30–50% ACH reduction. If tightening below 0.35 ACH, mechanical ventilation (HRV/ERV) is strongly recommended to maintain air quality.',
+        description: 'A technician pressurises your home with a large fan (a "blower door test") to find where air is leaking, then seals the gaps — all from the attic and basement without opening walls. Main targets are gaps where pipes and wires pass through ceilings, the band of wood framing at the top of the basement walls, and door weatherstripping. In older homes this reliably cuts draughts by 30–50%. If the home becomes very tight (below 0.35 ACH), a heat recovery ventilator (HRV) is recommended to keep fresh air flowing.',
       })
     }
   }
@@ -218,15 +218,15 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
       recs.push({
         id:               'rimJoists',
         category:         'envelope',
-        title:            'Insulate and air-seal basement rim joists',
-        currentValue:     'Uninsulated (U ≈ 1.5 W/m²·K)',
-        targetValue:      'R-20 closed-cell spray foam (U ≈ 0.28 W/m²·K)',
+        title:            'Insulate the band of wood at the top of your basement walls',
+        currentValue:     'Uninsulated rim joists',
+        targetValue:      'R-20 spray foam',
         annualSavingsCAD: savings,
         annualSavedGJ:    (oldGJ - newGJ) / efficiency,
         estimatedCostCAD: cost,
         paybackYears:     simplePayback(cost, savings),
         co2SavedTonnes:   (oldGJ - newGJ) / efficiency * (CO2_FACTORS[fuelType] ?? 0.05),
-        description: 'Rim joists — the band of framing between your foundation wall and first floor — are one of the most cost-effective sealing targets in an older home. Two or three inches of closed-cell spray foam insulates, air-seals, and handles vapour control in one step. Most insulation contractors will add this as a short job when in the area. A confident DIYer can tackle it with rented equipment in a weekend.',
+        description: 'The band of wood framing that sits on top of your foundation wall (called the rim joist) is one of the most cost-effective targets in an older home — it\'s exposed to outdoor temperatures and full of gaps. Two to three inches of spray foam insulates, seals the air gaps, and handles moisture control in one step. Most insulation contractors will add this as a short job when already in your basement. A confident DIYer can tackle it with rented equipment in a weekend.',
       })
     }
   }
@@ -322,15 +322,15 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
       recs.push({
         id:               'furnaceUpgrade',
         category:         'heating',
-        title:            'Upgrade to high-efficiency furnace (96% AFUE)',
-        currentValue:     `${Math.round(efficiency * 100)}% AFUE`,
-        targetValue:      '96% AFUE condensing furnace',
+        title:            'Upgrade to a high-efficiency condensing furnace',
+        currentValue:     `${Math.round(efficiency * 100)}% efficient (current)`,
+        targetValue:      '96% efficient (condensing)',
         annualSavingsCAD: savings,
         annualSavedGJ:    savedFuel,
         estimatedCostCAD: COSTS.furnaceUpgrade,
         paybackYears:     simplePayback(COSTS.furnaceUpgrade, savings),
         co2SavedTonnes:   savedFuel * (CO2_FACTORS[fuelType] ?? 0.05),
-        description:      'Condensing furnaces extract additional heat from exhaust gases, reducing fuel use by 15–20% versus a standard furnace. Mandatory in replacement in many provinces. Eligible for utility rebates.',
+        description:      'A condensing furnace extracts heat from the exhaust gases that an older furnace simply vents outside, cutting fuel use by 15–20%. Required for replacement in many Canadian provinces. Eligible for utility rebates.',
       })
     }
   }
@@ -351,15 +351,15 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
       recs.push({
         id:               'heatPump',
         category:         'heating',
-        title:            'Switch to cold-climate air-source heat pump',
+        title:            'Switch to a cold-climate heat pump',
         currentValue:     `${fuelType} at ${Math.round(efficiency * 100)}% efficiency`,
-        targetValue:      `Heat pump (seasonal COP ${cop})`,
+        targetValue:      `Heat pump (delivers ${cop}× more heat per dollar of electricity)`,
         annualSavingsCAD: savings,
         annualSavedGJ:    annualFuelGJ - totalHeatLossGJ / cop,
         estimatedCostCAD: COSTS.heatPump,
         paybackYears:     simplePayback(COSTS.heatPump, savings),
         co2SavedTonnes:   co2Current - co2New,
-        description:      `Cold-climate heat pumps (e.g., Mitsubishi Zuba, Bosch IDS) operate efficiently down to −25°C or lower. They also provide cooling in summer. Eligible for Canada Greener Homes and provincial rebates.`,
+        description:      `A heat pump moves heat from outside air into your home rather than burning fuel to create it — making it 2–3× more efficient than a furnace even in cold weather. Cold-climate models (e.g., Mitsubishi Zuba, Bosch IDS) work reliably down to −25°C or lower and also provide cooling in summer. Eligible for Canada Greener Homes and provincial rebates.`,
       })
     }
   }
@@ -373,16 +373,16 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
       recs.push({
         id:               'waterHeaterUpgrade',
         category:         'water',
-        title:            'Upgrade to high-efficiency water heater',
-        currentValue:     `UEF ${waterHeater.uef.toFixed(2)} (storage tank)`,
-        targetValue:      'UEF 0.87+ (tankless on-demand)',
+        title:            'Upgrade to a tankless (on-demand) water heater',
+        currentValue:     `Storage tank — ${Math.round(waterHeater.uef * 100)}% efficient`,
+        targetValue:      'Tankless — 87%+ efficient',
         annualSavingsCAD: savings,
         annualSavedGJ:    waterHeaterResult.inputEnergyGJ - waterHeaterResult.usefulEnergyGJ / newUef,
         estimatedCostCAD: COSTS.waterHeaterUpgrade,
         paybackYears:     simplePayback(COSTS.waterHeaterUpgrade, savings),
         co2SavedTonnes:   (waterHeaterResult.inputEnergyGJ - waterHeaterResult.usefulEnergyGJ / newUef)
                           * CO2_FACTORS.naturalGas,
-        description:      'Tankless water heaters eliminate standby losses and typically last 20+ years versus 10–12 for storage tanks. Eligible for utility rebates in most provinces.',
+        description:      'A tankless water heater heats water only when you turn on a tap — eliminating the energy wasted keeping a large tank hot all day. They typically last 20+ years versus 10–12 for a storage tank. Eligible for utility rebates in most provinces.',
       })
     }
   }
@@ -396,15 +396,15 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
       recs.push({
         id:               'hpwh',
         category:         'water',
-        title:            'Install a heat pump water heater (HPWH)',
-        currentValue:     `UEF ${waterHeater.uef.toFixed(2)}`,
-        targetValue:      'UEF 3.5 (heat pump water heater)',
+        title:            'Install a heat pump water heater',
+        currentValue:     `Current unit — ${Math.round(waterHeater.uef * 100)}% efficient`,
+        targetValue:      'Heat pump water heater — 350% efficient',
         annualSavingsCAD: savings,
         annualSavedGJ:    waterHeaterResult.inputEnergyGJ - waterHeaterResult.usefulEnergyGJ / hpwhUef,
         estimatedCostCAD: COSTS.hpwh,
         paybackYears:     simplePayback(COSTS.hpwh, savings),
         co2SavedTonnes:   0,
-        description:      'Heat pump water heaters use 3–4× less electricity than standard electric tanks. They work best in unconditioned or semi-conditioned spaces ≥ 28 m². Eligible for Canada Greener Homes rebates.',
+        description:      'A heat pump water heater pulls warmth from the surrounding air to heat water — using 3–4× less electricity than a standard electric tank. Works best in a utility room, basement, or garage with at least 28 m² of space around it. Eligible for Canada Greener Homes rebates.',
       })
     }
   }

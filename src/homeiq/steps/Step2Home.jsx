@@ -43,7 +43,7 @@ export default function Step2Home({ data, updateData }) {
 
           <div className="grid grid-cols-2 gap-4">
             <SelectField
-              label="Above-grade storeys"
+              label="Storeys above ground"
               value={data.storeys}
               onChange={v => updateData({ storeys: Number(v), envelope: null })}
               options={storeyOptions}
@@ -59,10 +59,10 @@ export default function Step2Home({ data, updateData }) {
 
         <CardSection
           title="Floor area"
-          hint="Include all heated/cooled living space. Exclude unheated garage and unfinished basement."
+          hint="Include all heated living space. Exclude unheated garage and unfinished basement."
         >
           <AreaField
-            label="Conditioned floor area"
+            label="Total heated floor area"
             value={data.floorArea}
             onChange={v => updateData({ floorArea: v, envelope: null })}
             units={units}
