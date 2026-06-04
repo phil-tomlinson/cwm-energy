@@ -7,8 +7,9 @@ const links = [
   { href: "/calculator",            label: "Home"  },
   { href: "/ev-benefit-calculator", label: "EVs"   },
   { href: "/solar",                 label: "Solar" },
-  { href: "/plan",                  label: "Plan"  },
-  { href: "/about",                 label: "About" },
+  { href: "/plan",                  label: "Plan"    },
+  { href: "/rebates",               label: "Funding" },
+  { href: "/about",                 label: "About"   },
   { href: "/contact",               label: "Contact" },
 ];
 
