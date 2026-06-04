@@ -166,7 +166,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: cost,
         paybackYears:     simplePayback(cost, savings),
         co2SavedTonnes:   (oldGJ - newGJ) / efficiency * (CO2_FACTORS[fuelType] ?? 0.05),
-        description: `Blown-in cellulose or fibreglass is the most cost-effective attic upgrade in Canada. A good contractor will air-seal all the gaps where pipes, wires, and bathroom fans punch through the ceiling before adding insulation — this sealing step often accounts for as much saving as the insulation itself.${recessedNote} Eligible for Canada Greener Homes grants.`,
+        description: `Blown-in cellulose or fibreglass is the most cost-effective attic upgrade in Canada. A good contractor will air-seal all the gaps where pipes, wires, and bathroom fans punch through the ceiling before adding insulation — this sealing step often accounts for as much saving as the insulation itself.${recessedNote} Check cwm.energy/rebates for current federal and provincial rebates — several programs cover attic insulation.`,
       })
     }
   }
@@ -359,7 +359,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: COSTS.heatPump,
         paybackYears:     simplePayback(COSTS.heatPump, savings),
         co2SavedTonnes:   co2Current - co2New,
-        description:      `A heat pump moves heat from outside air into your home rather than burning fuel to create it — making it 2–3× more efficient than a furnace even in cold weather. Cold-climate models (e.g., Mitsubishi Zuba, Bosch IDS) work reliably down to −25°C or lower and also provide cooling in summer. Eligible for Canada Greener Homes and provincial rebates.`,
+        description:      `A heat pump moves heat from outside air into your home rather than burning fuel to create it — making it 2–3× more efficient than a furnace even in cold weather. Cold-climate models (e.g., Mitsubishi Zuba, Bosch IDS) work reliably down to −25°C or lower and also provide cooling in summer. See cwm.energy/rebates for current federal and Alberta rebate programs.`,
       })
     }
   }
@@ -404,7 +404,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: COSTS.hpwh,
         paybackYears:     simplePayback(COSTS.hpwh, savings),
         co2SavedTonnes:   0,
-        description:      'A heat pump water heater pulls warmth from the surrounding air to heat water — using 3–4× less electricity than a standard electric tank. Works best in a utility room, basement, or garage with at least 28 m² of space around it. Eligible for Canada Greener Homes rebates.',
+        description:      'A heat pump water heater pulls warmth from the surrounding air to heat water — using 3–4× less electricity than a standard electric tank. Works best in a utility room, basement, or garage with at least 28 m² of space around it. See cwm.energy/rebates for current Alberta rebate programs.',
       })
     }
   }
