@@ -6,12 +6,8 @@
 //   estimatedCostCAD  — mid-range Canadian installed cost (2024 CAD)
 //   paybackYears      — simple payback (cost / savings)
 
-import {
-  calculateSolar,
-  estimateRoofCapacity,
-  solarSizePresets,
-  DEFAULT_INSTALL_COST_PER_KW,
-} from './solar'
+import { calculateSolar, solarSizePresets, DEFAULT_INSTALL_COST_PER_KW } from './solar'
+import { estimateRoofCapacity } from '../data/solarData'
 
 const S_PER_DAY = 86400
 const J_TO_GJ   = 1e-9

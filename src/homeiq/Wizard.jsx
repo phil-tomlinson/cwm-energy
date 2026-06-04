@@ -131,6 +131,8 @@ export default function Wizard({ onComplete }) {
         airLeakageFactors:  data.airLeakageFactors,
         floorArea:          data.floorArea,
         storeys:            data.storeys,
+        province:           data.province,
+        houseType:          data.houseType,
       }
     )
 
