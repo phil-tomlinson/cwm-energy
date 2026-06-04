@@ -432,7 +432,9 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
   // ── 11. Smart thermostat ─────────────────────────────────────────────────
   // Only meaningful for central forced-air systems (gas, propane, oil).
   if (['naturalGas', 'propane', 'heatingOil'].includes(fuelType)) {
-    const savingsFraction = 0.10   // NRCan/ENERGY STAR: 8–12% typical heating reduction
+    const savingsFraction = 0.08   // ENERGY STAR (US EPA, 2023): ~8% on heating+cooling combined
+                                   // for programmable thermostats. Heating-only savings in Canada
+                                   // may differ; 8% is the most defensible published figure.
     const savings         = heatLossResult.annualCost * savingsFraction
     const savedFuelGJ     = annualFuelGJ * savingsFraction
     if (savings > 50) {
@@ -447,7 +449,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: COSTS.smartThermostat,
         paybackYears:     simplePayback(COSTS.smartThermostat, savings),
         co2SavedTonnes:   savedFuelGJ * (CO2_FACTORS[fuelType] ?? 0.05),
-        description:      'A smart thermostat learns your schedule and turns down the heat while you\'re away or asleep — typically cutting space heating costs by 8–12% with no changes to how your home feels. Installation is a 20-minute DIY job for most forced-air systems; the device pays for itself inside two heating seasons. Look for the ENERGY STAR certification and rebates from your utility (many Canadian utilities offer $50–75 rebates). Check cwm.energy/rebates for current Alberta programs.',
+        description:      'A smart thermostat learns your schedule and turns down the heat while you\'re away or asleep. ENERGY STAR estimates up to 8% savings on heating and cooling combined; actual heating-only savings vary with how consistently you use setback schedules. Installation is a 20-minute DIY job for most forced-air systems; the device typically pays for itself inside two or three heating seasons. Look for the ENERGY STAR certification and rebates from your utility (many Canadian utilities offer $50–75 rebates). Check cwm.energy/rebates for current Alberta programs.',
       })
     }
   }
