@@ -46,3 +46,175 @@ body {
   pointer-events: none;
   z-index: 0;
 }
+
+/* ─── Accessibility Mode ─────────────────────────────────────────────────────
+   Activated via [data-a11y="true"] on <html>. Goals:
+   - WCAG AA contrast everywhere (background #000, text #fff, accent #ffff00)
+   - 18px minimum base font, 1.7 line-height
+   - 44×44px minimum touch targets
+   - 4px yellow focus ring on every interactive element
+   - Remove decorative textures and animations
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root:is([data-a11y="true"]) {
+  --background: #000000;
+  --foreground: #ffffff;
+  --a11y-accent: #ffff00;
+  --a11y-focus: 4px solid #ffff00;
+}
+
+[data-a11y="true"] body {
+  background: #000000;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* Remove all decorative textures */
+[data-a11y="true"] .dot-grid {
+  background-image: none;
+}
+[data-a11y="true"] .noise::after {
+  display: none;
+}
+
+/* Stop all animations in a11y mode or when the OS asks for it */
+[data-a11y="true"] *,
+[data-a11y="true"] *::before,
+[data-a11y="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fat yellow focus ring on every interactive element */
+[data-a11y="true"] a:focus-visible,
+[data-a11y="true"] button:focus-visible,
+[data-a11y="true"] [role="button"]:focus-visible,
+[data-a11y="true"] [role="switch"]:focus-visible,
+[data-a11y="true"] [role="link"]:focus-visible,
+[data-a11y="true"] input:focus-visible,
+[data-a11y="true"] textarea:focus-visible,
+[data-a11y="true"] select:focus-visible,
+[data-a11y="true"] [tabindex]:focus-visible {
+  outline: 4px solid #ffff00 !important;
+  outline-offset: 4px !important;
+  border-radius: 2px;
+}
+
+/* 44×44px minimum touch/click targets (WCAG 2.5.5) */
+[data-a11y="true"] a,
+[data-a11y="true"] button,
+[data-a11y="true"] [role="button"],
+[data-a11y="true"] [role="switch"],
+[data-a11y="true"] input[type="checkbox"],
+[data-a11y="true"] input[type="radio"],
+[data-a11y="true"] select {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* High-contrast nav and surface colours */
+[data-a11y="true"] header,
+[data-a11y="true"] nav {
+  background: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+/* Ensure all text inherits the high-contrast foreground */
+[data-a11y="true"] *:not([style*="color"]) {
+  color: inherit;
+}
+
+/* Links — underlined and accented so they are distinguishable without colour alone */
+[data-a11y="true"] a {
+  color: #ffff00;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+[data-a11y="true"] a:hover {
+  color: #ffffff;
+}
+
+/* Buttons — solid high-contrast style */
+[data-a11y="true"] button:not([data-a11y-raw]) {
+  background: #ffff00;
+  color: #000000;
+  border: 2px solid #000000;
+  font-weight: 700;
+}
+
+[data-a11y="true"] button:not([data-a11y-raw]):hover {
+  background: #ffffff;
+}
+
+/* Form inputs */
+[data-a11y="true"] input,
+[data-a11y="true"] textarea,
+[data-a11y="true"] select {
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-size: 1rem;
+}
+
+/* Cards and bordered surfaces — use white border so they remain visible */
+[data-a11y="true"] [class*="border-zinc"],
+[data-a11y="true"] [class*="border-emerald"] {
+  border-color: #ffffff !important;
+}
+
+/* Zinc surface backgrounds → pure black */
+[data-a11y="true"] [class*="bg-zinc"] {
+  background-color: #000000 !important;
+}
+
+/* Emerald accent text → yellow for contrast on black */
+[data-a11y="true"] [class*="text-emerald"],
+[data-a11y="true"] [class*="text-green"] {
+  color: #ffff00 !important;
+}
+
+/* Muted text → white so nothing is lost */
+[data-a11y="true"] [class*="text-zinc-4"],
+[data-a11y="true"] [class*="text-zinc-5"],
+[data-a11y="true"] [class*="text-zinc-6"],
+[data-a11y="true"] [class*="text-zinc-7"] {
+  color: #ffffff !important;
+}
+
+/* Skip-to-content link — visually hidden until focused */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  background: #ffff00;
+  color: #000000;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 0 0 4px 4px;
+  text-decoration: none;
+  transition: top 0.1s;
+}
+.skip-to-content:focus {
+  top: 0;
+  outline: 4px solid #000000;
+  outline-offset: 2px;
+}

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import AuthButton from "@/components/AuthButton";
+import A11yToggle from "@/components/A11yToggle";
 
 const links = [
   { href: "/calculator",            label: "Home"  },
@@ -30,7 +31,7 @@ export default function Nav() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-6">
+        <nav aria-label="Main navigation" className="hidden sm:flex items-center gap-6">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -40,24 +41,35 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <div className="border-l border-zinc-800 pl-6">
+          <div className="border-l border-zinc-800 pl-6 flex items-center gap-3">
+            <A11yToggle />
             <AuthButton />
           </div>
         </nav>
 
-        {/* Mobile toggle */}
-        <button
-          className="sm:hidden text-zinc-400 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-        >
-          {open ? "✕" : "☰"}
-        </button>
+        {/* Mobile controls */}
+        <div className="sm:hidden flex items-center gap-2">
+          <A11yToggle />
+          <button
+            className="text-zinc-400 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
+            onClick={() => setOpen(!open)}
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={open}
+            aria-controls="mobile-nav-menu"
+          >
+            {open ? "✕" : "☰"}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
       {open && (
-        <div className="sm:hidden border-t border-zinc-800 bg-zinc-950 px-4 py-4 flex flex-col gap-4">
+        <div
+          id="mobile-nav-menu"
+          role="navigation"
+          aria-label="Mobile navigation"
+          className="sm:hidden border-t border-zinc-800 bg-zinc-950 px-4 py-4 flex flex-col gap-4"
+        >
           {links.map((l) => (
             <Link
               key={l.href}
