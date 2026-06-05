@@ -172,7 +172,9 @@ body {
 }
 
 /* Emerald/green buttons keep dark text — yellow on green fails contrast */
+[data-a11y="true"] [class*="bg-emerald"],
 [data-a11y="true"] [class*="bg-emerald"] *,
+[data-a11y="true"] [class*="bg-green"],
 [data-a11y="true"] [class*="bg-green"] * {
   color: #000000 !important;
 }
