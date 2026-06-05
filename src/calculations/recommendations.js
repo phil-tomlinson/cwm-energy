@@ -84,9 +84,9 @@ const COSTS = {
   // $1,400 = mid-range. [Needs independent contractor quote verification]
   drainWaterHR:          1400,
   // Aeroseal duct sealing (contractor, typical 150–250 m² home).
-  // [UNVERIFIED ESTIMATE — $2,000–3,500 range based on US market data; no verified
-  // Canadian public source available. Replace with real quotes before relying on this.]
-  aeroSeal:              2800,
+  // Finished empty home: ~$3,000. Finished furnished home: ~$4,500 (default).
+  // Furnished homes require more prep and take longer due to furniture/duct access.
+  aeroSeal:              4500,
 }
 
 function r_to_rsi(r) { return r / 5.678 }
@@ -534,7 +534,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
   //   (aeroseal.com/what-is-aeroseal/how-it-works). Before-and-after leakage
   //   is measured per ASHRAE 152 duct pressurisation test.
   //
-  // Cost: [UNVERIFIED ESTIMATE — see COSTS.aeroSeal comment above]
+  // Cost: $3,000 finished empty home; $4,500 finished furnished home (default used here).
   const hasForcedAir = ['naturalGas', 'propane', 'heatingOil'].includes(fuelType)
     || /ashp|ccashp|heatpump/i.test(inputs.heating?.systemId ?? '')
   if (hasForcedAir) {
@@ -555,7 +555,7 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         estimatedCostCAD: COSTS.aeroSeal,
         paybackYears:     simplePayback(COSTS.aeroSeal, savings),
         co2SavedTonnes:   savedFuelGJ * (CO2_FACTORS[fuelType] ?? 0.05),
-        description:      'Aeroseal is a contractor-applied process that pressurises your duct system and injects a mist of non-toxic adhesive particles. The particles are carried by air flow to wherever it\'s leaking — gaps at joints, disconnected runs, or holes in the plenum — and bond on contact, sealing from the inside without opening walls. A typical job takes 4–6 hours and reduces duct leakage to below 5%. The contractor measures before and after leakage so you get a certified result. Most effective for homes with ducts in unconditioned spaces (attic, garage, crawlspace) where leaks directly heat or cool the outdoors instead of your living space.',
+        description:      'Aeroseal is a contractor-applied process that pressurises your duct system and injects a mist of non-toxic adhesive particles. The particles are carried by air flow to wherever it\'s leaking — gaps at joints, disconnected runs, or holes in the plenum — and bond on contact, sealing from the inside without opening walls. A typical job takes 4–6 hours and reduces duct leakage to below 5%. The contractor measures before and after leakage so you get a certified result. Most effective for homes with ducts in unconditioned spaces (attic, garage, crawlspace) where leaks directly heat or cool the outdoors instead of your living space. Typical cost is $3,000 for a finished empty home or $4,500 for a finished furnished home.',
       })
     }
   }
