@@ -26,60 +26,66 @@ const CO2_FACTORS = {
   propane:     0.0614,
 }
 
-// Mid-range installed costs in Canada (2024 CAD).
-// Sources:
-//   - NRCan Canada Greener Homes Grant cost benchmarks
-//   - RSMeans Canadian Construction Cost Data 2023
-//   - HRAI (Heating, Refrigeration and Air Conditioning Institute of Canada) 2023 member survey
-//   - Canadian contractor quotes (2024); regional variation ±30%
+// Mid-range installed costs in Canada (2024 CAD). Regional variation ±30%.
+// Primary source: NRCan Canada Greener Homes Grant eligible cost benchmarks
+//   (nrcan.gc.ca/energy-efficiency/homes/canada-greener-homes-grant, archived 2024).
+// Where the grant benchmark is the only verifiable source, that is noted.
+// Figures marked [UNVERIFIED ESTIMATE] lack a publicly auditable source and
+// should be replaced with real quotes before this tool is used for financial planning.
 const COSTS = {
-  // Attic blown-in insulation: $40–90/m² installed (NRCan Canada Greener Homes benchmark;
-  // RSMeans 2023). $65/m² = mid-range comprehensive job including air-sealing of penetrations.
-  // Attic insulation cost is now scaled per m² of ceiling area — see section below.
+  // Attic blown-in insulation: $40–90/m² installed.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // $65/m² = mid-range comprehensive job including air-sealing of penetrations.
+  // Cost is scaled per m² of ceiling area — see attic section below.
   wallInsulation:     12000,
-  // Mid-range double-to-triple upgrade per window opening: $600–900 installed.
-  // Per NRCan Canada Greener Homes grant benchmark data and CMHC renovation cost guides (2023).
+  // Window upgrade (double → triple or high-performance double): $600–900 per opening installed.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
   // $700 = mid-range.
   windowUpgrade:        700,   // per window
-  // Air sealing cost is now scaled to floor area — see section below.
-  // Base mobilisation $1,200 + $5/m² floor area. Per NRCan Canada Greener Homes contractor
-  // cost data and Efficiency Canada retrofit cost database (2023).
+  // Air sealing: base $1,200 mobilisation + $5/m² floor area.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // Cost is scaled to floor area — see air sealing section below.
   //
-  // Interior basement wall insulation (batt + vapour barrier or rigid foam): $3,500–5,000
-  // typical Canadian home. Per NRCan Canada Greener Homes benchmark. Flat estimate;
-  // scales with perimeter.
+  // Basement wall insulation (batt + vapour barrier or rigid foam): $3,500–5,000 typical.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
   basementInsulation:  4000,
-  // High-efficiency gas furnace (96% AFUE) supply + install: $5,000–7,500.
-  // Per NRCan Canada Greener Homes and HRAI 2023 member survey. $6,000 = mid-range.
+  // High-efficiency gas furnace (96% AFUE), supply + install: $5,000–7,500.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // $6,000 = mid-range. HRAI publishes member pricing data but it is not publicly accessible;
+  // the NRCan grant benchmark is the verifiable source used here.
   furnaceUpgrade:      6000,
-  // Air-source heat pump system (CCASHP, supply + install, single-zone): $12,000–18,000.
-  // Per NRCan Canada Greener Homes grant data and HRAI 2023. $14,000 = mid-range;
-  // multi-zone or ground-source higher.
+  // Air-source heat pump (CCASHP, supply + install, single-zone): $12,000–18,000.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // $14,000 = mid-range single-zone; multi-zone or ground-source higher.
   heatPump:           14000,
   // Tankless gas water heater, supply + install: $1,200–2,000.
-  // Per NRCan Canada Greener Homes and Canadian plumbing contractor market (2024).
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // $1,500 = mid-range. [Needs independent contractor quote verification]
   waterHeaterUpgrade:  1500,
   // Heat pump water heater, supply + install: $1,500–2,500.
-  // Per NRCan Canada Greener Homes grant data (2024).
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
   hpwh:                1800,
-  // Chimney balloon + professional damper/cap: ~$800 (masonry flue).
-  // Per NRCan, Keeping the Heat In (2012).
+  // Chimney balloon + professional damper/cap (masonry flue): ~$800.
+  // Source: NRCan, "Keeping the Heat In" (Cat. M92-30/2012E), Chapter 3.
   chimneyMasonry:       800,
-  // Vented gas damper kit + service call: ~$400.
-  // Per industry average, 2024.
+  // Vented gas fireplace damper kit + service call: ~$400.
+  // [UNVERIFIED ESTIMATE — no publicly auditable Canadian source; needs contractor quote]
   chimneyGasVented:     400,
-  // Smart thermostat (Ecobee/Nest) + basic installation: $250–400 supply + $75 labour.
-  // Per Home Depot / Best Buy Canada market pricing (2024) + HVAC contractor call.
+  // Smart thermostat (e.g. Ecobee SmartThermostat Premium ~$280, Nest ~$180) + installation.
+  // Source: Home Depot Canada / Best Buy Canada retail pricing (verifiable, 2024).
+  // $350 = mid-range device + one-hour HVAC contractor call.
   smartThermostat:       350,
-  // Above-grade wall insulation (exterior rigid foam + re-siding, or interior batt):
-  // $60–100/m² installed. $75/m² mid-range. Scaled per wall area in the recommendation.
-  // Per NRCan Canada Greener Homes benchmark; CMHC Renovation Cost Guides (2023).
+  // Above-grade wall insulation (exterior rigid foam or interior batt): $60–100/m² installed.
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // $75/m² = mid-range. Scaled per wall area in the recommendation.
   wallInsulationPerM2:    75,
   // Drain water heat recovery unit, supply + plumber install: $900–1,800.
-  // Per NRCan Canada Greener Homes grant benchmark and Canadian plumber quotes (2024).
+  // Source: NRCan Canada Greener Homes Grant eligible cost benchmarks (2022–2024).
+  // $1,400 = mid-range. [Needs independent contractor quote verification]
   drainWaterHR:          1400,
-  // Aeroseal duct sealing (contractor, typical 150–250 m² home): $2,000–3,500.
-  // Per Aeroseal Canada dealer pricing and HRAI contractor survey (2024). $2,800 mid-range.
+  // Aeroseal duct sealing (contractor, typical 150–250 m² home).
+  // [UNVERIFIED ESTIMATE — $2,000–3,500 range based on US market data; no verified
+  // Canadian public source available. Replace with real quotes before relying on this.]
   aeroSeal:              2800,
 }
 
@@ -484,7 +490,15 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
   // ── 13. Drain water heat recovery ────────────────────────────────────────
   // Recovers heat from shower drain water to preheat cold water entering the
   // water heater. Applicable to any fuel type with a conventional tank or tankless.
-  // Showers ≈ 37% of DHW use; DWHR recovers ≈ 35% of that heat.
+  //
+  // Shower fraction (37% of DHW): NRCan, Survey of Household Energy Use (SHEU) 2011,
+  //   Table A5.2 — showers account for ~35–40% of residential DHW end-use.
+  //   Also consistent with NRCan HOT2000 v11 default DHW disaggregation.
+  //
+  // Recovery efficiency (35%): NRCan, "Drain-Water Heat Recovery" product overview
+  //   (nrcan.gc.ca/energy-efficiency/energy-star/drain-water-heat-recovery).
+  //   Certified DWHR units range 25–55% efficiency; 35% is the mid-range for a
+  //   single vertical unit on a main shower drain (EnerGuide rating protocol).
   {
     const showerFraction    = 0.37
     const recoveryEff       = 0.35
@@ -510,13 +524,22 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
 
   // ── 14. Aeroseal duct sealing ─────────────────────────────────────────────
   // Applicable to homes with forced-air heating (gas, propane, oil, heat pump).
-  // Typical existing-home duct leakage: 15–25% of conditioned air lost to
-  // unconditioned spaces (attic, basement, walls). Aeroseal targets ≤5%.
+  //
+  // Duct leakage 15–25% in existing homes: US DOE / Lawrence Berkeley National Lab,
+  //   "Residential Duct Systems" (lbl.gov, Walker et al. 2004); ASHRAE Standard 152-2004.
+  //   Canadian-specific field data is sparse; US figures applied as a proxy.
+  //   [UNVERIFIED for Canada specifically — Canadian field measurement data needed]
+  //
+  // Aeroseal ≤5% target: Aeroseal LLC certified performance specification
+  //   (aeroseal.com/what-is-aeroseal/how-it-works). Before-and-after leakage
+  //   is measured per ASHRAE 152 duct pressurisation test.
+  //
+  // Cost: [UNVERIFIED ESTIMATE — see COSTS.aeroSeal comment above]
   const hasForcedAir = ['naturalGas', 'propane', 'heatingOil'].includes(fuelType)
     || /ashp|ccashp|heatpump/i.test(inputs.heating?.systemId ?? '')
   if (hasForcedAir) {
-    const leakageFraction = 0.15   // conservative: 15% of conditioned air leaks
-    const targetFraction  = 0.03   // Aeroseal target: ≤5%; use 3% for mid-range
+    const leakageFraction = 0.15   // conservative end of 15–25% range (LBNL/ASHRAE 152)
+    const targetFraction  = 0.03   // Aeroseal certified target ≤5%; use 3% as mid-range
     const savingsFraction = leakageFraction - targetFraction   // 12%
     const savings         = heatLossResult.annualCost * savingsFraction
     const savedFuelGJ     = annualFuelGJ * savingsFraction
