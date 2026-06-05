@@ -31,7 +31,7 @@ export default function A11yToggle() {
         <circle cx="12" cy="12" r="3" />
         {a11y && <line x1="4" y1="4" x2="20" y2="20" />}
       </svg>
-      <span>{a11y ? "A11y On" : "A11y"}</span>
+      <span>{a11y ? "Accessible: On" : "Accessible"}</span>
     </button>
   );
 }

@@ -128,19 +128,12 @@ body {
   align-items: center;
 }
 
-/* High-contrast nav and surface colours */
-[data-a11y="true"] header,
-[data-a11y="true"] nav {
-  background: #000000 !important;
+/* Nav and header borders */
+[data-a11y="true"] header {
   border-color: #ffffff !important;
 }
 
-/* Ensure all text inherits the high-contrast foreground */
-[data-a11y="true"] *:not([style*="color"]) {
-  color: inherit;
-}
-
-/* Links — underlined and accented so they are distinguishable without colour alone */
+/* Links — underlined and yellow so they are distinguishable without colour alone */
 [data-a11y="true"] a {
   color: #ffff00;
   text-decoration: underline;
@@ -151,46 +144,23 @@ body {
   color: #ffffff;
 }
 
-/* Buttons — solid high-contrast style */
-[data-a11y="true"] button:not([data-a11y-raw]) {
-  background: #ffff00;
-  color: #000000;
-  border: 2px solid #000000;
-  font-weight: 700;
-}
-
-[data-a11y="true"] button:not([data-a11y-raw]):hover {
-  background: #ffffff;
-}
-
 /* Form inputs */
 [data-a11y="true"] input,
 [data-a11y="true"] textarea,
 [data-a11y="true"] select {
-  background: #000000;
+  background: #111111;
   color: #ffffff;
   border: 2px solid #ffffff;
   font-size: 1rem;
 }
 
-/* Cards and bordered surfaces — use white border so they remain visible */
-[data-a11y="true"] [class*="border-zinc"],
-[data-a11y="true"] [class*="border-emerald"] {
-  border-color: #ffffff !important;
-}
-
-/* Zinc surface backgrounds → pure black */
-[data-a11y="true"] [class*="bg-zinc"] {
-  background-color: #000000 !important;
-}
-
-/* Emerald accent text → yellow for contrast on black */
+/* Emerald accent text → yellow (still readable on dark backgrounds) */
 [data-a11y="true"] [class*="text-emerald"],
 [data-a11y="true"] [class*="text-green"] {
   color: #ffff00 !important;
 }
 
-/* Muted text → white so nothing is lost */
+/* Muted zinc text → white so nothing disappears */
 [data-a11y="true"] [class*="text-zinc-4"],
 [data-a11y="true"] [class*="text-zinc-5"],
 [data-a11y="true"] [class*="text-zinc-6"],
