@@ -1,12 +1,21 @@
 "use client";
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
+type Theme = "dark" | "light";
+
 interface A11yContextValue {
   a11y: boolean;
-  toggle: () => void;
+  theme: Theme;
+  toggleA11y: () => void;
+  toggleTheme: () => void;
 }
 
-const A11yContext = createContext<A11yContextValue>({ a11y: false, toggle: () => {} });
+const A11yContext = createContext<A11yContextValue>({
+  a11y: false,
+  theme: "dark",
+  toggleA11y: () => {},
+  toggleTheme: () => {},
+});
 
 export function useA11y() {
   return useContext(A11yContext);
@@ -14,30 +23,32 @@ export function useA11y() {
 
 export default function A11yProvider({ children }: { children: React.ReactNode }) {
   const [a11y, setA11y] = useState(false);
+  const [theme, setTheme] = useState<Theme>("dark");
 
-  // Hydrate from localStorage on mount (client-only)
   useEffect(() => {
     try {
       setA11y(localStorage.getItem("cwm-a11y") === "true");
+      setTheme(localStorage.getItem("cwm-theme") === "light" ? "light" : "dark");
     } catch {
-      // localStorage unavailable (private browsing, etc.) — stay at default
+      // localStorage unavailable — stay at defaults
     }
   }, []);
 
-  // Sync state → DOM attribute + localStorage
   useEffect(() => {
     document.documentElement.dataset.a11y = a11y ? "true" : "false";
-    try {
-      localStorage.setItem("cwm-a11y", String(a11y));
-    } catch {
-      // ignore
-    }
+    try { localStorage.setItem("cwm-a11y", String(a11y)); } catch {}
   }, [a11y]);
 
-  const toggle = useCallback(() => setA11y((v) => !v), []);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("cwm-theme", theme); } catch {}
+  }, [theme]);
+
+  const toggleA11y = useCallback(() => setA11y((v) => !v), []);
+  const toggleTheme = useCallback(() => setTheme((v) => v === "dark" ? "light" : "dark"), []);
 
   return (
-    <A11yContext.Provider value={{ a11y, toggle }}>
+    <A11yContext.Provider value={{ a11y, theme, toggleA11y, toggleTheme }}>
       {children}
     </A11yContext.Provider>
   );

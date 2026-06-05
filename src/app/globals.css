@@ -3,6 +3,7 @@
 :root {
   --background: #09090b;
   --foreground: #f4f4f5;
+  --a11y-focus-color: #ffff00;   /* yellow works on dark backgrounds */
 }
 
 @theme inline {
@@ -66,9 +67,19 @@ body {
 [data-a11y="true"] body {
   background: #000000;
   color: #ffffff;
-  font-size: 18px;
-  line-height: 1.7;
+  font-size: 20px;
+  line-height: 1.8;
 }
+
+/* Scale up text sizes set by Tailwind utility classes */
+[data-a11y="true"] [class*="text-xs"]  { font-size: 0.9rem  !important; }
+[data-a11y="true"] [class*="text-sm"]  { font-size: 1rem    !important; }
+[data-a11y="true"] [class*="text-base"]{ font-size: 1.125rem !important; }
+[data-a11y="true"] [class*="text-lg"]  { font-size: 1.3rem  !important; }
+[data-a11y="true"] [class*="text-xl"]  { font-size: 1.5rem  !important; }
+[data-a11y="true"] [class*="text-2xl"] { font-size: 1.75rem !important; }
+[data-a11y="true"] [class*="text-3xl"] { font-size: 2rem    !important; }
+[data-a11y="true"] [class*="text-4xl"] { font-size: 2.5rem  !important; }
 
 /* Remove all decorative textures */
 [data-a11y="true"] .dot-grid {
@@ -99,7 +110,7 @@ body {
   }
 }
 
-/* Fat yellow focus ring on every interactive element */
+/* Fat focus ring on every interactive element — colour adapts to theme */
 [data-a11y="true"] a:focus-visible,
 [data-a11y="true"] button:focus-visible,
 [data-a11y="true"] [role="button"]:focus-visible,
@@ -109,7 +120,7 @@ body {
 [data-a11y="true"] textarea:focus-visible,
 [data-a11y="true"] select:focus-visible,
 [data-a11y="true"] [tabindex]:focus-visible {
-  outline: 4px solid #ffff00 !important;
+  outline: 4px solid var(--a11y-focus-color) !important;
   outline-offset: 4px !important;
   border-radius: 2px;
 }
@@ -154,10 +165,16 @@ body {
   font-size: 1rem;
 }
 
-/* Emerald accent text → yellow (still readable on dark backgrounds) */
+/* Emerald accent text → yellow on dark backgrounds */
 [data-a11y="true"] [class*="text-emerald"],
 [data-a11y="true"] [class*="text-green"] {
   color: #ffff00 !important;
+}
+
+/* Emerald/green buttons keep dark text — yellow on green fails contrast */
+[data-a11y="true"] [class*="bg-emerald"] *,
+[data-a11y="true"] [class*="bg-green"] * {
+  color: #000000 !important;
 }
 
 /* Muted zinc text → white so nothing disappears */
@@ -187,4 +204,100 @@ body {
   top: 0;
   outline: 4px solid #000000;
   outline-offset: 2px;
+}
+
+/* ─── Light Theme ─────────────────────────────────────────────────────────────
+   Activated via [data-theme="light"] on <html>.
+   Overrides the hardcoded dark zinc Tailwind classes used throughout the app.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #18181b;
+  --a11y-focus-color: #1d4ed8;   /* dark blue — readable on white backgrounds */
+}
+
+[data-theme="light"] body {
+  background: #ffffff;
+  color: #18181b;
+}
+
+/* Structural surfaces */
+[data-theme="light"] header {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e4e4e7 !important;
+}
+
+[data-theme="light"] footer {
+  background: #f4f4f5 !important;
+  border-color: #e4e4e7 !important;
+}
+
+/* Card/panel backgrounds */
+[data-theme="light"] [class*="bg-zinc-9"],
+[data-theme="light"] [class*="bg-zinc-8"] {
+  background-color: #f4f4f5 !important;
+}
+
+[data-theme="light"] [class*="bg-zinc-950"] {
+  background-color: #ffffff !important;
+}
+
+/* Borders */
+[data-theme="light"] [class*="border-zinc"] {
+  border-color: #d4d4d8 !important;
+}
+
+/* Text colours */
+[data-theme="light"] [class*="text-zinc-1"],
+[data-theme="light"] [class*="text-zinc-2"],
+[data-theme="light"] [class*="text-zinc-3"] {
+  color: #18181b !important;
+}
+
+[data-theme="light"] [class*="text-zinc-4"],
+[data-theme="light"] [class*="text-zinc-5"] {
+  color: #52525b !important;
+}
+
+[data-theme="light"] [class*="text-zinc-6"],
+[data-theme="light"] [class*="text-zinc-7"] {
+  color: #71717a !important;
+}
+
+/* Emerald accents — darken for contrast on white */
+[data-theme="light"] [class*="text-emerald"],
+[data-theme="light"] [class*="text-green"] {
+  color: #059669 !important;
+}
+
+/* Nav links */
+[data-theme="light"] nav a {
+  color: #52525b;
+}
+[data-theme="light"] nav a:hover {
+  color: #18181b;
+}
+
+/* Focus ring offset colour for light backgrounds */
+[data-theme="light"] a:focus-visible,
+[data-theme="light"] button:focus-visible,
+[data-theme="light"] [role="button"]:focus-visible,
+[data-theme="light"] input:focus-visible,
+[data-theme="light"] textarea:focus-visible,
+[data-theme="light"] select:focus-visible {
+  outline-color: #1d4ed8;
+  outline-offset: 2px;
+}
+
+/* Light + accessibility mode — focus colour already handled via --a11y-focus-color */
+[data-theme="light"][data-a11y="true"] a {
+  color: #1d4ed8;
+}
+[data-theme="light"][data-a11y="true"] a:hover {
+  color: #18181b;
+}
+[data-theme="light"][data-a11y="true"] [class*="text-emerald"],
+[data-theme="light"][data-a11y="true"] [class*="text-green"] {
+  color: #065f46 !important;  /* very dark green — passes AA on white */
 }

@@ -2,7 +2,7 @@
 import { useA11y } from "./A11yProvider";
 
 export default function A11yToggle() {
-  const { a11y, toggle } = useA11y();
+  const { a11y, toggleA11y: toggle } = useA11y();
 
   return (
     <button

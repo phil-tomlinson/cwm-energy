@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import AuthButton from "@/components/AuthButton";
 import A11yToggle from "@/components/A11yToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const links = [
   { href: "/calculator",            label: "Home"  },
@@ -42,6 +43,7 @@ export default function Nav() {
             </Link>
           ))}
           <div className="border-l border-zinc-800 pl-6 flex items-center gap-3">
+            <ThemeToggle />
             <A11yToggle />
             <AuthButton />
           </div>
@@ -49,6 +51,7 @@ export default function Nav() {
 
         {/* Mobile controls */}
         <div className="sm:hidden flex items-center gap-2">
+          <ThemeToggle />
           <A11yToggle />
           <button
             className="text-zinc-400 p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-zinc-950"
