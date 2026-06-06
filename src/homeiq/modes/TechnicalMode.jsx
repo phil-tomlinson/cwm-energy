@@ -5,6 +5,7 @@ import { HEATING_SYSTEMS, waterHeaterTypes as whTypesFallback, getFuelCostPerGJ,
 import { waterHeaterTypes } from '../../calculations/waterHeater'
 import { SelectField, NumberField, AreaField, LengthField } from '../ui/FormField'
 import DiveDeeper from '@/components/DiveDeeper'
+import RimJoistDiagram from '../diagrams/RimJoistDiagram'
 
 function SectionHeader({ label }) {
   return (
@@ -274,6 +275,10 @@ export default function TechnicalMode({ data, updateData }) {
             <p className="mt-1 text-[10px] text-zinc-400 font-mono">In ceiling below unconditioned attic</p>
           </div>
         </div>
+
+        <DiveDeeper label="What's a rim joist?">
+          <RimJoistDiagram caption="The rim joist (also called the band joist) caps the ends of the floor joists where they sit on the foundation. In many homes this band is bare wood with no insulation — a continuous gap around the whole perimeter that leaks air and heat. Sealing and insulating it is one of the cheapest, highest-impact basement upgrades." />
+        </DiveDeeper>
 
         {/* HRV / ERV */}
         <div>

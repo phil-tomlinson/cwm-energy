@@ -4,6 +4,11 @@ import Link from 'next/link'
 import { VEHICLES, maintTotal } from '@/ev/evData'
 import SolarCard from '@/solar/SolarCard'
 import Disclaimer from '@/components/Disclaimer'
+import EnergyPricePanel from '@/components/EnergyPricePanel'
+import EnergyCostCalculator from '@/homeiq/energyCost/EnergyCostCalculator'
+import { saveEnergyRate } from '@/data/energyRates'
+import { computeHomeResults } from '@/calculations/homeResults'
+import { MODULES, planSources } from '@/data/modules'
 
 // ── Types ────────────────────────────────────────────────────────────────
 type Mode = 'bills' | 'emissions'
@@ -172,10 +177,21 @@ function withTotals(actions: PlanAction[]): PlanStep[] {
 }
 
 // ── Sort helper (applied after vendor-quote overrides) ────────────────────
+// Marginal abatement cost: dollars per tonne of CO2 saved ($/t, lower = better).
+// Uses the effective cost (vendor quote when set) so the ranking reflects real
+// pricing, not just the default estimate. No carbon saving → Infinity (ranks last).
+function carbonCostPerTonne(a: PlanAction): number {
+  const cost = a.vendorCostCAD ?? a.estimatedCostCAD
+  return a.co2SavedTonnes > 0 ? cost / a.co2SavedTonnes : Infinity
+}
+
 function sortActions(actions: PlanAction[], mode: Mode): PlanAction[] {
-  return [...actions].sort((a, b) =>
-    mode === 'bills' ? a.paybackYears - b.paybackYears : b.co2SavedTonnes - a.co2SavedTonnes
-  )
+  return [...actions].sort((a, b) => {
+    if (mode === 'bills') return a.paybackYears - b.paybackYears
+    const ca = carbonCostPerTonne(a)
+    const cb = carbonCostPerTonne(b)
+    return ca === cb ? 0 : ca - cb
+  })
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -314,9 +330,16 @@ function StepCard({
       </div>
 
       <div className="flex items-center justify-between px-5 py-3 gap-4">
-        <p className="text-[11px] text-zinc-400 font-mono">
-          {isFinite(pb) ? `Payback: ${fmt(pb, 1)} years` : 'No payback calculated'}
-        </p>
+        <div className="flex items-center gap-x-4 gap-y-1 flex-wrap">
+          <p className="text-[11px] text-zinc-400 font-mono">
+            {isFinite(pb) ? `Payback: ${fmt(pb, 1)} years` : 'No payback calculated'}
+          </p>
+          {step.co2SavedTonnes > 0 && (
+            <p className="text-[11px] text-zinc-400 font-mono">
+              Abatement: <span className="text-zinc-200">${fmt(effectiveCost / step.co2SavedTonnes)}/t CO₂</span>
+            </p>
+          )}
+        </div>
         {step.grants && (
           <p className="text-[10px] text-emerald-400 font-mono text-right">
             ↗ {step.grants}
@@ -344,6 +367,7 @@ export default function PlanPage() {
   const [authed,        setAuthed]        = useState(false)
   const [vendorQuotes,  setVendorQuotes]  = useState<Record<string, number>>({})
   const [selectedRecs,  setSelectedRecs]  = useState<string[]>([])
+  const [showEnergyModal, setShowEnergyModal] = useState(false)
 
   useEffect(() => {
     try { const h = localStorage.getItem('cwm_homeiq');           if (h) setHomeiqData(JSON.parse(h))    } catch {}
@@ -367,6 +391,18 @@ export default function PlanPage() {
       try { localStorage.setItem('cwm_plan_quotes', JSON.stringify(next)) } catch {}
       return next
     })
+  }
+
+  // Apply a bill-derived energy rate: persist it, then re-derive the home results
+  // (heat-loss cost + every recommendation's savings) so the plan updates in place.
+  function applyEnergyRate({ fuelType, ratePerGJ, fixedMonthly }: { fuelType: string; ratePerGJ: number; fixedMonthly: number }) {
+    saveEnergyRate(fuelType, { ratePerGJ, fixedMonthly })
+    if (homeiqData?.inputs) {
+      const updated = computeHomeResults(homeiqData.inputs)
+      setHomeiqData(updated)
+      try { localStorage.setItem('cwm_homeiq', JSON.stringify(updated)) } catch {}
+    }
+    setShowEnergyModal(false)
   }
 
   const hasData = homeiqData || evData
@@ -407,7 +443,7 @@ export default function PlanPage() {
           <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-3">Optimise for</p>
           <div className="flex border border-zinc-700 w-fit">
             {([['bills', 'Cut bills first', 'Shortest payback at the top'],
-               ['emissions', 'Cut emissions first', 'Biggest CO₂ impact at the top']] as const).map(([id, label, sub]) => (
+               ['emissions', 'Cut emissions first', 'Lowest cost per tonne of CO₂ ($/t) at the top']] as const).map(([id, label, sub]) => (
               <button
                 key={id}
                 onClick={() => setMode(id)}
@@ -426,60 +462,58 @@ export default function PlanPage() {
         <div>
           <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-3">Using data from</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              {
-                key:   'homeiq',
-                label: 'Home Heat Loss',
-                href:  '/calculator',
-                data:  homeiqData,
-                meta:  homeiqData
-                  ? `${homeiqData.inputs?.city ?? ''}, ${homeiqData.inputs?.province ?? ''} · ${homeiqData.inputs?.era ?? ''}`
-                  : null,
-              },
-              {
-                key:   'ev',
-                label: 'EV Benefit Calculator',
-                href:  '/ev-benefit-calculator',
-                data:  evData,
-                meta:  evData
+            {planSources.map((m) => {
+              const data = m.planDataKey === 'cwm_ev' ? evData : homeiqData
+              const meta =
+                m.id === 'home'  ? (homeiqData ? `${homeiqData.inputs?.city ?? ''}, ${homeiqData.inputs?.province ?? ''} · ${homeiqData.inputs?.era ?? ''}` : null)
+              : m.id === 'ev'    ? (evData
                   ? evData.source === 'compare'
                     ? `${[evData.vehicleA?.make, evData.vehicleA?.model].filter(Boolean).join(' ')} vs ${[evData.vehicleB?.make, evData.vehicleB?.model].filter(Boolean).join(' ')}`
                     : `${evData.cityName ?? ''} · ${(evData.annualKm ?? 0).toLocaleString('en-CA')} km/yr`
-                  : null,
-              },
-              {
-                key:   'solar',
-                label: 'Solar Estimator',
-                href:  '/solar',
-                data:  homeiqData,   // solar pre-fills from HomeIQ — lit when HomeIQ is present
-                meta:  homeiqData ? `Pre-filled from HomeIQ · configure below` : null,
-              },
-            ].map(({ key, label, href, data, meta }) => (
-              <div key={key} className={`border p-4 flex items-start gap-3 ${data ? 'border-emerald-400/30 bg-emerald-400/5' : 'border-zinc-800 bg-zinc-900'}`}>
-                <div className={`mt-0.5 w-4 h-4 flex items-center justify-center shrink-0 ${data ? 'bg-emerald-400' : 'bg-zinc-700'}`}>
-                  {data
-                    ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-5" stroke="#09090b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    : <span className="text-zinc-400 text-[10px]">–</span>
-                  }
+                  : null)
+              : m.id === 'solar' ? (homeiqData ? 'Pre-filled from HomeIQ · configure below' : null)
+              : null
+              return (
+                <div key={m.id} className={`border p-4 flex items-start gap-3 ${data ? 'border-emerald-400/30 bg-emerald-400/5' : 'border-zinc-800 bg-zinc-900'}`}>
+                  <div className={`mt-0.5 w-4 h-4 flex items-center justify-center shrink-0 ${data ? 'bg-emerald-400' : 'bg-zinc-700'}`}>
+                    {data
+                      ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-5" stroke="#09090b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      : <span className="text-zinc-400 text-[10px]">–</span>
+                    }
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-xs font-semibold ${data ? 'text-zinc-200' : 'text-zinc-400'}`}>{m.title}</p>
+                    {meta
+                      ? (
+                        <div className="flex items-baseline justify-between gap-2 mt-0.5">
+                          <p className="font-mono text-[10px] text-zinc-400 truncate">{meta}</p>
+                          <Link href={m.href} className="font-mono text-[10px] text-emerald-400 hover:underline whitespace-nowrap flex-shrink-0">
+                            Update →
+                          </Link>
+                        </div>
+                      )
+                      : <Link href={m.href} className="font-mono text-[10px] text-emerald-400 hover:underline">Run calculator →</Link>
+                    }
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className={`text-xs font-semibold ${data ? 'text-zinc-200' : 'text-zinc-400'}`}>{label}</p>
-                  {meta
-                    ? (
-                      <div className="flex items-baseline justify-between gap-2 mt-0.5">
-                        <p className="font-mono text-[10px] text-zinc-400 truncate">{meta}</p>
-                        <Link href={href} className="font-mono text-[10px] text-emerald-400 hover:underline whitespace-nowrap flex-shrink-0">
-                          Update →
-                        </Link>
-                      </div>
-                    )
-                    : <Link href={href} className="font-mono text-[10px] text-emerald-400 hover:underline">Run calculator →</Link>
-                  }
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
+
+        {/* ── Energy prices used ── */}
+        {homeiqData?.inputs && (
+          <div>
+            <EnergyPricePanel inputs={homeiqData.inputs} />
+            <button
+              type="button"
+              onClick={() => setShowEnergyModal(true)}
+              className="mt-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 hover:underline"
+            >
+              ✎ Use my actual energy costs →
+            </button>
+          </div>
+        )}
 
         {/* ── No data state ── */}
         {!hasData && (
@@ -572,24 +606,58 @@ export default function PlanPage() {
             The goal: a single, honest, quantitative answer to "what should I do first?"
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-            {[
-              { label: '01 Home',      status: 'live',   href: '/calculator' },
-              { label: '02 EVs',       status: 'live',   href: '/ev-benefit-calculator' },
-              { label: '03 Solar',     status: 'live',   href: '/solar' },
-              { label: '04 Flights',   status: 'coming', href: null },
-            ].map(({ label, status, href }) => (
-              <div key={label} className={`border p-3 ${status === 'live' ? 'border-emerald-400/30' : 'border-zinc-800'}`}>
-                <p className={`font-mono text-xs font-semibold ${status === 'live' ? 'text-zinc-200' : 'text-zinc-400'}`}>{label}</p>
-                <p className={`font-mono text-[9px] uppercase tracking-widest mt-1 ${status === 'live' ? 'text-emerald-400' : 'text-zinc-400'}`}>
-                  {status === 'live' ? 'Available' : 'Coming soon'}
-                </p>
-                {href && <Link href={href} className="block font-mono text-[9px] text-zinc-400 hover:text-emerald-400 mt-1">Open →</Link>}
-              </div>
-            ))}
+            {MODULES.filter((m) => m.id !== 'plan').map((m) => {
+              const live = m.status === 'live'
+              return (
+                <div key={m.id} className={`border p-3 ${live ? 'border-emerald-400/30' : 'border-zinc-800'}`}>
+                  <p className={`font-mono text-xs font-semibold ${live ? 'text-zinc-200' : 'text-zinc-400'}`}>{m.num} {m.navLabel}</p>
+                  <p className={`font-mono text-[9px] uppercase tracking-widest mt-1 ${live ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                    {live ? 'Available' : 'Coming soon'}
+                  </p>
+                  {live && <Link href={m.href} className="block font-mono text-[9px] text-zinc-400 hover:text-emerald-400 mt-1">Open →</Link>}
+                </div>
+              )
+            })}
           </div>
         </div>
 
       </div>
+
+      {/* ── Actual energy cost modal ── */}
+      {showEnergyModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-sm"
+          onClick={() => setShowEnergyModal(false)}
+        >
+          <div
+            className="max-w-xl w-full max-h-[90vh] overflow-y-auto bg-zinc-900 border border-zinc-700"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest text-emerald-400">Actual energy cost</p>
+                <h2 className="text-base font-black text-zinc-100">Enter a few bills</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEnergyModal(false)}
+                className="text-zinc-500 hover:text-zinc-300 text-lg leading-none"
+                aria-label="Close"
+              >×</button>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+                We'll split your bills into a true marginal cost per GJ and a fixed monthly service charge, then
+                re-derive your whole plan from your real numbers.
+              </p>
+              <EnergyCostCalculator
+                onApply={applyEnergyRate}
+                defaultFuel={homeiqData?.inputs?.heating?.fuelType ?? 'naturalGas'}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

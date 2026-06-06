@@ -133,6 +133,27 @@ function heatPumpCOP(designTemp, isColdClimate = false) {
 }
 
 /**
+ * Carbon cost-effectiveness of a recommendation, expressed as marginal abatement
+ * cost: dollars spent per tonne of CO2 saved ($/t — lower = better value).
+ * Recs with no/negative carbon saving return Infinity so they rank last under a
+ * carbon priority.
+ */
+export const carbonCostPerTonne = (r) =>
+  r.co2SavedTonnes > 0 ? r.estimatedCostCAD / r.co2SavedTonnes : Infinity
+
+/**
+ * Comparator for the active priority:
+ *  - 'bills'  → lowest simple payback first
+ *  - 'carbon' → lowest cost per tonne of CO2 abated ($/t) first
+ */
+export const compareRecs = (priority) => (a, b) => {
+  if (priority === 'bills') return a.paybackYears - b.paybackYears
+  const ca = carbonCostPerTonne(a)
+  const cb = carbonCostPerTonne(b)
+  return ca === cb ? 0 : ca - cb   // equal (incl. both Infinity) → keep stable
+}
+
+/**
  * Generate a prioritised list of upgrade recommendations.
  *
  * @param {Object} heatLossResult    - Output of calculateHeatLoss()

@@ -4,15 +4,14 @@ import { useState } from "react";
 import AuthButton from "@/components/AuthButton";
 import A11yToggle from "@/components/A11yToggle";
 import ThemeToggle from "@/components/ThemeToggle";
+import { navModules } from "@/data/modules";
 
+// Module links come from the registry; static site pages are appended after.
 const links = [
-  { href: "/calculator",            label: "Home"  },
-  { href: "/ev-benefit-calculator", label: "EVs"   },
-  { href: "/solar",                 label: "Solar" },
-  { href: "/plan",                  label: "Plan"    },
-  { href: "/rebates",               label: "Funding" },
-  { href: "/about",                 label: "About"   },
-  { href: "/contact",               label: "Contact" },
+  ...navModules.map((m) => ({ href: m.href, label: m.navLabel })),
+  { href: "/rebates", label: "Funding" },
+  { href: "/about",   label: "About"   },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function Nav() {

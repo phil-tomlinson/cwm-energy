@@ -4,6 +4,9 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import HeatLossChart from './HeatLossChart'
 import RecommendationsList from './RecommendationsList'
+import { compareRecs } from '@/calculations/recommendations'
+import EnergyPricePanel from '@/components/EnergyPricePanel'
+import HouseEnvelopeDiagram from '@/homeiq/diagrams/HouseEnvelopeDiagram'
 import DiveDeeper from '@/components/DiveDeeper'
 import Disclaimer from '@/components/Disclaimer'
 
@@ -84,11 +87,7 @@ export default function Results({ results, onReset }) {
   const doneRecs   = recommendations.filter(r =>  doneIds.includes(r.id))
 
   // Top rec respects the active priority
-  const sortedActive = [...activeRecs].sort((a, b) =>
-    priority === 'bills'
-      ? a.paybackYears - b.paybackYears
-      : b.co2SavedTonnes - a.co2SavedTonnes
-  )
+  const sortedActive = [...activeRecs].sort(compareRecs(priority))
   const topRec = sortedActive[0]
 
   const paybackText = topRec?.paybackYears < 1
@@ -167,6 +166,9 @@ export default function Results({ results, onReset }) {
         />
       </div>
 
+      {/* Energy prices used in the estimate */}
+      <EnergyPricePanel inputs={inputs} className="mb-4" />
+
       {/* GJ explanation */}
       <DiveDeeper label="What does GJ mean?">
         <p className="text-xs text-zinc-400 leading-relaxed">
@@ -209,6 +211,9 @@ export default function Results({ results, onReset }) {
           Taller bars are bigger opportunities — fixing them saves the most money.
         </p>
         <HeatLossChart components={heatLoss.components} totalHeatLossGJ={heatLoss.totalHeatLossGJ} />
+        <DiveDeeper label="What do these parts mean?">
+          <HouseEnvelopeDiagram caption="Your home's envelope is everything separating heated space from the outdoors. Heat escapes through each part — the ceiling/attic, exterior walls, windows, the rim joist at floor level, and the basement walls. The bars above show how much each one is costing you." />
+        </DiveDeeper>
         <DiveDeeper label="How is this calculated?">
           <p className="text-xs text-zinc-400 leading-relaxed">
             Each component uses the steady-state heat loss formula:{' '}
@@ -240,7 +245,7 @@ export default function Results({ results, onReset }) {
             <p className="text-xs text-zinc-400">
               {priority === 'bills'
                 ? 'Sorted by fastest payback — most cost-effective first.'
-                : 'Sorted by most carbon saved per year.'}
+                : 'Sorted by lowest cost per tonne of CO₂ ($/t) — best value first.'}
               {' '}Mid-range Canadian cost estimates.
             </p>
           </div>

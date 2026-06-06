@@ -47,6 +47,7 @@ export default function HeatLossChart({ components, totalHeatLossGJ }) {
           type="category"
           dataKey="name"
           width={130}
+          interval={0}
           tick={{ fontSize: 12, fill: '#a1a1aa' }}
           axisLine={false}
           tickLine={false}

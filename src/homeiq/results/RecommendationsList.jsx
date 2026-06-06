@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import DiveDeeper from '@/components/DiveDeeper'
+import { compareRecs, carbonCostPerTonne } from '@/calculations/recommendations'
 
 const CATEGORY_LABELS = {
   envelope:   'Building envelope',
@@ -74,7 +75,10 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
           </div>
           <p className="text-xs text-zinc-400 mt-1 font-mono">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
           {rec.co2SavedTonnes > 0.01 && (
-            <p className="text-xs text-zinc-500 mt-1 font-mono">{rec.co2SavedTonnes.toFixed(1)} t CO₂/yr</p>
+            <>
+              <p className="text-xs text-zinc-500 mt-1 font-mono">{rec.co2SavedTonnes.toFixed(1)} t CO₂/yr</p>
+              <p className="text-xs text-zinc-500 font-mono">${Math.round(carbonCostPerTonne(rec)).toLocaleString()}/t CO₂</p>
+            </>
           )}
         </div>
       </div>
@@ -113,11 +117,7 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
 }
 
 function HeatingComparisonGroup({ heatingRecs, priority, planSelected, onAddToPlan, onMarkDone, doneIds }) {
-  const sorted = [...heatingRecs].sort((a, b) =>
-    priority === 'bills'
-      ? a.paybackYears - b.paybackYears
-      : b.co2SavedTonnes - a.co2SavedTonnes
-  )
+  const sorted = [...heatingRecs].sort(compareRecs(priority))
 
   return (
     <div className="border border-zinc-700">
@@ -126,7 +126,7 @@ function HeatingComparisonGroup({ heatingRecs, priority, planSelected, onAddToPl
           Heating system — choose one
         </span>
         <span className="text-[10px] text-zinc-500 font-mono">
-          {priority === 'bills' ? 'Sorted by shortest payback' : 'Sorted by most carbon saved'}
+          {priority === 'bills' ? 'Sorted by shortest payback' : 'Sorted by lowest cost per tonne of CO₂ ($/t)'}
         </span>
       </div>
       <div>
@@ -193,11 +193,7 @@ export default function RecommendationsList({
 
   // Recs to show in the ranked list (includes single heating rec if no comparison group)
   const listedRecs = heatingRecs.length === 2 ? otherRecs : [...heatingRecs, ...otherRecs]
-  const sortedRecs = [...listedRecs].sort((a, b) =>
-    priority === 'bills'
-      ? a.paybackYears - b.paybackYears
-      : b.co2SavedTonnes - a.co2SavedTonnes
-  )
+  const sortedRecs = [...listedRecs].sort(compareRecs(priority))
 
   return (
     <div>

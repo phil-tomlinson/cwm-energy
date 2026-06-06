@@ -47,7 +47,22 @@ export default function SimpleMode({ data, updateData }) {
   function handleProvinceChange(provinceCode) {
     const firstCity = getCitiesForProvince(provinceCode)[0]
     const climate = getClimateData(provinceCode, firstCity?.city)
-    updateData({ province: provinceCode, city: firstCity?.city ?? '', climate, envelope: null })
+    // Re-price the selected fuels for the new province so the estimate doesn't keep
+    // using the previous province's rates.
+    updateData({
+      province: provinceCode,
+      city:     firstCity?.city ?? '',
+      climate,
+      envelope: null,
+      heating: {
+        ...data.heating,
+        fuelCostPerGJ: getFuelCostPerGJ(provinceCode, data.heating.fuelType) ?? data.heating.fuelCostPerGJ,
+      },
+      waterHeater: {
+        ...data.waterHeater,
+        fuelCostPerGJ: getFuelCostPerGJ(provinceCode, data.waterHeater.fuelType) ?? data.waterHeater.fuelCostPerGJ,
+      },
+    })
   }
 
   function handleCityChange(cityName) {

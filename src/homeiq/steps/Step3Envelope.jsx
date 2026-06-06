@@ -6,6 +6,7 @@ import { NumberField, AreaField } from '../ui/FormField'
 import WindowEstimator from '../estimators/WindowEstimator'
 import FootprintEstimator from '../estimators/FootprintEstimator'
 import DiveDeeper from '@/components/DiveDeeper'
+import HouseEnvelopeDiagram from '../diagrams/HouseEnvelopeDiagram'
 
 const DEFAULT_BASEMENT_HEIGHT = 2.1
 
@@ -112,9 +113,13 @@ export default function Step3Envelope({ data, updateData }) {
       <p className="text-zinc-400 text-sm mb-2">
         We've pre-filled these values based on your home's age. Adjust anything you know for better accuracy.
       </p>
-      <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-6">
+      <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-4">
         R-values are imperial (as on product labels). Areas are auto-estimated from your floor area — use the estimators below each field if you want to refine them.
       </p>
+
+      <DiveDeeper label="Which part is which?">
+        <HouseEnvelopeDiagram caption="The parts you'll enter below, shown in place: ceiling/attic, above-grade walls, windows, and basement/foundation walls. Emerald arrows mark where heat escapes." />
+      </DiveDeeper>
 
       {/* ── Ceiling ── */}
       <Card className="mb-4">
