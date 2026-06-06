@@ -6,7 +6,7 @@ import { NumberField, AreaField } from '../ui/FormField'
 import WindowEstimator from '../estimators/WindowEstimator'
 import FootprintEstimator from '../estimators/FootprintEstimator'
 import DiveDeeper from '@/components/DiveDeeper'
-import HouseEnvelopeDiagram from '../diagrams/HouseEnvelopeDiagram'
+import HouseDiagram from '../diagrams/HouseDiagram'
 
 const DEFAULT_BASEMENT_HEIGHT = 2.1
 
@@ -118,7 +118,11 @@ export default function Step3Envelope({ data, updateData }) {
       </p>
 
       <DiveDeeper label="Which part is which?">
-        <HouseEnvelopeDiagram caption="The parts you'll enter below, shown in place: ceiling/attic, above-grade walls, windows, and basement/foundation walls. Emerald arrows mark where heat escapes." />
+        <HouseDiagram
+          houseType={data.houseType}
+          storeys={data.storeys}
+          basementType={data.basementType}
+          caption="Your home's envelope — the parts you'll enter below: ceiling/attic, above-grade walls, windows, and basement/foundation walls. Emerald arrows mark where heat escapes." />
       </DiveDeeper>
 
       {/* ── Ceiling ── */}

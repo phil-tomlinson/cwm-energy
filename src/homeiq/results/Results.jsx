@@ -6,7 +6,7 @@ import HeatLossChart from './HeatLossChart'
 import RecommendationsList from './RecommendationsList'
 import { compareRecs } from '@/calculations/recommendations'
 import EnergyPricePanel from '@/components/EnergyPricePanel'
-import HouseEnvelopeDiagram from '@/homeiq/diagrams/HouseEnvelopeDiagram'
+import HouseDiagram from '@/homeiq/diagrams/HouseDiagram'
 import DiveDeeper from '@/components/DiveDeeper'
 import Disclaimer from '@/components/Disclaimer'
 
@@ -212,7 +212,12 @@ export default function Results({ results, onReset }) {
         </p>
         <HeatLossChart components={heatLoss.components} totalHeatLossGJ={heatLoss.totalHeatLossGJ} />
         <DiveDeeper label="What do these parts mean?">
-          <HouseEnvelopeDiagram caption="Your home's envelope is everything separating heated space from the outdoors. Heat escapes through each part — the ceiling/attic, exterior walls, windows, the rim joist at floor level, and the basement walls. The bars above show how much each one is costing you." />
+          <HouseDiagram
+            houseType={inputs.houseType}
+            storeys={inputs.storeys}
+            basementType={inputs.basementType}
+            components={heatLoss.components}
+            caption="Your home, with the arrows sized by how much heat actually escapes through each part — the same breakdown as the bars above. The envelope is everything separating heated space from the outdoors: ceiling/attic, walls, windows, rim joist, and basement walls." />
         </DiveDeeper>
         <DiveDeeper label="How is this calculated?">
           <p className="text-xs text-zinc-400 leading-relaxed">
