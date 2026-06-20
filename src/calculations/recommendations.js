@@ -142,6 +142,17 @@ export const carbonCostPerTonne = (r) =>
   r.co2SavedTonnes > 0 ? r.estimatedCostCAD / r.co2SavedTonnes : Infinity
 
 /**
+ * Upgrades that touch the building structure or central/common systems — in a
+ * condo or apartment these are strata / common-element scope, not something an
+ * individual unit owner can carry out alone. Used to reframe the analysis for
+ * high-density residential into "what you can do in your unit" vs "building-wide".
+ */
+export const BUILDING_SCOPE_IDS = new Set([
+  'atticInsulation', 'basementInsulation', 'wallInsulation', 'rimJoists',
+  'chimneySealing', 'windows', 'solar', 'aeroSeal', 'drainWaterHR', 'furnaceUpgrade',
+])
+
+/**
  * Comparator for the active priority:
  *  - 'bills'  → lowest simple payback first
  *  - 'carbon' → lowest cost per tonne of CO2 abated ($/t) first

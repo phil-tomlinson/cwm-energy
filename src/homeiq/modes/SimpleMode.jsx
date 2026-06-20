@@ -4,7 +4,6 @@ import { houseTypes, storeyOptions, constructionEras } from '../../data/houseDef
 import { HEATING_SYSTEMS, getFuelCostPerGJ, provincialPrices } from '../../data/energyPrices'
 import { SelectField, AreaField, NumberField } from '../ui/FormField'
 import DiveDeeper from '@/components/DiveDeeper'
-import HouseDiagram from '../diagrams/HouseDiagram'
 
 // Quick-select sizes: [label, m²]
 const SIZE_PRESETS = [
@@ -124,15 +123,6 @@ export default function SimpleMode({ data, updateData }) {
             options={storeyOptions}
           />
         </div>
-
-        {/* Live cutaway — redraws as house type & storeys change */}
-        <HouseDiagram
-          className="mt-4"
-          houseType={data.houseType}
-          storeys={data.storeys}
-          basementType={data.basementType}
-          caption="A quick sketch of your home. Arrows show where heat escapes — it updates as you answer."
-        />
       </div>
 
       {/* Row 3: Era */}

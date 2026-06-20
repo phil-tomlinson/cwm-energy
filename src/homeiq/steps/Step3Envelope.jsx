@@ -6,7 +6,7 @@ import { NumberField, AreaField } from '../ui/FormField'
 import WindowEstimator from '../estimators/WindowEstimator'
 import FootprintEstimator from '../estimators/FootprintEstimator'
 import DiveDeeper from '@/components/DiveDeeper'
-import HouseDiagram from '../diagrams/HouseDiagram'
+import { CompanionTarget } from '../companion/CompanionContext'
 
 const DEFAULT_BASEMENT_HEIGHT = 2.1
 
@@ -113,19 +113,12 @@ export default function Step3Envelope({ data, updateData }) {
       <p className="text-zinc-400 text-sm mb-2">
         We've pre-filled these values based on your home's age. Adjust anything you know for better accuracy.
       </p>
-      <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-4">
+      <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-6">
         R-values are imperial (as on product labels). Areas are auto-estimated from your floor area — use the estimators below each field if you want to refine them.
       </p>
 
-      <DiveDeeper label="Which part is which?">
-        <HouseDiagram
-          houseType={data.houseType}
-          storeys={data.storeys}
-          basementType={data.basementType}
-          caption="Your home's envelope — the parts you'll enter below: ceiling/attic, above-grade walls, windows, and basement/foundation walls. Emerald arrows mark where heat escapes." />
-      </DiveDeeper>
-
       {/* ── Ceiling ── */}
+      <CompanionTarget id="ceiling">
       <Card className="mb-4">
         <CardSection title="Ceiling / Attic" hint="The insulation between your top-floor ceiling and the attic or roof.">
           <div className="grid grid-cols-2 gap-4">
@@ -154,8 +147,10 @@ export default function Step3Envelope({ data, updateData }) {
           </div>
         </CardSection>
       </Card>
+      </CompanionTarget>
 
       {/* ── Above-grade walls ── */}
+      <CompanionTarget id="walls">
       <Card className="mb-4">
         <CardSection title="Above-grade walls" hint="Exterior wall area, excluding windows and doors.">
           <div className="grid grid-cols-2 gap-4">
@@ -184,8 +179,10 @@ export default function Step3Envelope({ data, updateData }) {
           </div>
         </CardSection>
       </Card>
+      </CompanionTarget>
 
       {/* ── Windows ── */}
+      <CompanionTarget id="windows">
       <Card className="mb-4">
         <CardSection title="Windows" hint="Total glazed area including frames.">
           <div className="grid grid-cols-2 gap-4">
@@ -240,9 +237,11 @@ export default function Step3Envelope({ data, updateData }) {
           </div>
         </CardSection>
       </Card>
+      </CompanionTarget>
 
       {/* ── Basement ── */}
       {hasBasement && (
+        <CompanionTarget id="basement">
         <Card className="mb-4">
           <CardSection title="Basement / Foundation">
             {env.basementWallArea > 0 && (
@@ -299,6 +298,7 @@ export default function Step3Envelope({ data, updateData }) {
             )}
           </CardSection>
         </Card>
+        </CompanionTarget>
       )}
 
       {/* ── Air leakage ── */}

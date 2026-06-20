@@ -10,6 +10,8 @@ import Step2Home from './steps/Step2Home'
 import Step3Envelope from './steps/Step3Envelope'
 import Step4Heating from './steps/Step4Heating'
 import Step5WaterHeater from './steps/Step5WaterHeater'
+import { CompanionProvider } from './companion/CompanionContext'
+import QuestionCompanion from './companion/QuestionCompanion'
 import { buildEnvelopeFromDefaults } from '../calculations/heatLoss'
 import { computeHomeResults } from '../calculations/homeResults'
 import { getFuelCostPerGJ } from '../data/energyPrices'
@@ -101,8 +103,12 @@ export default function Wizard({ onComplete }) {
     <Step5WaterHeater key="s5" data={data} updateData={updateData} />,
   ]
 
+  const hasCompanion = data.mode === 'refined' || data.mode === 'technical'
+
   return (
-    <div>
+    <CompanionProvider>
+    <div className={hasCompanion ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-6 lg:items-start' : 'max-w-2xl mx-auto'}>
+    <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8 min-w-0">
       {/* Units toggle */}
       <div className="flex justify-end mb-4">
         <button
@@ -162,5 +168,8 @@ export default function Wizard({ onComplete }) {
         </>
       )}
     </div>
+    {hasCompanion && <QuestionCompanion data={data} className="hidden lg:block" />}
+    </div>
+    </CompanionProvider>
   )
 }

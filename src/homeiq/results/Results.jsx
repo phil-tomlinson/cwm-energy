@@ -1,10 +1,11 @@
 ﻿'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import HeatLossChart from './HeatLossChart'
 import RecommendationsList from './RecommendationsList'
-import { compareRecs } from '@/calculations/recommendations'
+import { compareRecs, BUILDING_SCOPE_IDS } from '@/calculations/recommendations'
 import EnergyPricePanel from '@/components/EnergyPricePanel'
 import HouseDiagram from '@/homeiq/diagrams/HouseDiagram'
 import DiveDeeper from '@/components/DiveDeeper'
@@ -27,6 +28,12 @@ export default function Results({ results, onReset }) {
   const city     = inputs.city
   const province = inputs.province
   const isSimple = inputs.mode === 'simple'
+
+  // High-density residential: split recommendations into what the occupant can
+  // act on inside their unit vs. building-wide (strata / common-element) work.
+  const isApartment   = inputs.houseType === 'apartment'
+  const buildingRecs  = isApartment ? recommendations.filter(r =>  BUILDING_SCOPE_IDS.has(r.id)) : []
+  const ownRecs       = isApartment ? recommendations.filter(r => !BUILDING_SCOPE_IDS.has(r.id)) : recommendations
 
   const totalAnnualCost = heatLoss.annualCost + waterHeater.annualCost
   const totalEnergyGJ   = heatLoss.annualFuelGJ + waterHeater.inputEnergyGJ
@@ -83,8 +90,8 @@ export default function Results({ results, onReset }) {
     })
   }
 
-  const activeRecs = recommendations.filter(r => !doneIds.includes(r.id))
-  const doneRecs   = recommendations.filter(r =>  doneIds.includes(r.id))
+  const activeRecs = ownRecs.filter(r => !doneIds.includes(r.id))
+  const doneRecs   = ownRecs.filter(r =>  doneIds.includes(r.id))
 
   // Top rec respects the active priority
   const sortedActive = [...activeRecs].sort(compareRecs(priority))
@@ -242,11 +249,26 @@ export default function Results({ results, onReset }) {
         </DiveDeeper>
       </Card>
 
+      {/* Apartment / condo: reframe around what's in the occupant's control */}
+      {isApartment && (
+        <div className="border border-emerald-400/30 bg-emerald-400/5 p-5 mb-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">You're in high-density residential</p>
+          <p className="text-sm text-zinc-300 leading-relaxed">
+            In a condo or apartment, the building envelope and any central heating, ventilation, or hot-water
+            systems are usually shared, common-element responsibilities — not something you can change on your
+            own. So we've split your results: <span className="text-zinc-100 font-medium">what you can act on inside
+            your unit</span> below, and <span className="text-zinc-100 font-medium">building-wide opportunities</span> further down.
+          </p>
+        </div>
+      )}
+
       {/* Priority toggle + Recommendations */}
       <div className="mb-4">
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
           <div>
-            <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest mb-0.5">Recommended upgrades</h3>
+            <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest mb-0.5">
+              {isApartment ? 'What you can do in your unit' : 'Recommended upgrades'}
+            </h3>
             <p className="text-xs text-zinc-400">
               {priority === 'bills'
                 ? 'Sorted by fastest payback — most cost-effective first.'
@@ -283,6 +305,45 @@ export default function Results({ results, onReset }) {
           onAddToPlan={addToPlan}
         />
       </div>
+
+      {/* Apartment / condo: building-wide opportunities + outreach */}
+      {isApartment && (
+        <div className="border border-zinc-700 bg-zinc-900/40 p-5 mb-4">
+          <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest mb-1">Beyond your unit — building-wide</h3>
+          <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+            These would cut energy use across the whole building, but they're common-element work — they need your
+            condo board or strata, not an individual owner. They're shown for context, not as personal to-dos.
+          </p>
+
+          {buildingRecs.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {buildingRecs.map(rec => (
+                <div key={rec.id} className="flex items-center justify-between gap-3 border border-zinc-800 bg-zinc-900/60 px-4 py-2.5 opacity-80">
+                  <span className="text-xs text-zinc-300">{rec.title}</span>
+                  {rec.annualSavingsCAD > 0 && (
+                    <span className="font-mono text-[11px] text-zinc-400 shrink-0">
+                      ~${Math.round(rec.annualSavingsCAD).toLocaleString()}/yr building-wide
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="border-t border-zinc-800 pt-4">
+            <p className="text-sm text-zinc-300 leading-relaxed mb-3">
+              For savings on bills and carbon that go beyond the limits of your unit — coordinating a building
+              retrofit, bulk heat-pump programs, or shared solar — reach out to learn more about your options.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest bg-emerald-400 text-zinc-950 font-bold px-4 py-2.5 hover:bg-emerald-300 transition-colors"
+            >
+              Explore building-wide options →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Simple-mode upgrade nudge */}
       {isSimple && (
