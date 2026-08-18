@@ -6,6 +6,7 @@ import { NumberField, AreaField } from '../ui/FormField'
 import WindowEstimator from '../estimators/WindowEstimator'
 import FootprintEstimator from '../estimators/FootprintEstimator'
 import DiveDeeper from '@/components/DiveDeeper'
+import { CompanionTarget } from '../companion/CompanionContext'
 
 const DEFAULT_BASEMENT_HEIGHT = 2.1
 
@@ -117,6 +118,7 @@ export default function Step3Envelope({ data, updateData }) {
       </p>
 
       {/* ── Ceiling ── */}
+      <CompanionTarget id="ceiling">
       <Card className="mb-4">
         <CardSection title="Ceiling / Attic" hint="The insulation between your top-floor ceiling and the attic or roof.">
           <div className="grid grid-cols-2 gap-4">
@@ -145,8 +147,10 @@ export default function Step3Envelope({ data, updateData }) {
           </div>
         </CardSection>
       </Card>
+      </CompanionTarget>
 
       {/* ── Above-grade walls ── */}
+      <CompanionTarget id="walls">
       <Card className="mb-4">
         <CardSection title="Above-grade walls" hint="Exterior wall area, excluding windows and doors.">
           <div className="grid grid-cols-2 gap-4">
@@ -175,8 +179,10 @@ export default function Step3Envelope({ data, updateData }) {
           </div>
         </CardSection>
       </Card>
+      </CompanionTarget>
 
       {/* ── Windows ── */}
+      <CompanionTarget id="windows">
       <Card className="mb-4">
         <CardSection title="Windows" hint="Total glazed area including frames.">
           <div className="grid grid-cols-2 gap-4">
@@ -231,9 +237,11 @@ export default function Step3Envelope({ data, updateData }) {
           </div>
         </CardSection>
       </Card>
+      </CompanionTarget>
 
       {/* ── Basement ── */}
       {hasBasement && (
+        <CompanionTarget id="basement">
         <Card className="mb-4">
           <CardSection title="Basement / Foundation">
             {env.basementWallArea > 0 && (
@@ -290,6 +298,7 @@ export default function Step3Envelope({ data, updateData }) {
             )}
           </CardSection>
         </Card>
+        </CompanionTarget>
       )}
 
       {/* ── Air leakage ── */}

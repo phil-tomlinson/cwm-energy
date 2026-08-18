@@ -5,6 +5,7 @@ import { HEATING_SYSTEMS, waterHeaterTypes as whTypesFallback, getFuelCostPerGJ,
 import { waterHeaterTypes } from '../../calculations/waterHeater'
 import { SelectField, NumberField, AreaField, LengthField } from '../ui/FormField'
 import DiveDeeper from '@/components/DiveDeeper'
+import { CompanionTarget } from '../companion/CompanionContext'
 
 function SectionHeader({ label }) {
   return (
@@ -196,7 +197,7 @@ export default function TechnicalMode({ data, updateData }) {
 
       <div className="grid grid-cols-1 gap-4">
         {/* Chimney */}
-        <div>
+        <CompanionTarget id="chimney">
           <label className="block text-sm font-medium text-zinc-300 mb-1">Chimney / fireplace type</label>
           <select
             value={data.airLeakageFactors?.chimney ?? 'none'}
@@ -229,11 +230,11 @@ export default function TechnicalMode({ data, updateData }) {
               </div>
             </div>
           </DiveDeeper>
-        </div>
+        </CompanionTarget>
 
         {/* Rim joists + pot lights */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
+          <CompanionTarget id="rimJoist">
             <p className="text-sm font-medium text-zinc-300 mb-2">Exposed rim joists?</p>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
@@ -252,8 +253,8 @@ export default function TechnicalMode({ data, updateData }) {
               ))}
             </div>
             <p className="mt-1 text-[10px] text-zinc-400 font-mono">Uninsulated rim joists in basement</p>
-          </div>
-          <div>
+          </CompanionTarget>
+          <CompanionTarget id="recessedLights">
             <p className="text-sm font-medium text-zinc-300 mb-2">Recessed pot lights?</p>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
@@ -272,7 +273,7 @@ export default function TechnicalMode({ data, updateData }) {
               ))}
             </div>
             <p className="mt-1 text-[10px] text-zinc-400 font-mono">In ceiling below unconditioned attic</p>
-          </div>
+          </CompanionTarget>
         </div>
 
         {/* HRV / ERV */}

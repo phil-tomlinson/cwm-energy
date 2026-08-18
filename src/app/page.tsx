@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import { MODULES } from "@/data/modules";
 
 const stats = [
   { value: "13%", label: "of Canada's GHG emissions come from buildings" },
@@ -6,40 +7,15 @@ const stats = [
   { value: "5–8yr", label: "typical payback on insulation upgrades" },
 ];
 
-const modules = [
-  {
-    num: "01",
-    tag: "Available Now",
-    title: "Home Heat Loss",
-    desc: "Walls, windows, basement, roof — ranked by heat loss and payback. No tape measure needed.",
-    href: "/calculator",
-    live: true,
-  },
-  {
-    num: "02",
-    tag: "Available Now",
-    title: "EV Benefit Calculator",
-    desc: "Ioniq 5 vs Mach-E vs RAV4 vs RAV4 Hybrid — emissions, fuel cost, and maintenance over 10 years using live grid data for your city.",
-    href: "/ev-benefit-calculator",
-    live: true,
-  },
-  {
-    num: "03",
-    tag: "Available Now",
-    title: "Solar PV Estimator",
-    desc: "How much could rooftop solar generate on your home? Annual output, savings, and payback — based on your province, roof type, and system size.",
-    href: "/solar",
-    live: true,
-  },
-  {
-    num: "04",
-    tag: "Coming Soon",
-    title: "Priority Action Plan",
-    desc: "Every module feeds one ranked list — highest impact, fastest payback, first.",
-    href: "#",
-    live: false,
-  },
-];
+const modules = MODULES.map((m) => ({
+  num:  m.num,
+  tag:  m.status === "live" ? "Available Now" : "Coming Soon",
+  title: m.title,
+  desc: m.desc,
+  href: m.href,
+  live: m.status === "live",
+  startHere: m.id === "home",
+}));
 
 export default function Home() {
   return (
@@ -128,12 +104,14 @@ export default function Home() {
                   <span className="text-[10px] font-mono text-zinc-400">{m.num}</span>
                   <span
                     className={`text-[10px] uppercase tracking-widest px-2 py-0.5 font-mono ${
-                      m.live
+                      m.startHere
+                        ? "bg-emerald-400 text-zinc-950 border border-emerald-400 font-bold"
+                        : m.live
                         ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/30"
                         : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                     }`}
                   >
-                    {m.tag}
+                    {m.startHere ? "Start here" : m.tag}
                   </span>
                 </div>
 

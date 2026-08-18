@@ -579,6 +579,73 @@ export default function EVCalculator() {
     return t === 'ev' ? 'ioniq5' : t === 'hybrid' ? 'rav4h' : 'crv'
   }
 
+  // ── Compute per-vehicle results from a fetched grid ─────────────────────────
+  // Pure derivation over the *current* vehicle set + inputs. Kept separate from
+  // the network fetch so results can be recomputed reactively (e.g. when a custom
+  // vehicle is added) without re-fetching grid data.
+  const computeResults = (grid, cityName, country) => {
+    const solarFrac       = solarPct / 100
+    const effectiveGrid   = grid * (1 - solarFrac)
+    const effectiveEPrice = elecPrice * (1 - solarFrac)
+
+    // Annual fuel/energy cost per active vehicle
+    const annualCosts = {}
+    for (const vid of activeVids) {
+      const v = allVehicles[vid]
+      if (!v) continue
+      if (v.type === 'ev') {
+        annualCosts[vid] = annualKm * (v.effKwh100km / 100) * effectiveEPrice
+      } else if (v.type === 'phev') {
+        // Simplified: assume 70% electric / 30% gas for PHEV
+        annualCosts[vid] = annualKm * 0.7 * (v.effKwh100km / 100) * effectiveEPrice
+          + annualKm * 0.3 * (v.fuelL100km / 100) * gasPrice
+      } else {
+        annualCosts[vid] = annualKm * (v.fuelL100km / 100) * gasPrice
+      }
+    }
+
+    // Per-km CO₂ per active vehicle
+    const c2km = {}
+    for (const vid of activeVids) {
+      const v = allVehicles[vid]
+      if (!v) continue
+      c2km[vid] = (v.type === 'ev' || v.type === 'phev')
+        ? (effectiveGrid * v.effKwh100km) / 100000
+        : (v.fuelL100km * CO2_PER_FUEL_L) / 100
+    }
+
+    // Carbon breakeven (EV vs comparator)
+    const breakeven = (evId, compId) => {
+      const diff = allVehicles[evId]?.mfgKgCO2e - allVehicles[compId]?.mfgKgCO2e
+      const gain = c2km[compId] - c2km[evId]
+      return gain > 0 ? diff / gain : Infinity
+    }
+
+    // 10-year lifecycle (fuel + maintenance)
+    const totalKm10 = annualKm * 10
+    const lc = {}
+    for (const vid of activeVids) {
+      lc[vid] = (annualCosts[vid] ?? 0) * 10 + maintTotal(maintProxy(vid), totalKm10)
+    }
+
+    return {
+      grid, effectiveGrid, effectiveEPrice,
+      cityName, country,
+      c2km, annualCosts, lc,
+      breakeven: {
+        ioniqVscrv:    breakeven('ioniq5',    'crv'),
+        ioniqVsrav4h:  breakeven('ioniq5',    'rav4h'),
+        macheVscrv:    breakeven('macheelfp', 'crv'),
+        macheVsrav4h:  breakeven('macheelfp', 'rav4h'),
+        customVscrv:   customVehicle ? breakeven('custom', 'crv')  : null,
+        customVsrav4h: customVehicle ? breakeven('custom', 'rav4h') : null,
+      },
+      solarPct,
+      prices, customPrice, effectivePrices,
+      annualKm,
+    }
+  }
+
   // ── Destroy charts ────────────────────────────────────────────────────────
   function destroyCharts() {
     Object.values(chartInstances.current).forEach(c => c?.destroy())
@@ -826,66 +893,7 @@ export default function EVCalculator() {
       const c    = await cRes.json()
       const grid = c.carbonIntensity
 
-      const solarFrac      = solarPct / 100
-      const effectiveGrid  = grid * (1 - solarFrac)
-      const effectiveEPrice = elecPrice * (1 - solarFrac)
-
-      // Compute annual fuel/energy costs for all active vehicles
-      const annualCosts = {}
-      for (const vid of activeVids) {
-        const v = allVehicles[vid]
-        if (!v) continue
-        if (v.type === 'ev') {
-          annualCosts[vid] = annualKm * (v.effKwh100km / 100) * effectiveEPrice
-        } else if (v.type === 'phev') {
-          // Simplified: assume 70% electric / 30% gas for PHEV
-          annualCosts[vid] = annualKm * 0.7 * (v.effKwh100km / 100) * effectiveEPrice
-            + annualKm * 0.3 * (v.fuelL100km / 100) * gasPrice
-        } else {
-          annualCosts[vid] = annualKm * (v.fuelL100km / 100) * gasPrice
-        }
-      }
-
-      // Per-km CO₂ for each vehicle
-      const c2km = {}
-      for (const vid of activeVids) {
-        const v = allVehicles[vid]
-        if (!v) continue
-        c2km[vid] = (v.type === 'ev' || v.type === 'phev')
-          ? (effectiveGrid * v.effKwh100km) / 100000
-          : (v.fuelL100km * CO2_PER_FUEL_L) / 100
-      }
-
-      // Carbon breakeven (EV vs comparator)
-      function breakeven(evId, compId) {
-        const diff = allVehicles[evId]?.mfgKgCO2e - allVehicles[compId]?.mfgKgCO2e
-        const gain = c2km[compId] - c2km[evId]
-        return gain > 0 ? diff / gain : Infinity
-      }
-
-      // 10-year lifecycle (fuel + maintenance)
-      const totalKm10 = annualKm * 10
-      const lc = {}
-      for (const vid of activeVids) {
-        lc[vid] = (annualCosts[vid] ?? 0) * 10 + maintTotal(maintProxy(vid), totalKm10)
-      }
-
-      const resultData = {
-        grid, effectiveGrid, effectiveEPrice,
-        cityName: w.name, country: w.sys.country,
-        c2km, annualCosts, lc,
-        breakeven: {
-          ioniqVscrv:   breakeven('ioniq5',    'crv'),
-          ioniqVsrav4h:  breakeven('ioniq5',    'rav4h'),
-          macheVscrv:   breakeven('macheelfp', 'crv'),
-          macheVsrav4h:  breakeven('macheelfp', 'rav4h'),
-          customVscrv:  customVehicle ? breakeven('custom', 'crv')  : null,
-          customVsrav4h: customVehicle ? breakeven('custom', 'rav4h') : null,
-        },
-        solarPct,
-        prices, customPrice, effectivePrices,
-        annualKm,
-      }
+      const resultData = computeResults(grid, w.name, w.sys.country)
 
       setResults(resultData)
       setStatus('done')
@@ -895,9 +903,9 @@ export default function EVCalculator() {
         allVeh: allVehicles,
         vids: activeVids,
         grid,
-        effectiveGrid,
+        effectiveGrid: resultData.effectiveGrid,
         annKm: annualKm,
-        annualCosts,
+        annualCosts: resultData.annualCosts,
         effPrices: effectivePrices,
       }), 50)
 
@@ -907,16 +915,20 @@ export default function EVCalculator() {
     }
   }, [city, annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, customVehicle, activeVids, allVehicles, effectivePrices])
 
-  // Re-draw charts when inputs change
+  // Recompute + redraw when inputs OR the vehicle set change (reusing the
+  // already-fetched grid). Without recomputing here, adding a custom vehicle
+  // after a run left it with no annualCosts/c2km/lc entry → costs showed $0.
   useEffect(() => {
     if (status !== 'done' || !results) return
-    const { grid, effectiveGrid, annualCosts } = results
+    const data = computeResults(results.grid, results.cityName, results.country)
+    setResults(data)
     destroyCharts()
     setTimeout(() => drawCharts({
-      allVeh: allVehicles, vids: activeVids, grid, effectiveGrid,
-      annKm: annualKm, annualCosts, effPrices: effectivePrices,
+      allVeh: allVehicles, vids: activeVids, grid: data.grid, effectiveGrid: data.effectiveGrid,
+      annKm: annualKm, annualCosts: data.annualCosts, effPrices: effectivePrices,
     }), 50)
-  }, [annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, effectivePrices])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, effectivePrices, activeVids, allVehicles, customVehicle])
 
   useEffect(() => () => destroyCharts(), [])
 

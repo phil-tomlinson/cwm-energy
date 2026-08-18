@@ -25,18 +25,18 @@ export default function CalculatorPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-        {results ? (
+      {results ? (
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
           <Results
             results={results}
             onReset={() => setResults(null)}
           />
-        ) : (
-          <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8">
-            <Wizard onComplete={handleComplete} />
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+          <Wizard onComplete={handleComplete} />
+        </div>
+      )}
     </div>
   )
 }
