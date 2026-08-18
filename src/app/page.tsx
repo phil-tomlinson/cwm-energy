@@ -14,6 +14,7 @@ const modules = MODULES.map((m) => ({
   desc: m.desc,
   href: m.href,
   live: m.status === "live",
+  startHere: m.id === "home",
 }));
 
 export default function Home() {
@@ -103,12 +104,14 @@ export default function Home() {
                   <span className="text-[10px] font-mono text-zinc-400">{m.num}</span>
                   <span
                     className={`text-[10px] uppercase tracking-widest px-2 py-0.5 font-mono ${
-                      m.live
+                      m.startHere
+                        ? "bg-emerald-400 text-zinc-950 border border-emerald-400 font-bold"
+                        : m.live
                         ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/30"
                         : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                     }`}
                   >
-                    {m.tag}
+                    {m.startHere ? "Start here" : m.tag}
                   </span>
                 </div>
 

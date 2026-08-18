@@ -26,7 +26,7 @@ export interface AppModule {
 
 export const MODULES: AppModule[] = [
   {
-    id: 'home', num: '01', navLabel: 'Home',
+    id: 'home', num: '01', navLabel: 'Heat Loss',
     title: 'Home Heat Loss',
     desc: 'Walls, windows, basement, roof — ranked by heat loss and payback. No tape measure needed.',
     href: '/calculator', category: 'home', status: 'live', inNav: true,
