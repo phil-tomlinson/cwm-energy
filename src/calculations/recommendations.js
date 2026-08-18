@@ -92,6 +92,64 @@ const COSTS = {
 function r_to_rsi(r) { return r / 5.678 }
 function simplePayback(cost, savings) { return savings > 0 ? cost / savings : Infinity }
 
+// ── Replace-on-burnout proration ───────────────────────────────────────────
+// Typical equipment service life (years). Ranges per NRCan ("Heating and Cooling
+// with a Heat Pump", Cat. M144-54) and ENERGY STAR equipment life-expectancy
+// guidance; midpoints used here.
+export const EQUIPMENT_LIFESPAN = {
+  furnaceUpgrade:     20,   // gas furnace: typically 15–20 yr
+  heatPump:           15,   // air-source heat pump: ~15 yr
+  waterHeaterUpgrade: 12,   // storage / tankless: ~10–15 yr
+  hpwh:               13,   // heat-pump water heater: ~13 yr
+}
+
+// Like-for-like baseline replacement cost ($) — what a standard end-of-life swap
+// would cost regardless of any efficiency upgrade. premium = fullCost − baseline.
+// [Mid-range estimates — verify with local contractor quotes.]
+export const BASELINE_REPLACEMENT_COST = {
+  furnaceUpgrade:     4500,   // code-minimum gas furnace, supply + install
+  heatPump:           4500,   // the furnace you'd otherwise replace
+  waterHeaterUpgrade: 1200,   // standard tank water heater
+  hpwh:               1200,
+}
+
+// Plain-language name of the existing equipment, for the age prompt.
+export const EQUIPMENT_LABEL = {
+  furnaceUpgrade:     'furnace',
+  heatPump:           'furnace',
+  waterHeaterUpgrade: 'water heater',
+  hpwh:               'water heater',
+}
+
+export const isProratable = (recId) => recId in EQUIPMENT_LIFESPAN
+
+/**
+ * Prorate a replacement upgrade by the age of the equipment being replaced.
+ * Near end of life you'd pay the baseline replacement anyway, so the effective
+ * extra cost approaches just the efficiency premium; for new equipment it
+ * approaches full price.
+ *
+ *   effectiveCost = premium + baseline × (remainingLife / lifespan)
+ *
+ * @returns null when the rec isn't proratable / age unknown, else
+ *   { effectiveCost, premium, baseline, lifespanYears, remainingYears }
+ */
+export function proratedUpgradeCost(recId, fullCost, ageYears) {
+  const lifespanYears = EQUIPMENT_LIFESPAN[recId]
+  const baseline      = BASELINE_REPLACEMENT_COST[recId]
+  if (lifespanYears == null || baseline == null || ageYears == null) return null
+  const remainingYears = Math.max(0, lifespanYears - ageYears)
+  const premium        = Math.max(0, fullCost - baseline)
+  const effectiveCost  = premium + baseline * Math.min(1, remainingYears / lifespanYears)
+  return {
+    effectiveCost: Math.round(effectiveCost),
+    premium:       Math.round(premium),
+    baseline,
+    lifespanYears,
+    remainingYears,
+  }
+}
+
 // Climate-adjusted attic R target.
 // Recommended attic insulation levels by climate zone:
 //   R-50: NRCan Zone 4–5 (HDD < 3,500)
@@ -324,9 +382,22 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
     const targetU   = 1.6
     const oldGJ     = components.windows
     const newGJ     = envelope.windowArea * targetU * hdd * S_PER_DAY * J_TO_GJ
-    const savings   = heatSavings(oldGJ, newGJ)
+    const glazingGJ = Math.max(0, oldGJ - newGJ)   // delivered-load reduction from better glass
+
+    // Ancillary benefit: replacing old windows also cuts the air leakage around
+    // loose sashes/frames and re-insulates the rough opening — benefits that grow
+    // with how old/leaky the existing windows are (proxied by their U-value).
+    // Per NRCan "Keeping the Heat In" (Cat. M92-30), windows & doors are a notable
+    // share of whole-home air leakage in older housing. [Share factors are estimates.]
+    const windowLeakShare = Math.min(0.18, Math.max(0, (envelope.windowU - 1.8) * 0.06))
+    const ancillaryGJ     = (grossAirLeakageGJ ?? 0) * windowLeakShare
+
+    const totalDeliveredGJ = (glazingGJ + ancillaryGJ) / efficiency
+    const savings   = Math.max(0, totalDeliveredGJ * fuelCostPerGJ)
     const winCount  = Math.max(8, Math.round(envelope.windowArea / 1.4))
     const cost      = COSTS.windowUpgrade * winCount
+    const ancillaryShareOfSavings = (glazingGJ + ancillaryGJ) > 0 ? ancillaryGJ / (glazingGJ + ancillaryGJ) : 0
+
     if (savings > 75) {
       recs.push({
         id:               'windows',
@@ -335,11 +406,13 @@ export function generateRecommendations(heatLossResult, waterHeaterResult, input
         currentValue:     `U=${envelope.windowU.toFixed(1)} W/m²·K`,
         targetValue:      `U=1.6 W/m²·K (triple-pane or high-performance double)`,
         annualSavingsCAD: savings,
-        annualSavedGJ:    (oldGJ - newGJ) / efficiency,
+        annualSavedGJ:    totalDeliveredGJ,
         estimatedCostCAD: cost,
         paybackYears:     simplePayback(cost, savings),
-        co2SavedTonnes:   (oldGJ - newGJ) / efficiency * (CO2_FACTORS[fuelType] ?? 0.05),
-        description:      'Windows are the highest heat-loss surface per unit area. Modern triple-pane or low-e windows also significantly improve comfort near glazing in winter.',
+        co2SavedTonnes:   totalDeliveredGJ * (CO2_FACTORS[fuelType] ?? 0.05),
+        description:      ancillaryShareOfSavings > 0.1
+          ? `Windows are the highest heat-loss surface per unit area. In an older home like yours the savings come from more than the glass: new units cut the drafts that leak around worn-out sashes and frames, and a proper install air-seals and insulates the rough opening. About ${Math.round(ancillaryShareOfSavings * 100)}% of the savings here come from those ancillary air-sealing benefits — on top of the glazing upgrade. They also markedly improve comfort near the glass in winter.`
+          : 'Windows are the highest heat-loss surface per unit area. Modern triple-pane or low-e windows also significantly improve comfort near glazing in winter.',
       })
     }
   }

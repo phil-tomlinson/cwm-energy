@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import DiveDeeper from '@/components/DiveDeeper'
-import { compareRecs, carbonCostPerTonne } from '@/calculations/recommendations'
+import { compareRecs, carbonCostPerTonne, isProratable, proratedUpgradeCost, EQUIPMENT_LABEL } from '@/calculations/recommendations'
 
 const CATEGORY_LABELS = {
   envelope:   'Building envelope',
@@ -25,7 +25,20 @@ const HEATING_BEST_FOR = {
   heatPump:       'Lower carbon',
 }
 
+const AGE_OPTIONS = [
+  { value: 3,  label: '0–5 yrs' },
+  { value: 8,  label: '6–10 yrs' },
+  { value: 13, label: '11–15 yrs' },
+  { value: 18, label: '16–20 yrs' },
+  { value: 25, label: '20+ yrs' },
+]
+
 function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlight }) {
+  const [age, setAge] = useState(null)
+  const prorated = age != null ? proratedUpgradeCost(rec.id, rec.estimatedCostCAD, age) : null
+  const proratedPaybackYrs = prorated && rec.annualSavingsCAD > 0
+    ? prorated.effectiveCost / rec.annualSavingsCAD
+    : null
   return (
     <div className={`border p-5 transition-colors ${
       isDone
@@ -82,6 +95,48 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
           )}
         </div>
       </div>
+
+      {/* Replace-on-burnout proration for equipment upgrades */}
+      {isProratable(rec.id) && !isDone && (
+        <div className="mt-4 pt-3 border-t border-zinc-700">
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs text-zinc-300">How old is your current {EQUIPMENT_LABEL[rec.id]}?</label>
+            <select
+              value={age ?? ''}
+              onChange={e => setAge(e.target.value ? Number(e.target.value) : null)}
+              className="bg-zinc-900 border border-zinc-600 text-zinc-200 text-xs font-mono px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+            >
+              <option value="">Select age…</option>
+              {AGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          {prorated && (
+            <div className="mt-2 border border-emerald-400/30 bg-emerald-400/5 p-3">
+              <p className="text-[11px] text-zinc-300 leading-relaxed mb-2">
+                A {EQUIPMENT_LABEL[rec.id]} lasts about {prorated.lifespanYears} years, so yours will likely need
+                replacing {prorated.remainingYears <= 1 ? 'very soon' : `in roughly ${Math.round(prorated.remainingYears)} years`}.
+                Since you'll pay for a replacement either way, the real cost of choosing the efficient option is
+                mostly the premium on top of that — not the full sticker price:
+              </p>
+              <div className="flex items-baseline gap-5">
+                <div>
+                  <p className="font-mono text-lg font-black text-emerald-400">~${prorated.effectiveCost.toLocaleString()}</p>
+                  <p className="text-[10px] text-zinc-400">
+                    effective cost{' '}
+                    <span className="line-through text-zinc-500">${Math.round(rec.estimatedCostCAD).toLocaleString()}</span>
+                  </p>
+                </div>
+                {proratedPaybackYrs != null && (
+                  <div>
+                    <p className="font-mono text-lg font-black text-zinc-200">{proratedPaybackYrs.toFixed(1)} yr</p>
+                    <p className="text-[10px] text-zinc-400">prorated payback</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mt-4 pt-3 border-t border-zinc-700 flex items-center justify-between gap-3 flex-wrap">
         <button
@@ -173,6 +228,8 @@ export default function RecommendationsList({
   onAddToPlan,
 }) {
   const [showDone, setShowDone] = useState(false)
+  const [showAll,  setShowAll]  = useState(false)
+  const TOP_N = 3
 
   if (!recommendations.length && !doneRecs.length) {
     return mode === 'simple'
@@ -194,6 +251,9 @@ export default function RecommendationsList({
   // Recs to show in the ranked list (includes single heating rec if no comparison group)
   const listedRecs = heatingRecs.length === 2 ? otherRecs : [...heatingRecs, ...otherRecs]
   const sortedRecs = [...listedRecs].sort(compareRecs(priority))
+  // Lead with the few biggest wins; tuck the rest behind a toggle to cut overwhelm.
+  const visibleRecs = showAll ? sortedRecs : sortedRecs.slice(0, TOP_N)
+  const hiddenCount = sortedRecs.length - visibleRecs.length
 
   return (
     <div>
@@ -211,10 +271,10 @@ export default function RecommendationsList({
         </div>
       )}
 
-      {/* All other recommendations */}
+      {/* All other recommendations — top few first, rest collapsed */}
       {sortedRecs.length > 0 && (
         <div className="space-y-3">
-          {sortedRecs.map((rec, i) => (
+          {visibleRecs.map((rec, i) => (
             <RecCard
               key={rec.id}
               rec={rec}
@@ -227,6 +287,14 @@ export default function RecommendationsList({
             />
           ))}
         </div>
+      )}
+      {(hiddenCount > 0 || showAll) && sortedRecs.length > TOP_N && (
+        <button
+          onClick={() => setShowAll(v => !v)}
+          className="mt-3 w-full border border-zinc-700 hover:border-emerald-400/50 text-zinc-300 hover:text-emerald-400 font-mono text-[11px] uppercase tracking-widest py-2.5 transition-colors"
+        >
+          {showAll ? '↑ Show fewer' : `↓ Show all ${sortedRecs.length} upgrades (${hiddenCount} more)`}
+        </button>
       )}
 
       {/* Completed section */}
