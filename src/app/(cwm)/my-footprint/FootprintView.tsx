@@ -85,6 +85,8 @@ export default function FootprintView() {
   }
 
   const r = result;
+  const today = new Date();
+  const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const firstPoint = r.years[0];
   const thisYear = r.years.find((p) => p.year === r.currentYear) ?? r.years.at(-1)!;
   const down = firstPoint.actualKg - thisYear.actualKg;
@@ -148,9 +150,18 @@ export default function FootprintView() {
 
         <div className="flex flex-wrap items-stretch gap-6">
           <Panel className="flex min-w-0 flex-[999_1_620px] flex-col gap-2">
-            <h2 className="m-0 text-[22px] font-bold leading-[28px] sm:text-[26px] sm:leading-[32px]">Your altitude</h2>
-            <p className="m-0 mb-2 text-[15px] leading-[22px] text-scree">
-              Tonnes of CO2e a year. Lower is better: the valley floor is your 2030 target, 45% below where you started.
+            <h2 className="m-0 text-[22px] font-bold leading-[28px] sm:text-[26px] sm:leading-[32px]">Your footprint, year by year</h2>
+            <p className="m-0 mb-2 max-w-[640px]">
+              {thisYear.baselineKg - thisYear.actualKg > 100 ? (
+                <>
+                  This year you&apos;re on track for <strong>{tonnes(thisYear.actualKg)}</strong>. Without the changes
+                  you&apos;ve made it would be <strong>{tonnes(thisYear.baselineKg)}</strong>, so they&apos;re saving
+                  you <strong>{tonnes(thisYear.baselineKg - thisYear.actualKg)}</strong> a year.
+                </>
+              ) : (
+                <>This year you&apos;re on track for <strong>{tonnes(thisYear.actualKg)}</strong>. Add the changes you&apos;ve made to see what they save.</>
+              )}{" "}
+              Your 2030 goal is {tonnes(r.target2030Kg)}, 45% below {firstPoint.year}.
             </p>
             <AltitudeChart years={r.years} actions={r.actions} target2030Kg={r.target2030Kg} />
           </Panel>
@@ -207,7 +218,7 @@ export default function FootprintView() {
                         <span className="text-[13px] text-scree">{monthName(a.date)}</span>
                       </span>
                     </span>
-                    {Math.abs(a.kgToDate) < 50 ? (
+                    {a.date === currentMonth ? (
                       <span className="text-[15px] text-scree">Just started: counting from this month</span>
                     ) : (
                       <>

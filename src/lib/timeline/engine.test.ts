@@ -29,7 +29,8 @@ describe('computeTimeline', () => {
   const r = computeTimeline(SAMPLE_TIMELINE, NOW)
 
   it('covers every year from move-in to this year', () => {
-    expect(r.years[0].year).toBe(2015)
+    // Moved in June 2015, so the chart starts at the first full year
+    expect(r.years[0].year).toBe(2016)
     expect(r.years.at(-1)!.year).toBe(2026)
     expect(r.years.at(-1)!.projected).toBe(true)
   })
@@ -82,6 +83,43 @@ describe('computeTimeline', () => {
     const solar = res.actions.find((a) => a.id === 'solar-1')!
     expect(solar.kgPerYearNow).toBe(0)
     expect(solar.kgToDate).toBeGreaterThan(0)
+  })
+
+  it('ignores a car owned before moving in when setting the start and the goal', () => {
+    const early: Timeline = {
+      ...SAMPLE_TIMELINE,
+      vehicles: SAMPLE_TIMELINE.vehicles.map((v) => (v.id === 'car-1' ? { ...v, start: '2012-01' } : v)),
+    }
+    const res = computeTimeline(early, NOW)
+    expect(res.years[0].year).toBe(2016)
+    expect(res.target2030Kg).toBeGreaterThan(1000)
+  })
+
+  it('breaks each year down so the parts add up', () => {
+    for (const y of r.years) {
+      const parts = y.parts.reduce((s, p) => s + p.kg, 0)
+      const saved = y.saved.reduce((s, p) => s + p.kg, 0)
+      expect(parts).toBeCloseTo(y.actualKg, 3)
+      expect(saved).toBeCloseTo(y.baselineKg - y.actualKg, 3)
+    }
+    const y2025 = r.years.find((y) => y.year === 2025)!
+    expect(y2025.parts.find((p) => p.key === 'solar')!.kg).toBeLessThan(0)
+  })
+
+  it('credits every step of a chain of vehicle switches', () => {
+    const chain: Timeline = {
+      ...SAMPLE_TIMELINE,
+      vehicles: [
+        { id: 'a', label: 'Old truck', fuel: 'gasoline', efficiency: 13, annualKm: 15000, people: 1, start: '2015-06', end: '2019-01' },
+        { id: 'b', label: 'Hybrid', fuel: 'hybrid', efficiency: 5.5, annualKm: 15000, people: 1, start: '2019-01', end: '2024-01', replaces: 'a' },
+        { id: 'c', label: 'EV', fuel: 'ev', efficiency: 19, annualKm: 15000, people: 1, start: '2024-01', replaces: 'b' },
+      ],
+    }
+    const res = computeTimeline(chain, NOW)
+    for (const y of res.years) {
+      const saved = y.saved.reduce((s, p) => s + p.kg, 0)
+      expect(saved).toBeCloseTo(y.baselineKg - y.actualKg, 3)
+    }
   })
 
   it('handles an empty timeline', () => {

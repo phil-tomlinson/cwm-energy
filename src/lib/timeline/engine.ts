@@ -57,7 +57,8 @@ interface HomeState {
   upgrades: EnvelopeUpgrade[]
 }
 
-export interface Annual { kg: number; dollars: number }
+export interface Part { key: string; label: string; detail?: string; kg: number }
+export interface Annual { kg: number; dollars: number; parts?: Part[] }
 
 function initialState(r: Residence): HomeState {
   return {
@@ -126,26 +127,35 @@ export function homeAnnual(s: HomeState, year: number): Annual {
   const grid = gridFactor(s.province, year).value
   const elecRate = electricityPrice(s.province)
 
-  let kWh = ASSUMPTIONS.baseloadKWh.value
-  let kg = 0
-  let dollars = 0
+  const baseKWh = ASSUMPTIONS.baseloadKWh.value
+  let dollars = baseKWh * elecRate
 
-  if (heating.fuelType === 'electricity') kWh += hl.annualFuelGJ * KWH_PER_GJ
-  else { kg += hl.annualFuelGJ * fossilFactor(heating.fuelType); dollars += hl.annualCost }
+  let heatKg: number
+  if (heating.fuelType === 'electricity') {
+    const k = hl.annualFuelGJ * KWH_PER_GJ
+    heatKg = k * grid; dollars += k * elecRate
+  } else { heatKg = hl.annualFuelGJ * fossilFactor(heating.fuelType); dollars += hl.annualCost }
 
-  if (wh.fuel === 'electricity') kWh += whRes.inputEnergyGJ * KWH_PER_GJ
-  else { kg += whRes.inputEnergyGJ * fossilFactor(wh.fuel); dollars += whRes.annualCost }
+  let waterKg: number
+  if (wh.fuel === 'electricity') {
+    const k = whRes.inputEnergyGJ * KWH_PER_GJ
+    waterKg = k * grid; dollars += k * elecRate
+  } else { waterKg = whRes.inputEnergyGJ * fossilFactor(wh.fuel); dollars += whRes.annualCost }
 
-  kg += kWh * grid
-  dollars += kWh * elecRate
+  const parts: Part[] = [
+    { key: 'heating', label: 'Heating', detail: heating.label, kg: heatKg },
+    { key: 'hotWater', label: 'Hot water', detail: wh.label, kg: waterKg },
+    { key: 'electricity', label: 'Lights and appliances', detail: `${baseKWh.toLocaleString('en-CA')} kWh a year, an assumption until you add bills`, kg: baseKWh * grid },
+  ]
 
   if (s.solarKW > 0) {
     const solar = calculateSolar({ systemKW: s.solarKW, province: s.province, orientation: s.solarOrientation })
-    kg -= solar.annualGenKWh * grid
+    parts.push({ key: 'solar', label: 'Solar panels', detail: `${Math.round(solar.annualGenKWh).toLocaleString('en-CA')} kWh a year sent into the grid or used at home`, kg: -solar.annualGenKWh * grid })
     dollars -= solar.annualSavingsCAD
   }
 
-  const out = { kg, dollars }
+  const kg = parts.reduce((t, p) => t + p.kg, 0)
+  const out = { kg, dollars, parts }
   homeCache.set(key, out)
   return out
 }
@@ -236,7 +246,17 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
     const year = Math.floor(m / 12)
     const future = m > nowIdx
     const w = future ? 1 : monthWeight(m, nowIdx, now)
-    const point = years.get(year) ?? { year, actualKg: 0, baselineKg: 0, projected: false, gridHeld: false }
+    const point = years.get(year) ?? { year, actualKg: 0, baselineKg: 0, projected: false, gridHeld: false, parts: [], saved: [] }
+    const addPart = (part: Part, share: number) => {
+      const existing = point.parts.find((x) => x.key === part.key)
+      if (existing) existing.kg += (part.kg / 12) * share
+      else point.parts.push({ ...part, kg: (part.kg / 12) * share })
+    }
+    const addSaved = (id: string, label: string, kg: number) => {
+      const existing = point.saved.find((x) => x.id === id)
+      if (existing) existing.kg += kg / 12
+      else point.saved.push({ id, label, kg: kg / 12 })
+    }
     let covered = false
     if (future) point.projected = true
     point.gridHeld = point.gridHeld || gridFactor('AB', year).held === true
@@ -262,9 +282,11 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
         const d$ = (prev.dollars - next.dollars) * share
         if (!future) { a.kgToDate += (dKg / 12) * w; a.dollarsToDate += (d$ / 12) * w }
         if (m === nowIdx) { a.kgPerYearNow += dKg; a.dollarsPerYearNow += d$ }
+        addSaved(c.id, label, dKg)
         prev = next
       }
       point.actualKg += (prev.kg / 12) * share
+      for (const part of prev.parts ?? []) addPart(part, share)
     }
 
     // Vehicles
@@ -275,27 +297,35 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
       const actual = vehicleAnnual(v, province, year)
       covered = true
       point.actualKg += (actual.kg / 12) * share
+      addPart({ key: `vehicle-${v.id}`, label: v.label || 'Vehicle', detail: `${v.annualKm.toLocaleString('en-CA')} km a year${v.people > 1 ? `, shared by ${v.people}` : ''}`, kg: actual.kg }, share)
 
-      // Walk back the replacement chain: impact is versus the vehicle it replaced;
-      // the do-nothing baseline is the original vehicle, driven the same distance.
-      let root: Vehicle = v
+      // Walk back the replacement chain (C replaced B, which replaced A). Each
+      // switch keeps the credit for its own step, measured at the distance you
+      // drive today, so the steps add up to "original vehicle minus this one".
+      const chain: Vehicle[] = [v]
       const seen = new Set<string>([v.id])
-      while (root.replaces && vehicleById.has(root.replaces) && !seen.has(root.replaces)) {
-        root = vehicleById.get(root.replaces)!
-        seen.add(root.id)
+      let cur = v
+      while (cur.replaces && vehicleById.has(cur.replaces) && !seen.has(cur.replaces)) {
+        cur = vehicleById.get(cur.replaces)!
+        seen.add(cur.id)
+        chain.push(cur)
       }
-      const baseline = vehicleAnnual({ ...root, annualKm: v.annualKm }, province, year)
+      const at = (x: Vehicle) => vehicleAnnual({ ...x, annualKm: v.annualKm }, province, year)
+      const baseline = at(chain.at(-1)!)
       point.baselineKg += (baseline.kg / 12) * share
 
-      if (v.replaces && vehicleById.has(v.replaces)) {
-        const before = vehicleById.get(v.replaces)!
-        const counter = vehicleAnnual({ ...before, annualKm: v.annualKm }, province, year)
-        const { label, short, grade } = vehicleLabel(v)
-        const a = ensure(v.id, label, short, v.start, grade)
-        const dKg = (counter.kg - actual.kg) * share
-        const d$ = (counter.dollars - actual.dollars) * share
+      for (let i = 0; i < chain.length - 1; i++) {
+        const newer = chain[i]
+        const older = chain[i + 1]
+        const nNew = i === 0 ? actual : at(newer)
+        const nOld = at(older)
+        const { label, short, grade } = vehicleLabel(newer)
+        const a = ensure(newer.id, label, short, newer.start, grade)
+        const dKg = (nOld.kg - nNew.kg) * share
+        const d$ = (nOld.dollars - nNew.dollars) * share
         if (!future) { a.kgToDate += (dKg / 12) * w; a.dollarsToDate += (d$ / 12) * w }
         if (m === nowIdx) { a.kgPerYearNow += dKg; a.dollarsPerYearNow += d$ }
+        addSaved(newer.id, label, dKg)
       }
     }
 
@@ -314,13 +344,28 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
     { kgToDate: 0, dollarsToDate: 0, kgPerYearNow: 0, dollarsPerYearNow: 0 },
   )
 
-  // Annualise partial years (a move-in in June, say) so every point is a full-year figure.
+  // The chart starts at the first full calendar year in your home: a partial
+  // move-in year (or a car owned before you moved in) would make the first
+  // point look tiny and the 2030 goal meaningless. If you only moved in this
+  // year, that year is annualised from the months you've lived there.
+  const homeStarts = t.residences.map((r) => toMonthIndex(r.start))
+  const anchorIdx = homeStarts.length ? Math.min(...homeStarts) : firstIdx
+  const anchorYear = Math.floor(anchorIdx / 12)
+  const seriesStart = anchorIdx % 12 === 0 || anchorYear >= currentYear ? anchorYear : anchorYear + 1
+
   const yearList = [...years.values()]
+    .filter((p) => p.year >= seriesStart)
     .map((p) => {
       const months = coveredMonths.get(p.year) ?? 0
       if (months === 0) return null
-      const scale = 12 / months
-      return { ...p, actualKg: p.actualKg * scale, baselineKg: p.baselineKg * scale }
+      const scale = p.year === anchorYear && anchorYear === seriesStart ? 12 / months : 1
+      return {
+        ...p,
+        actualKg: p.actualKg * scale,
+        baselineKg: p.baselineKg * scale,
+        parts: p.parts.map((x) => ({ ...x, kg: x.kg * scale })),
+        saved: p.saved.map((x) => ({ ...x, kg: x.kg * scale })),
+      }
     })
     .filter((p): p is YearPoint => p !== null)
     .sort((a, b) => a.year - b.year)

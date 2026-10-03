@@ -2,7 +2,9 @@ import type { Grade } from "@/lib/timeline/types";
 import { ASSUMPTIONS } from "@/lib/factors";
 
 export function tonnes(kg: number, digits = 1): string {
-  return `${(kg / 1000).toLocaleString("en-CA", { minimumFractionDigits: digits, maximumFractionDigits: digits })} t`;
+  // Small amounts get an extra decimal so a real saving never shows as "0.0 t".
+  const d = Math.abs(kg) > 0 && Math.abs(kg) < 100 ? Math.max(digits, 2) : digits;
+  return `${(kg / 1000).toLocaleString("en-CA", { minimumFractionDigits: d, maximumFractionDigits: d })} t`;
 }
 
 export function dollars(n: number): string {

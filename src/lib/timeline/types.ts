@@ -88,6 +88,10 @@ export interface YearPoint {
   projected: boolean
   /** No year-specific grid factor loaded for this year */
   gridHeld: boolean
+  /** What made up your actual footprint this year (solar is negative) */
+  parts: { key: string; label: string; detail?: string; kg: number }[]
+  /** What each change saved this year, versus the state just before it */
+  saved: { id: string; label: string; kg: number }[]
 }
 
 export interface TimelineResult {
