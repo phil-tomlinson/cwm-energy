@@ -65,3 +65,19 @@ create policy "Anyone can submit a lead"
 
 create index if not exists leads_created_at_idx on leads (created_at desc);
 create index if not exists leads_status_idx     on leads (status);
+
+-- ── Timelines ─────────────────────────────────────────────────────────────────
+-- One saved life timeline per signed-in user (the same JSON the site keeps in
+-- the browser). Signed-out visitors' timelines never leave their browser.
+create table if not exists timelines (
+  user_id     uuid        primary key references auth.users on delete cascade,
+  data        jsonb       not null,
+  updated_at  timestamptz not null default now()
+);
+
+alter table timelines enable row level security;
+
+create policy "Users own their timeline"
+  on timelines for all
+  using  (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

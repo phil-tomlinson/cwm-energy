@@ -4,6 +4,7 @@ import "@fontsource-variable/source-serif-4/wght-italic.css";
 import "./globals.css";
 import SiteNav from "@/components/cwm/SiteNav";
 import SiteFooter from "@/components/cwm/SiteFooter";
+import TimelineSync from "@/components/cwm/TimelineSync";
 import DevModal from "@/components/DevModal";
 import A11yProvider from "@/components/A11yProvider";
 import { Analytics } from "@vercel/analytics/next";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Skip to main content
           </a>
           <DevModal />
+          <TimelineSync />
           <SiteNav />
           <main id="main-content" className="flex-1" tabIndex={-1}>
             {children}

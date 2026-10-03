@@ -130,7 +130,7 @@ export default function Home() {
             </div>
             <div>
               <h3 className="m-0 mb-2 text-[19px] font-bold leading-[24px]">Your timeline stays with you.</h3>
-              <p className="m-0 text-scree">It lives in your browser. No ads, and we never sell data.</p>
+              <p className="m-0 text-scree">It stays in your browser unless you make an account to save it. No ads, and we never sell data.</p>
             </div>
             <div>
               <h3 className="m-0 mb-2 text-[19px] font-bold leading-[24px]">The code is public.</h3>

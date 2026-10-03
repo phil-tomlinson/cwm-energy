@@ -8,7 +8,8 @@ import { waterHeaterTypes } from "@/calculations/waterHeater";
 import { getCitiesForProvince } from "@/data/climateData";
 import { constructionEras, houseTypes, basementTypes } from "@/data/houseDefaults";
 import { PROVINCES, type Province } from "@/lib/factors";
-import { clearTimeline, newId, saveTimeline } from "@/lib/timeline/storage";
+import { newId, saveTimeline } from "@/lib/timeline/storage";
+import { deleteTimelineEverywhere, useSync } from "@/lib/timeline/sync";
 import { toMonthIndex } from "@/lib/timeline/engine";
 import type { EnvelopeUpgrade, HomeChange, Residence, Timeline, Vehicle, VehicleFuel } from "@/lib/timeline/types";
 import { Card, Checkbox, MonthField, NumberField, SelectField, TextField } from "./fields";
@@ -86,6 +87,7 @@ export default function StartWizard() {
 
 function Wizard({ initial }: { initial: Timeline | null }) {
   const router = useRouter();
+  const sync = useSync();
   const [t, setT] = useState<Timeline>(() => initial ?? defaultTimeline());
   const [step, setStep] = useState(0);
   const [hadSaved, setHadSaved] = useState(initial !== null);
@@ -320,7 +322,9 @@ function Wizard({ initial }: { initial: Timeline | null }) {
             </div>
           ) : (
             <p className="m-0 text-scree">
-              Saving keeps your timeline in this browser only. You can come back and edit it any time.
+              {sync.email
+                ? `Saving keeps your timeline in this browser and your account (${sync.email}). You can edit it any time.`
+                : "Saving keeps your timeline in this browser. Sign in afterwards if you want it saved to an account too."}
             </p>
           )}
         </div>
@@ -345,14 +349,15 @@ function Wizard({ initial }: { initial: Timeline | null }) {
         {hadSaved && step === STEPS.length - 1 && (
           <button type="button" className="ml-auto min-h-11 px-2 text-[15px] font-semibold text-glacier underline"
             onClick={() => {
-              if (window.confirm("Clear your saved timeline from this browser? This can't be undone.")) {
-                clearTimeline();
+              const where = sync.email ? "this browser and your account" : "this browser";
+              if (window.confirm(`Delete your timeline from ${where}? This can't be undone.`)) {
+                void deleteTimelineEverywhere();
                 setT(defaultTimeline());
                 setHadSaved(false);
                 setStep(0);
               }
             }}>
-            Clear my timeline
+            Delete my timeline
           </button>
         )}
         {!hadSaved && step === 0 && (

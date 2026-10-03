@@ -39,6 +39,15 @@ export function saveTimeline(t: Timeline): void {
   }
 }
 
+/** Store a timeline exactly as given (used when restoring from your account). */
+export function replaceTimeline(t: Timeline): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(TIMELINE_KEY, JSON.stringify(t))
+    notify()
+  } catch {}
+}
+
 export function clearTimeline(): void {
   if (typeof window === 'undefined') return
   try {

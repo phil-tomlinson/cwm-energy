@@ -6,6 +6,7 @@ import { CarbonChip, GradeMark, MoneyChip, Nugget, Panel, PhotoBand, dollars, el
 import { TYPICAL_ASSUMPTIONS, computeTimeline, typicalHeatingLabel, typicalPerPerson } from "@/lib/timeline/engine";
 import { SAMPLE_TIMELINE } from "@/lib/timeline/sample";
 import { saveLastVisit } from "@/lib/timeline/storage";
+import { useSync } from "@/lib/timeline/sync";
 import { STORAGE_KEYS, parseLastVisit, parseTimeline, useIsClient, useStoredRaw } from "@/lib/timeline/useStored";
 import { PROVINCES, gridFactor } from "@/lib/factors";
 
@@ -28,6 +29,7 @@ export default function FootprintView() {
     () => false,
   );
   const [clickedExample, setClickedExample] = useState(false);
+  const sync = useSync();
   const [openedAt] = useState(() => Date.now());
 
   const stored = useMemo(() => parseTimeline(storedRaw), [storedRaw]);
@@ -120,6 +122,28 @@ export default function FootprintView() {
             Per person, for your home and driving. {r.currentYear} is projected from your current setup.
           </p>
         </header>
+
+        {!isExample && sync.status === "signed-out" && (
+          <section className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[10px] border border-hairline bg-snowfield-raised p-4 sm:p-5">
+            <p className="m-0 flex-[1_1_420px]">
+              <strong>Your timeline is only saved in this browser.</strong> Make a free account to keep it safe and see it on
+              your phone too.
+            </p>
+            <Link href="/auth/login?next=/my-footprint" data-button className="rounded-full bg-glacier px-6 py-3 font-bold text-on-glacier no-underline">
+              Save to an account
+            </Link>
+          </section>
+        )}
+        {!isExample && sync.status === "error" && (
+          <p role="status" className="m-0 rounded-[10px] border-2 border-fireweed p-4">
+            We couldn&apos;t save to your account just now. Your timeline is safe in this browser, and we&apos;ll try again next time you save.
+          </p>
+        )}
+        {!isExample && (sync.status === "saved" || sync.status === "syncing") && sync.email && (
+          <p role="status" className="m-0 text-[15px] text-scree">
+            {sync.status === "syncing" ? "Saving to your account" : `Saved to your account (${sync.email})`}
+          </p>
+        )}
 
         {since && (
           <section aria-labelledby="since-heading" className="flex flex-wrap gap-6">

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useA11y } from "@/components/A11yProvider";
 import { STORAGE_KEYS, useStoredRaw } from "@/lib/timeline/useStored";
+import { useSync } from "@/lib/timeline/sync";
 
 const LINKS = [
   { href: "/my-footprint", label: "My Footprint" },
@@ -34,6 +35,13 @@ export default function SiteNav() {
   const { theme, toggleTheme, a11y, toggleA11y } = useA11y();
   const [open, setOpen] = useState(false);
   const hasTimeline = useStoredRaw(STORAGE_KEYS.timeline) !== null;
+  const sync = useSync();
+  const account =
+    sync.status === "unavailable"
+      ? null
+      : sync.email
+        ? { href: "/account", label: "Account" }
+        : { href: `/auth/login?next=${encodeURIComponent(pathname || "/my-footprint")}`, label: "Sign in" };
 
   const cta = hasTimeline
     ? { href: "/start", label: "Edit your timeline" }
@@ -80,6 +88,12 @@ export default function SiteNav() {
 
         <div className="hidden items-center gap-2 md:flex">{toggles}</div>
 
+        {account && (
+          <Link href={account.href} className="hidden text-[15px] font-semibold text-basalt underline-offset-2 hover:underline md:inline">
+            {account.label}
+          </Link>
+        )}
+
         <Link
           href={cta.href}
           data-button
@@ -113,6 +127,11 @@ export default function SiteNav() {
               </li>
             ))}
           </ul>
+          {account && (
+            <Link href={account.href} onClick={() => setOpen(false)} className="block py-3 text-[17px] font-semibold text-basalt no-underline">
+              {account.label}
+            </Link>
+          )}
           <Link href={cta.href} onClick={() => setOpen(false)} data-button className="mt-3 block rounded-full bg-glacier px-6 py-3 text-center font-semibold text-on-glacier no-underline">
             {cta.label}
           </Link>
