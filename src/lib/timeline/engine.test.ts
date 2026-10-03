@@ -122,6 +122,22 @@ describe('computeTimeline', () => {
     }
   })
 
+  it('takes a replaced car off the road when its replacement starts, even if its saved end is later', () => {
+    const stale: Timeline = {
+      ...SAMPLE_TIMELINE,
+      vehicles: [
+        { id: 'old', label: 'Gas wagon', fuel: 'gasoline', efficiency: 8.5, annualKm: 15000, people: 1, start: '2015-06', end: '2026-10' },
+        { id: 'new', label: 'Second car', fuel: 'gasoline', efficiency: 7, annualKm: 15000, people: 1, start: '2025-01', replaces: 'old' },
+      ],
+    }
+    const res = computeTimeline(stale, NOW)
+    const y2024 = res.years.find((y) => y.year === 2024)!
+    const y2025 = res.years.find((y) => y.year === 2025)!
+    // Only one car on the road in 2025, so the do-nothing line doesn't jump
+    expect(y2025.baselineKg).toBeCloseTo(y2024.baselineKg, -2)
+    expect(y2025.parts.filter((p) => p.key.startsWith('vehicle-'))).toHaveLength(1)
+  })
+
   it('handles an empty timeline', () => {
     const empty = computeTimeline({ version: 1, residences: [], changes: [], vehicles: [], updatedAt: '' }, NOW)
     expect(empty.years).toEqual([])

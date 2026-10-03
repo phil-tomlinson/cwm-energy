@@ -104,10 +104,15 @@ function Wizard({ initial }: { initial: Timeline | null }) {
   const setVehicle = (id: string, patch: Partial<Vehicle>) =>
     setT((prev) => {
       let vehicles = prev.vehicles.map((v) => (v.id === id ? { ...v, ...patch } : v));
-      // Choosing what a vehicle replaced ends the old one on the new one's start date.
+      // A replaced vehicle stops on the day its replacement starts, and stays in
+      // step when either date is edited later.
       const changed = vehicles.find((v) => v.id === id)!;
       if (changed.replaces) {
-        vehicles = vehicles.map((v) => (v.id === changed.replaces && (!v.end || patch.replaces) ? { ...v, end: changed.start } : v));
+        vehicles = vehicles.map((v) => (v.id === changed.replaces ? { ...v, end: changed.start } : v));
+      }
+      const replacement = vehicles.find((v) => v.replaces === id);
+      if (replacement && patch.end !== undefined) {
+        vehicles = vehicles.map((v) => (v.id === replacement.id ? { ...v, start: patch.end! } : v));
       }
       return { ...prev, vehicles };
     });

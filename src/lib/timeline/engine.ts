@@ -235,6 +235,16 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
 
   const years = new Map<number, YearPoint>()
   const coveredMonths = new Map<number, number>()
+  // A replaced vehicle is off the road from the day its replacement starts,
+  // whatever end date was saved with it.
+  const replacedOn = new Map<string, number>()
+  for (const v of t.vehicles) {
+    if (!v.replaces) continue
+    const at = toMonthIndex(v.start)
+    replacedOn.set(v.replaces, Math.min(replacedOn.get(v.replaces) ?? Infinity, at))
+  }
+  const vehicleActive = (v: Vehicle, m: number) =>
+    activeIn(v.start, v.end, m) && m < (replacedOn.get(v.id) ?? Infinity)
   const vehicleById = new Map(t.vehicles.map((v) => [v.id, v]))
 
   const provinceAt = (m: number): Province => {
@@ -292,7 +302,7 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
     // Vehicles
     const province = provinceAt(m)
     for (const v of t.vehicles) {
-      if (!activeIn(v.start, v.end, m)) continue
+      if (!vehicleActive(v, m)) continue
       const share = 1 / Math.max(1, v.people)
       const actual = vehicleAnnual(v, province, year)
       covered = true
