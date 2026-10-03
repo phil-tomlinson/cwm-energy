@@ -47,9 +47,11 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-sm font-bold text-zinc-200 uppercase tracking-widest mb-3">Accounts</h2>
             <p>
-              If you create an account, your email address and any saved calculator results are
+              If you create an account, your email address, any saved calculator results and your
+              footprint timeline (the homes, upgrades and vehicles you enter, with their dates) are
               stored securely via Supabase. We do not sell, share, or use this data for advertising.
-              Account data is used solely to provide the &ldquo;save and return to your plan&rdquo; feature.
+              Account data is used solely to save your work and let you return to it on any device.
+              You can delete your timeline at any time from the timeline page.
             </p>
           </section>
 
