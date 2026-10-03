@@ -12,7 +12,7 @@ interface A11yContextValue {
 
 const A11yContext = createContext<A11yContextValue>({
   a11y: false,
-  theme: "dark",
+  theme: "light",
   toggleA11y: () => {},
   toggleTheme: () => {},
 });
@@ -23,12 +23,15 @@ export function useA11y() {
 
 export default function A11yProvider({ children }: { children: React.ReactNode }) {
   const [a11y, setA11y] = useState(false);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     try {
       setA11y(localStorage.getItem("cwm-a11y") === "true");
-      setTheme(localStorage.getItem("cwm-theme") === "light" ? "light" : "dark");
+      // A stored choice wins; otherwise follow the system, defaulting to Daylight.
+      const stored = localStorage.getItem("cwm-theme-v2");
+      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+      setTheme(stored === "light" || stored === "dark" ? stored : prefersDark ? "dark" : "light");
     } catch {
       // localStorage unavailable — stay at defaults
     }
@@ -41,11 +44,15 @@ export default function A11yProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    try { localStorage.setItem("cwm-theme", theme); } catch {}
   }, [theme]);
 
   const toggleA11y = useCallback(() => setA11y((v) => !v), []);
-  const toggleTheme = useCallback(() => setTheme((v) => v === "dark" ? "light" : "dark"), []);
+  // Only an explicit choice is remembered; otherwise the system preference applies.
+  const toggleTheme = useCallback(() => setTheme((v) => {
+    const next = v === "dark" ? "light" : "dark";
+    try { localStorage.setItem("cwm-theme-v2", next); } catch {}
+    return next;
+  }), []);
 
   return (
     <A11yContext.Provider value={{ a11y, theme, toggleA11y, toggleTheme }}>

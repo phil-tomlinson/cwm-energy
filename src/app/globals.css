@@ -1,22 +1,135 @@
 @import "tailwindcss";
 
+/* ─── CWM design tokens ───────────────────────────────────────────────────────
+   Source of truth: the CWM Energy design system (palette sampled from our own
+   mountain photos). "Daylight" is the default; "Alpine night" applies when the
+   person picks dark, or their system prefers it and they haven't chosen.
+   Rule of thumb: big cool landscape, small warm figure. Larch (money) and
+   fireweed (fun) stay small, one per view.
+   ──────────────────────────────────────────────────────────────────────────── */
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --a11y-focus-color: #ffff00;   /* yellow works on dark backgrounds */
+  --snowfield: #F6F8F7;
+  --snowfield-raised: #FFFFFF;
+  --basalt: #1A2A36;
+  --scree: #56656B;
+  --hairline: #D5DDDC;
+  --glacier: #16698A;
+  --on-glacier: #FFFFFF;
+  --glacier-bright: #84B6CE;
+  --larch: #F2B33D;
+  --on-larch: #1A2A36;
+  --fireweed: #C7366F;
+  --on-fireweed: #FFFFFF;
+  --crevasse: #144969;
+  --spruce: #1F4D3A;
+  --grade-easy: #2E7D3E;
+  --grade-medium: #1F5FAD;
+  --grade-hard: #1A2A36;
+  --focus: #16698A;
+  --on-dark: #FFFFFF;
+  --on-dark-muted: #D5DDDC;
+
+  /* Legacy pages read these */
+  --background: var(--snowfield);
+  --foreground: var(--basalt);
+  --a11y-focus-color: #1d4ed8;
+}
+
+:root[data-theme="dark"] {
+  --snowfield: #0D2230;
+  --snowfield-raised: #15304A;
+  --basalt: #EAF1EF;
+  --scree: #A9BACB;
+  --hairline: #26425A;
+  --glacier: #7FC4E0;
+  --on-glacier: #0D2230;
+  --glacier-bright: #3E86A6;
+  --fireweed: #F07AA6;
+  --on-fireweed: #0D2230;
+  --crevasse: #1D5A80;
+  --spruce: #2F6B52;
+  --grade-easy: #5FBF6E;
+  --grade-medium: #6FA3E8;
+  --grade-hard: #EAF1EF;
+  --focus: #7FC4E0;
+  --on-dark-muted: #D5DDDC;
+  --a11y-focus-color: #ffff00;
+}
+
+/* Accessibility mode: maximum contrast, overrides both themes */
+:root[data-a11y="true"] {
+  --snowfield: #000000;
+  --snowfield-raised: #000000;
+  --basalt: #FFFFFF;
+  --scree: #FFFFFF;
+  --hairline: #FFFFFF;
+  --glacier: #FFFF00;
+  --on-glacier: #000000;
+  --glacier-bright: #444444;
+  --larch: #FFFF00;
+  --on-larch: #000000;
+  --fireweed: #FFFFFF;
+  --crevasse: #000000;
+  --spruce: #000000;
+  --grade-easy: #FFFFFF;
+  --grade-medium: #FFFFFF;
+  --grade-hard: #FFFFFF;
+  --focus: #FFFF00;
+  --on-dark-muted: #FFFFFF;
 }
 
 @theme inline {
+  --color-snowfield: var(--snowfield);
+  --color-snowfield-raised: var(--snowfield-raised);
+  --color-basalt: var(--basalt);
+  --color-scree: var(--scree);
+  --color-hairline: var(--hairline);
+  --color-glacier: var(--glacier);
+  --color-on-glacier: var(--on-glacier);
+  --color-glacier-bright: var(--glacier-bright);
+  --color-larch: var(--larch);
+  --color-on-larch: var(--on-larch);
+  --color-fireweed: var(--fireweed);
+  --color-on-fireweed: var(--on-fireweed);
+  --color-crevasse: var(--crevasse);
+  --color-spruce: var(--spruce);
+  --color-on-dark: var(--on-dark);
+  --color-on-dark-muted: var(--on-dark-muted);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Overpass Variable", "Overpass", system-ui, sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background: var(--snowfield);
+  color: var(--basalt);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 26px;
+}
+
+/* Focus ring on the new pages: 3px solid, 2px offset */
+.cwm :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* In accessibility mode, every text link on the new pages is underlined */
+[data-a11y="true"] .cwm a:not([data-button]) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Legacy pages keep their original dark look until each is restyled. */
+.legacy {
+  background: #09090b;
+  color: #f4f4f5;
+}
+[data-theme="light"] .legacy {
+  background: #ffffff;
+  color: #18181b;
 }
 
 /* Dot-grid texture — subtle technical feel */
@@ -140,18 +253,18 @@ body {
 }
 
 /* Nav and header borders */
-[data-a11y="true"] header {
+[data-a11y="true"] .legacy header {
   border-color: #ffffff !important;
 }
 
 /* Links — underlined and yellow so they are distinguishable without colour alone */
-[data-a11y="true"] a {
+[data-a11y="true"] .legacy a {
   color: #ffff00;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-[data-a11y="true"] a:hover {
+[data-a11y="true"] .legacy a:hover {
   color: #ffffff;
 }
 
@@ -214,23 +327,17 @@ body {
    ──────────────────────────────────────────────────────────────────────────── */
 
 [data-theme="light"] {
-  --background: #ffffff;
-  --foreground: #18181b;
   --a11y-focus-color: #1d4ed8;   /* dark blue — readable on white backgrounds */
 }
 
-[data-theme="light"] body {
-  background: #ffffff;
-  color: #18181b;
-}
 
 /* Structural surfaces */
-[data-theme="light"] header {
+[data-theme="light"] .legacy header {
   background: rgba(255, 255, 255, 0.9) !important;
   border-color: #e4e4e7 !important;
 }
 
-[data-theme="light"] footer {
+[data-theme="light"] .legacy footer {
   background: #f4f4f5 !important;
   border-color: #e4e4e7 !important;
 }
@@ -274,10 +381,10 @@ body {
 }
 
 /* Nav links */
-[data-theme="light"] nav a {
+[data-theme="light"] .legacy nav a {
   color: #52525b;
 }
-[data-theme="light"] nav a:hover {
+[data-theme="light"] .legacy nav a:hover {
   color: #18181b;
 }
 
@@ -293,10 +400,10 @@ body {
 }
 
 /* Light + accessibility mode — focus colour already handled via --a11y-focus-color */
-[data-theme="light"][data-a11y="true"] a {
+[data-theme="light"][data-a11y="true"] .legacy a {
   color: #1d4ed8;
 }
-[data-theme="light"][data-a11y="true"] a:hover {
+[data-theme="light"][data-a11y="true"] .legacy a:hover {
   color: #18181b;
 }
 [data-theme="light"][data-a11y="true"] [class*="text-emerald"],

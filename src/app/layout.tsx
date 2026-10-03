@@ -1,29 +1,28 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import "@fontsource-variable/overpass";
+import "@fontsource-variable/source-serif-4/wght-italic.css";
 import "./globals.css";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
+import SiteNav from "@/components/cwm/SiteNav";
+import SiteFooter from "@/components/cwm/SiteFooter";
 import DevModal from "@/components/DevModal";
 import A11yProvider from "@/components/A11yProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://cwmenergy.ca"),
-  title: "CWM Energy — Understand Your Energy",
+  title: "CWM Energy: every tonne you've already cut counts",
   description:
-    "Free tools to help Canadians understand their home energy use, reduce their carbon footprint, and find the most cost-effective upgrades.",
+    "A free, open-source carbon tracker for Canadians. Put solar, a heat pump or an EV on your timeline and see the tonnes and dollars each one has saved since.",
   icons: {
     icon:     [{ url: "/favicon.svg", type: "image/svg+xml" }],
     shortcut: "/favicon.svg",
     apple:    "/favicon.svg",
   },
   openGraph: {
-    title: "CWM Energy — Understand Your Energy",
+    title: "CWM Energy: every tonne you've already cut counts",
     description:
-      "Free, science-based tools to help Canadians cut energy bills and carbon footprint. No tape measure needed.",
+      "Free and open source. See the tonnes and dollars your solar, heat pump or EV has saved, counted against your province's grid in every year.",
     url: "https://cwmenergy.ca",
     siteName: "CWM Energy",
     locale: "en_CA",
@@ -31,27 +30,25 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CWM Energy — Understand Your Energy",
-    description:
-      "Free, science-based tools to help Canadians cut energy bills and carbon footprint.",
+    title: "CWM Energy: every tonne you've already cut counts",
+    description: "A free, open-source carbon tracker for Canadians.",
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
+    <html lang="en-CA" className="h-full antialiased" data-theme="light" suppressHydrationWarning>
+      <body className="flex min-h-full flex-col">
         <A11yProvider>
-          {/* Skip-to-content: first focusable element — keyboard/AT users jump past nav */}
           <a href="#main-content" className="skip-to-content">
             Skip to main content
           </a>
           <DevModal />
-          <Nav />
+          <SiteNav />
           <main id="main-content" className="flex-1" tabIndex={-1}>
             {children}
           </main>
-          <Footer />
+          <SiteFooter />
         </A11yProvider>
         <Analytics />
         <SpeedInsights />
