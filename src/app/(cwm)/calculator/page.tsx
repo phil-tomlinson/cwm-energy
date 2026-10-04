@@ -1,4 +1,5 @@
 ﻿'use client'
+import PageHeader from "@/components/cwm/PageHeader"
 import { useState } from 'react'
 import Wizard from '@/homeiq/Wizard'
 import Results from '@/homeiq/results/Results'
@@ -13,27 +14,23 @@ export default function CalculatorPage() {
   }
 
   return (
-    <div className="bg-zinc-950 min-h-screen">
-      {/* Header bar */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-4 sm:px-6 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-0.5">Module 01</p>
-            <h1 className="text-lg font-black tracking-tight text-zinc-100">Home Heat Loss Analysis</h1>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen">
+      <PageHeader
+        width={results ? 'max-w-2xl' : 'max-w-5xl'}
+        title="Where is your home losing heat?"
+        intro="Walls, windows, basement and roof, ranked by heat loss and payback. No tape measure needed."
+      />
 
       {/* Content */}
       {results ? (
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 pb-16">
           <Results
             results={results}
             onReset={() => setResults(null)}
           />
         </div>
       ) : (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
           <Wizard onComplete={handleComplete} />
         </div>
       )}

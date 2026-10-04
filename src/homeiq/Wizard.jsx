@@ -108,17 +108,17 @@ export default function Wizard({ onComplete }) {
   return (
     <CompanionProvider>
     <div className={hasCompanion ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-6 lg:items-start' : 'max-w-2xl mx-auto'}>
-    <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8 min-w-0">
+    <div className="bg-snowfield-raised border border-hairline p-6 sm:p-8 min-w-0 rounded-[10px]">
       {/* Units toggle */}
       <div className="flex justify-end mb-4">
         <button
           type="button"
           onClick={() => updateData({ units: data.units === 'metric' ? 'imperial' : 'metric' })}
-          className="text-xs border border-zinc-600 overflow-hidden flex"
+          className="text-[13px] border border-hairline overflow-hidden flex"
           title="Switch unit system"
         >
-          <span className={`px-3 py-1.5 font-mono transition-colors ${data.units === 'metric' ? 'bg-emerald-400 text-zinc-950 font-bold' : 'bg-transparent text-zinc-400'}`}>m</span>
-          <span className={`px-3 py-1.5 font-mono transition-colors ${data.units === 'imperial' ? 'bg-emerald-400 text-zinc-950 font-bold' : 'bg-transparent text-zinc-400'}`}>ft</span>
+          <span className={`px-3 py-1.5 tabular-nums transition-colors ${data.units === 'metric' ? 'bg-glacier text-on-glacier font-bold' : 'bg-transparent text-scree'}`}>m</span>
+          <span className={`px-3 py-1.5 tabular-nums transition-colors ${data.units === 'imperial' ? 'bg-glacier text-on-glacier font-bold' : 'bg-transparent text-scree'}`}>ft</span>
         </button>
       </div>
 
@@ -131,7 +131,7 @@ export default function Wizard({ onComplete }) {
           <SimpleMode data={data} updateData={updateData} />
           <div className="mt-8">
             <Button onClick={runCalculations} className="w-full justify-center py-3">
-              Calculate Results →
+              See results
             </Button>
           </div>
         </>
@@ -146,11 +146,11 @@ export default function Wizard({ onComplete }) {
           </div>
           <div className="mt-8 flex justify-between">
             {step > 0
-              ? <Button variant="outline" onClick={handleBack}>← Back</Button>
+              ? <Button variant="outline" onClick={handleBack}>Back</Button>
               : <div />
             }
             <Button onClick={handleNext}>
-              {step < STEPS.length - 1 ? 'Next →' : 'Calculate Results'}
+              {step < STEPS.length - 1 ? 'Next' : 'See results'}
             </Button>
           </div>
         </>
@@ -162,7 +162,7 @@ export default function Wizard({ onComplete }) {
           <TechnicalMode data={data} updateData={updateData} />
           <div className="mt-8">
             <Button onClick={runCalculations} className="w-full justify-center py-3">
-              Calculate Results →
+              See results
             </Button>
           </div>
         </>

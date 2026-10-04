@@ -1,5 +1,7 @@
 ﻿'use client'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { token, resolveColor, withAlpha, CHART_FONT } from '@/lib/theme'
+import { useA11y } from '@/components/A11yProvider'
 import {
   VEHICLES, VEHICLE_ORDER, SERVICE_ITEMS,
   WEATHER_PROXY, CARBON_PROXY,
@@ -18,8 +20,7 @@ function gridLabel(gCO2kWh) {
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────
-const CUSTOM_COLOR       = '#a78bfa'  // violet-400
-const CUSTOM_COLOR_MUTED = 'rgba(167,139,250,0.15)'
+const CUSTOM_COLOR       = 'var(--series-custom)'
 const CO2_PER_FUEL_L     = 2.31      // kg CO₂e/L gasoline (IPCC AR5)
 
 // Canada EV Affordability Program (EVAP, effective Feb 2026)
@@ -44,11 +45,8 @@ function estimateMfgCO2(type, batteryKwh) {
 // ── Section header ────────────────────────────────────────────────────────
 function SectionHeader({ num, title }) {
   return (
-    <div className="flex items-center gap-3 pt-8 pb-4 border-b border-zinc-800">
-      <span className="font-mono text-[10px] font-semibold text-emerald-400 border border-emerald-400/30 px-2 py-0.5 whitespace-nowrap">
-        {num}
-      </span>
-      <h2 className="text-base font-bold text-zinc-100 tracking-tight">{title}</h2>
+    <div className="flex items-center gap-3 pt-8 pb-3 border-b border-hairline">
+      <h2 className="m-0 text-[22px] font-bold leading-[28px] text-basalt">{title}</h2>
     </div>
   )
 }
@@ -56,14 +54,14 @@ function SectionHeader({ num, title }) {
 // ── Stat card ─────────────────────────────────────────────────────────────
 function StatCard({ label, value, unit, accent, color, sub }) {
   return (
-    <div className={`border p-4 ${accent ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/60'}`}>
-      <p className="text-[10px] uppercase tracking-widest font-mono text-zinc-400 mb-2">{label}</p>
-      <p className="font-mono text-2xl font-semibold leading-none mb-1"
-        style={{ color: color || (accent ? '#34d399' : '#e4e4e7') }}>
+    <div className={`border p-4 ${accent ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield'}`}>
+      <p className="text-[13px] tabular-nums text-scree mb-2">{label}</p>
+      <p className="tabular-nums text-2xl font-semibold leading-none mb-1"
+        style={{ color: color || (accent ? 'var(--glacier)' : 'var(--basalt)') }}>
         {value}
       </p>
-      {unit && <p className="font-mono text-[11px] text-zinc-400">{unit}</p>}
-      {sub  && <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{sub}</p>}
+      {unit && <p className="tabular-nums text-[13px] text-scree">{unit}</p>}
+      {sub  && <p className="text-[13px] text-scree mt-2 leading-relaxed">{sub}</p>}
     </div>
   )
 }
@@ -76,27 +74,27 @@ function VehicleEmissionCard({ v, co2km, isWinner, maxCO2, rebateAmount }) {
     : `${fmt(v.fuelL100km, 1)} L/100km`
 
   return (
-    <div className={`relative border p-4 transition-colors ${isWinner ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
+    <div className={`relative border p-4 transition-colors ${isWinner ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield'}`}>
       <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: v.color }} />
       {isWinner && (
-        <span className="absolute top-3 right-0 bg-emerald-400 text-zinc-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5">
+        <span className="absolute top-3 right-0 bg-glacier text-on-glacier text-[13px] font-black px-2 py-0.5 rounded-full">
           Lowest now
         </span>
       )}
-      <p className="font-mono text-[9px] uppercase tracking-widest mt-1 mb-1" style={{ color: v.color }}>{v.sub}</p>
-      <p className="text-sm font-bold text-zinc-200 mb-3 leading-tight">{v.name}</p>
-      <p className="text-[10px] uppercase tracking-widest font-mono text-zinc-400 mb-1">Emissions per km</p>
-      <p className="font-mono text-3xl font-semibold leading-none mb-0.5"
-        style={{ color: isWinner ? '#34d399' : '#e4e4e7' }}>
+      <p className="tabular-nums text-[13px] mt-1 mb-1" style={{ color: v.color }}>{v.sub}</p>
+      <p className="text-sm font-bold text-basalt mb-3 leading-tight">{v.name}</p>
+      <p className="text-[13px] tabular-nums text-scree mb-1">Emissions per km</p>
+      <p className="tabular-nums text-3xl font-semibold leading-none mb-0.5"
+        style={{ color: isWinner ? 'var(--glacier)' : 'var(--basalt)' }}>
         {fmt(co2km * 1000, 1)}
       </p>
-      <p className="font-mono text-[11px] text-zinc-400 mb-3">gCO₂e / km</p>
-      <div className="h-1 bg-zinc-700 mb-3">
+      <p className="tabular-nums text-[13px] text-scree mb-3">gCO₂e / km</p>
+      <div className="h-1 bg-hairline mb-3">
         <div className="h-full transition-all duration-500" style={{ width: `${barW}%`, background: v.color }} />
       </div>
-      <p className="text-[11px] text-zinc-400 font-mono">{detail}</p>
+      <p className="text-[13px] text-scree tabular-nums">{detail}</p>
       {rebateAmount > 0 && (
-        <p className="text-[10px] font-mono text-emerald-400 mt-2">↗ ${fmt(rebateAmount)} rebate applied</p>
+        <p className="text-[13px] tabular-nums text-glacier mt-2">↗ ${fmt(rebateAmount)} rebate applied</p>
       )}
     </div>
   )
@@ -105,17 +103,17 @@ function VehicleEmissionCard({ v, co2km, isWinner, maxCO2, rebateAmount }) {
 // ── Annual cost card ──────────────────────────────────────────────────────
 function CostCard({ v, annualCost, isLowest, detail, rebateAmount }) {
   return (
-    <div className={`border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
+    <div className={`border p-4 ${isLowest ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield'}`}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-0.5 h-4" style={{ background: v.color }} />
-        <p className="text-xs font-semibold text-zinc-300 leading-tight">{v.name}</p>
+        <p className="text-[13px] font-semibold text-basalt leading-tight">{v.name}</p>
       </div>
-      <p className="font-mono text-2xl font-semibold mb-0.5"
-        style={{ color: isLowest ? '#34d399' : '#e4e4e7' }}>
+      <p className="tabular-nums text-2xl font-semibold mb-0.5"
+        style={{ color: isLowest ? 'var(--glacier)' : 'var(--basalt)' }}>
         ${fmt(annualCost, 0)}
       </p>
-      <p className="font-mono text-[11px] text-zinc-400 mb-3">/ year in fuel & energy</p>
-      <p className="text-[11px] text-zinc-400 leading-relaxed">{detail}</p>
+      <p className="tabular-nums text-[13px] text-scree mb-3">/ year in fuel & energy</p>
+      <p className="text-[13px] text-scree leading-relaxed">{detail}</p>
     </div>
   )
 }
@@ -126,26 +124,26 @@ function BreakevenCard({ evV, compV, breakKm, annualKm }) {
   const tooLong    = breakKm > 400000
 
   return (
-    <div className="border border-zinc-700 bg-zinc-800/40 p-4 border-l-2" style={{ borderLeftColor: evV.color }}>
-      <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: evV.color }}>{evV.name}</p>
-      <p className="text-xs font-semibold text-zinc-300 mb-3 leading-snug">vs {compV.name}</p>
+    <div className="border border-hairline bg-snowfield p-4 border-l-2 rounded-[10px]" style={{ borderLeftColor: evV.color }}>
+      <p className="tabular-nums text-[13px] mb-1" style={{ color: evV.color }}>{evV.name}</p>
+      <p className="text-[13px] font-semibold text-basalt mb-3 leading-snug">vs {compV.name}</p>
       {impossible ? (
-        <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-2 leading-relaxed">
+        <p className="text-[13px] text-fireweed bg-fireweed/10 border border-fireweed p-2 leading-relaxed">
           No breakeven — grid may be too carbon-intensive for a driving-emissions advantage.
         </p>
       ) : tooLong ? (
         <>
-          <p className="font-mono text-2xl font-semibold text-zinc-300">{fmt(Math.round(breakKm / 1000), 0)}k</p>
-          <p className="font-mono text-[11px] text-zinc-400 mb-2">km</p>
-          <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-2">Exceeds typical vehicle lifespan.</p>
+          <p className="tabular-nums text-2xl font-semibold text-basalt">{fmt(Math.round(breakKm / 1000), 0)}k</p>
+          <p className="tabular-nums text-[13px] text-scree mb-2">km</p>
+          <p className="text-[13px] text-fireweed bg-fireweed/10 border border-fireweed p-2">Exceeds typical vehicle lifespan.</p>
         </>
       ) : (
         <>
-          <p className="font-mono text-2xl font-semibold text-emerald-400">{fmt(Math.round(breakKm / 1000) * 1000, 0)}</p>
-          <p className="font-mono text-[11px] text-zinc-400 mb-2">km to breakeven</p>
-          <div className="bg-emerald-400/10 border border-emerald-400/20 p-2 text-xs text-zinc-400 leading-relaxed">
-            At <span className="text-emerald-400 font-semibold">{fmt(annualKm, 0)} km/yr</span> →{' '}
-            <span className="text-emerald-400 font-semibold">{fmt(breakKm / annualKm, 1)} years</span>
+          <p className="tabular-nums text-2xl font-semibold text-glacier">{fmt(Math.round(breakKm / 1000) * 1000, 0)}</p>
+          <p className="tabular-nums text-[13px] text-scree mb-2">km to breakeven</p>
+          <div className="bg-glacier/10 border border-glacier p-2 text-[13px] text-scree leading-relaxed rounded-[10px]">
+            At <span className="text-glacier font-semibold">{fmt(annualKm, 0)} km/yr</span> →{' '}
+            <span className="text-glacier font-semibold">{fmt(breakKm / annualKm, 1)} years</span>
           </div>
         </>
       )}
@@ -165,15 +163,15 @@ function MaintTable({ activeVids, allVehicles, annualKm }) {
   }
 
   return (
-    <div className="overflow-x-auto border border-zinc-700">
-      <table className="w-full text-xs border-collapse">
+    <div className="overflow-x-auto border border-hairline">
+      <table className="w-full text-[13px] border-collapse">
         <thead>
-          <tr className="border-b border-zinc-700 bg-zinc-900">
-            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-widest text-zinc-400 min-w-[140px]">Service item</th>
-            <th className="text-left p-3 font-mono text-[10px] uppercase tracking-widest text-zinc-400 min-w-[160px]">Notes</th>
+          <tr className="border-b border-hairline bg-snowfield-raised">
+            <th className="text-left p-3 tabular-nums text-[13px] text-scree min-w-[140px]">Service item</th>
+            <th className="text-left p-3 tabular-nums text-[13px] text-scree min-w-[160px]">Notes</th>
             {activeVids.map((vid, i) => (
               <th key={vid}
-                className="text-left p-3 font-mono text-[10px] uppercase tracking-widest text-zinc-400 min-w-[100px]"
+                className="text-left p-3 tabular-nums text-[13px] text-scree min-w-[100px]"
                 style={{ borderBottom: `2px solid ${allVehicles[vid]?.color ?? CUSTOM_COLOR}` }}>
                 {vnames[i]}
               </th>
@@ -182,40 +180,40 @@ function MaintTable({ activeVids, allVehicles, annualKm }) {
         </thead>
         <tbody>
           {SERVICE_ITEMS.map((item, idx) => (
-            <tr key={idx} className="border-b border-zinc-800 hover:bg-zinc-800/40 transition-colors">
-              <td className="p-3 font-semibold text-zinc-300">{item.name}</td>
-              <td className="p-3 text-zinc-400">{item.note}</td>
+            <tr key={idx} className="border-b border-hairline hover:bg-snowfield transition-colors">
+              <td className="p-3 font-semibold text-basalt">{item.name}</td>
+              <td className="p-3 text-scree">{item.note}</td>
               {activeVids.map(vid => {
                 const proxyVid = maintProxy(vid)
                 const s        = item.vehicles[proxyVid]
                 const isProxy  = vid === 'custom'
-                if (!s) return <td key={vid} className="p-3 text-center text-zinc-400 font-mono">—</td>
+                if (!s) return <td key={vid} className="p-3 text-center text-scree tabular-nums">—</td>
                 const tenYr = (totalKm / s.intervalKm) * s.cost
                 return (
                   <td key={vid} className="p-3">
-                    <span className="block font-mono text-zinc-200">${fmt(s.cost, 0)}</span>
-                    <span className="block font-mono text-[10px] text-zinc-400">every {fmt(s.intervalKm / 1000, 0)}k km</span>
-                    <span className="block font-mono text-[10px] text-emerald-400">${fmt(tenYr, 0)} / 10yr</span>
-                    {isProxy && <span className="block font-mono text-[9px] text-zinc-400">est.</span>}
+                    <span className="block tabular-nums text-basalt">${fmt(s.cost, 0)}</span>
+                    <span className="block tabular-nums text-[13px] text-scree">every {fmt(s.intervalKm / 1000, 0)}k km</span>
+                    <span className="block tabular-nums text-[13px] text-glacier">${fmt(tenYr, 0)} / 10yr</span>
+                    {isProxy && <span className="block tabular-nums text-[13px] text-scree">est.</span>}
                   </td>
                 )
               })}
             </tr>
           ))}
-          <tr className="border-t-2 border-zinc-700 bg-zinc-900">
-            <td colSpan={2} className="p-3 font-bold text-zinc-300 text-xs">
+          <tr className="border-t-2 border-hairline bg-snowfield-raised">
+            <td colSpan={2} className="p-3 font-bold text-basalt text-[13px]">
               10-year total at {fmt(annualKm, 0)} km/yr
             </td>
             {activeVids.map(vid => (
-              <td key={vid} className="p-3 font-mono font-semibold text-zinc-200">
+              <td key={vid} className="p-3 tabular-nums font-semibold text-basalt">
                 ${fmt(maintTotal(maintProxy(vid), totalKm), 0)}
-                {vid === 'custom' && <span className="block font-mono text-[9px] text-zinc-400">estimated</span>}
+                {vid === 'custom' && <span className="block tabular-nums text-[13px] text-scree">estimated</span>}
               </td>
             ))}
           </tr>
         </tbody>
       </table>
-      <p className="text-[11px] text-zinc-400 p-3 leading-relaxed border-t border-zinc-800">
+      <p className="text-[13px] text-scree p-3 leading-relaxed border-t border-hairline">
         Service intervals and costs: CAA 2023 Driving Costs &amp; Consumer Reports Annual Auto Surveys. Canadian market averages.
         EV brake interval reflects ~70% reduction from regenerative braking.
         {activeVids.includes('custom') && ' Custom vehicle maintenance estimated from closest vehicle class.'}
@@ -300,41 +298,40 @@ function NrcanSearchPanel({ onAdd, onClose }) {
       mfgKgCO2e:        mfg.total,
       batteryMfgKgCO2e: mfg.battery,
       color:            CUSTOM_COLOR,
-      colorMuted:       CUSTOM_COLOR_MUTED,
       evRangeKm:        selected.evRangeKm,
     }
     onAdd(v, price)
   }
 
-  const selClass = 'w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors disabled:opacity-40'
+  const selClass = 'w-full bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors disabled:opacity-40'
   const typeLabel = { ev: 'Battery Electric (BEV)', phev: 'Plug-in Hybrid (PHEV)', ice: 'Gas / Hybrid' }
 
   return (
-    <div className="border border-zinc-700 bg-zinc-900 p-5 mt-4 space-y-4">
+    <div className="border border-hairline bg-snowfield-raised p-5 mt-4 space-y-4 rounded-[10px]">
       <div className="flex items-center justify-between">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">
+        <p className="tabular-nums text-[13px] text-glacier">
           Custom vehicle — NRCan fuel consumption data
         </p>
-        <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 text-lg leading-none">×</button>
+        <button onClick={onClose} className="text-scree hover:text-basalt text-lg leading-none">×</button>
       </div>
-      <p className="text-[11px] text-zinc-400 leading-relaxed">
+      <p className="text-[13px] text-scree leading-relaxed">
         Select a vehicle and we'll pull official NRCan combined fuel consumption ratings — already in Canadian units
         (L/100km or kWh/100km), tested on the Canadian 5-cycle test. Covers model years 2012–{currentYear}.
       </p>
 
-      {error && <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-3">{error}</p>}
+      {error && <p className="text-[13px] text-fireweed bg-fireweed/10 border border-fireweed p-3">{error}</p>}
 
       {/* Cascading selects: Year → Make → Model */}
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Year</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-2">Year</label>
           <select value={year} onChange={e => onYearChange(e.target.value)} className={selClass}>
             <option value="">Select year</option>
             {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Make</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-2">Make</label>
           <select value={make} onChange={e => onMakeChange(e.target.value)} className={selClass}
             disabled={!year || (loading === 'makes')}>
             <option value="">{loading === 'makes' ? 'Loading…' : 'Select make'}</option>
@@ -342,7 +339,7 @@ function NrcanSearchPanel({ onAdd, onClose }) {
           </select>
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Model</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-2">Model</label>
           <select value={model} onChange={e => onModelChange(e.target.value)} className={selClass}
             disabled={!make || (loading === 'models')}>
             <option value="">{loading === 'models' ? 'Loading…' : 'Select model'}</option>
@@ -353,11 +350,11 @@ function NrcanSearchPanel({ onAdd, onClose }) {
 
       {/* Variant picker — shown when model selected and multiple variants exist */}
       {loading === 'variants' && (
-        <p className="text-xs text-zinc-400 font-mono">Loading NRCan data…</p>
+        <p className="text-[13px] text-scree tabular-nums">Loading NRCan data…</p>
       )}
       {variants.length > 1 && (
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+          <label className="block tabular-nums text-[13px] text-scree mb-2">
             Variant / transmission
           </label>
           <div className="space-y-1.5">
@@ -371,11 +368,11 @@ function NrcanSearchPanel({ onAdd, onClose }) {
               ].filter(Boolean).join(' · ')
               return (
                 <label key={i} className={`flex items-start gap-3 border p-3 cursor-pointer transition-colors ${
-                  selected === v ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 hover:border-zinc-500'
+                  selected === v ? 'border-glacier bg-glacier/5' : 'border-hairline hover:border-hairline'
                 }`}>
                   <input type="radio" name="variant" checked={selected === v} onChange={() => setSelected(v)}
-                    className="mt-0.5 accent-emerald-400" />
-                  <span className="text-xs text-zinc-300 leading-relaxed">{label}</span>
+                    className="mt-0.5 accent-[var(--glacier)]" />
+                  <span className="text-[13px] text-basalt leading-relaxed">{label}</span>
                 </label>
               )
             })}
@@ -385,31 +382,31 @@ function NrcanSearchPanel({ onAdd, onClose }) {
 
       {/* Specs summary */}
       {selected && (
-        <div className="border border-emerald-400/30 bg-emerald-400/5 p-4 space-y-3">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">NRCan specs</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="border border-glacier bg-glacier/5 p-4 space-y-3 rounded-[10px]">
+          <p className="tabular-nums text-[13px] text-glacier">NRCan specs</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px]">
             <div>
-              <p className="text-zinc-400 font-mono">Type</p>
-              <p className="text-zinc-200 font-semibold">{typeLabel[selected.type] ?? selected.type}</p>
+              <p className="text-scree tabular-nums">Type</p>
+              <p className="text-basalt font-semibold">{typeLabel[selected.type] ?? selected.type}</p>
             </div>
             {selected.effKwh100km != null && (
               <div>
-                <p className="text-zinc-400 font-mono">Efficiency</p>
-                <p className="text-zinc-200 font-semibold">{fmt(selected.effKwh100km, 1)} kWh/100km</p>
-                <p className="text-zinc-400 text-[10px]">NRCan combined</p>
+                <p className="text-scree tabular-nums">Efficiency</p>
+                <p className="text-basalt font-semibold">{fmt(selected.effKwh100km, 1)} kWh/100km</p>
+                <p className="text-scree text-[13px]">NRCan combined</p>
               </div>
             )}
             {selected.fuelL100km != null && (
               <div>
-                <p className="text-zinc-400 font-mono">{selected.type === 'phev' ? 'Gas mode' : 'Fuel'}</p>
-                <p className="text-zinc-200 font-semibold">{fmt(selected.fuelL100km, 1)} L/100km</p>
-                <p className="text-zinc-400 text-[10px]">NRCan combined</p>
+                <p className="text-scree tabular-nums">{selected.type === 'phev' ? 'Gas mode' : 'Fuel'}</p>
+                <p className="text-basalt font-semibold">{fmt(selected.fuelL100km, 1)} L/100km</p>
+                <p className="text-scree text-[13px]">NRCan combined</p>
               </div>
             )}
             {selected.evRangeKm != null && (
               <div>
-                <p className="text-zinc-400 font-mono">EV range</p>
-                <p className="text-zinc-200 font-semibold">{selected.evRangeKm} km</p>
+                <p className="text-scree tabular-nums">EV range</p>
+                <p className="text-basalt font-semibold">{selected.evRangeKm} km</p>
               </div>
             )}
           </div>
@@ -417,14 +414,14 @@ function NrcanSearchPanel({ onAdd, onClose }) {
           {/* Battery size (EVs/PHEVs — for manufacturing CO₂ estimate) */}
           {(selected.type === 'ev' || selected.type === 'phev') && (
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+              <label className="block tabular-nums text-[13px] text-scree mb-2">
                 Battery size (kWh) <span className="normal-case opacity-70">— for manufacturing CO₂ estimate</span>
               </label>
               <input type="number" value={batteryKwh} step={0.1} min={5} max={200}
                 onChange={e => setBatteryKwh(e.target.value)}
                 placeholder="e.g. 77.4"
-                className="w-40 bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors" />
-              <p className="text-[11px] text-zinc-400 mt-1">
+                className="w-40 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors" />
+              <p className="text-[13px] text-scree mt-1">
                 Check the manufacturer spec sheet. Defaults to a class average if left blank.
               </p>
             </div>
@@ -432,17 +429,17 @@ function NrcanSearchPanel({ onAdd, onClose }) {
 
           {/* Purchase price */}
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+            <label className="block tabular-nums text-[13px] text-scree mb-2">
               Purchase price <span className="normal-case opacity-70">($CAD, pre-incentive)</span>
             </label>
             <input type="number" value={price} step={500} min={5000} max={300000}
               onChange={e => setPrice(parseFloat(e.target.value))}
-              className="w-40 bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors" />
+              className="w-40 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors" />
           </div>
 
           <button onClick={handleAdd}
-            className="bg-emerald-400 text-zinc-950 font-bold text-xs uppercase tracking-widest px-5 py-2 hover:bg-emerald-300 transition-colors">
-            Add to comparison →
+            className="bg-glacier text-on-glacier font-bold text-[13px] px-5 py-2 hover:opacity-90 transition-colors rounded-full">
+            Add to comparison
           </button>
         </div>
       )}
@@ -460,55 +457,55 @@ function RebatesPanel({ activeVids, allVehicles, federal, provincial, onFederalC
   })
 
   return (
-    <div className="border border-zinc-700 bg-zinc-900/50 p-4 mt-4">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Government rebates</p>
-      <p className="text-[11px] text-zinc-400 leading-relaxed mb-4">
-        <span className="text-zinc-300 font-semibold">Federal:</span> Canada EV Affordability Program (EVAP) — $5,000 for BEVs, $2,500 for PHEVs; non-Canadian-made vehicles require transaction price ≤ $50,000.
-        Regular hybrids are not eligible. <span className="text-zinc-300 font-semibold">Provincial:</span> Enter your province's rebate amount manually.
+    <div className="border border-hairline bg-snowfield-raised p-4 mt-4 rounded-[10px]">
+      <p className="text-[17px] font-bold text-basalt mb-1">Government rebates</p>
+      <p className="text-[13px] text-scree leading-relaxed mb-4">
+        <span className="text-basalt font-semibold">Federal:</span> Canada EV Affordability Program (EVAP) — $5,000 for BEVs, $2,500 for PHEVs; non-Canadian-made vehicles require transaction price ≤ $50,000.
+        Regular hybrids are not eligible. <span className="text-basalt font-semibold">Provincial:</span> Enter your province's rebate amount manually.
         Federal amounts are pre-filled — edit if your vehicle's eligibility differs.
       </p>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full text-[13px]">
           <thead>
-            <tr className="border-b border-zinc-700">
-              <th className="text-left pb-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 pr-4">Vehicle</th>
-              <th className="text-left pb-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 pr-4">Federal</th>
-              <th className="text-left pb-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400 pr-4">Provincial</th>
-              <th className="text-left pb-2 font-mono text-[10px] uppercase tracking-widest text-zinc-400">Net rebate</th>
+            <tr className="border-b border-hairline">
+              <th className="text-left pb-2 tabular-nums text-[13px] text-scree pr-4">Vehicle</th>
+              <th className="text-left pb-2 tabular-nums text-[13px] text-scree pr-4">Federal</th>
+              <th className="text-left pb-2 tabular-nums text-[13px] text-scree pr-4">Provincial</th>
+              <th className="text-left pb-2 tabular-nums text-[13px] text-scree">Net rebate</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(({ vid, v, fed, pro, total }) => (
-              <tr key={vid} className="border-b border-zinc-800 last:border-0">
+              <tr key={vid} className="border-b border-hairline last:border-0">
                 <td className="py-2 pr-4">
                   <span className="font-semibold" style={{ color: v?.color ?? CUSTOM_COLOR }}>{v?.name ?? 'Custom'}</span>
                 </td>
                 <td className="py-2 pr-4">
                   {v?.type === 'ice' || v?.type === 'hybrid' ? (
-                    <span className="text-zinc-400 font-mono">—</span>
+                    <span className="text-scree tabular-nums">—</span>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <span className="text-zinc-400">$</span>
+                      <span className="text-scree">$</span>
                       <input type="number" value={fed} min={0} max={15000} step={500}
                         onChange={e => onFederalChange(vid, parseFloat(e.target.value) || 0)}
-                        className="w-20 bg-zinc-800 border border-zinc-600 text-zinc-100 px-2 py-1 text-xs font-mono focus:outline-none focus:border-emerald-400" />
+                        className="w-20 bg-snowfield border border-hairline text-basalt px-2 py-1 text-[13px] tabular-nums focus:outline-none focus:border-glacier" />
                     </div>
                   )}
                 </td>
                 <td className="py-2 pr-4">
                   {v?.type === 'ice' ? (
-                    <span className="text-zinc-400 font-mono">—</span>
+                    <span className="text-scree tabular-nums">—</span>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <span className="text-zinc-400">$</span>
+                      <span className="text-scree">$</span>
                       <input type="number" value={pro} min={0} max={15000} step={500}
                         onChange={e => onProvincialChange(vid, parseFloat(e.target.value) || 0)}
-                        className="w-20 bg-zinc-800 border border-zinc-600 text-zinc-100 px-2 py-1 text-xs font-mono focus:outline-none focus:border-emerald-400" />
+                        className="w-20 bg-snowfield border border-hairline text-basalt px-2 py-1 text-[13px] tabular-nums focus:outline-none focus:border-glacier" />
                     </div>
                   )}
                 </td>
                 <td className="py-2">
-                  <span className={`font-mono font-semibold ${total > 0 ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                  <span className={`tabular-nums font-semibold ${total > 0 ? 'text-glacier' : 'text-scree'}`}>
                     {total > 0 ? `$${fmt(total)}` : '$0'}
                   </span>
                 </td>
@@ -517,8 +514,8 @@ function RebatesPanel({ activeVids, allVehicles, federal, provincial, onFederalC
           </tbody>
         </table>
       </div>
-      <p className="text-[10px] text-zinc-400 mt-3 leading-relaxed">
-        Verify eligibility at <a href="https://tc.gc.ca/ev" target="_blank" rel="noopener" className="text-emerald-400 hover:underline">tc.gc.ca/ev</a>.
+      <p className="text-[13px] text-scree mt-3 leading-relaxed">
+        Verify eligibility at <a href="https://tc.gc.ca/ev" target="_blank" rel="noopener" className="text-glacier hover:underline">tc.gc.ca/ev</a>.
         Provincial rebates: BC CleanBC up to $4,000 · Quebec up to $7,000 · Ontario $0 · Alberta $0 — amounts and eligibility change frequently.
       </p>
     </div>
@@ -527,6 +524,8 @@ function RebatesPanel({ activeVids, allVehicles, federal, provincial, onFederalC
 
 // ── Main calculator ───────────────────────────────────────────────────────
 export default function EVCalculator() {
+  // Charts are drawn on canvas with resolved colours, so redraw when the theme changes.
+  const { theme, a11y } = useA11y()
   // ── Core inputs ─────────────────────────────────────────────────────────
   const [city,       setCity]       = useState('Calgary, CA')
   const [annualKm,   setAnnualKm]   = useState(20000)
@@ -658,18 +657,18 @@ export default function EVCalculator() {
     Chart.register(...registerables)
     destroyCharts()
 
-    const TICK_COLOR = '#71717a'
-    const GRID_COLOR = '#27272a'
-    const FONT       = 'ui-monospace, monospace'
+    const TICK_COLOR = token('--scree')
+    const GRID_COLOR = token('--hairline')
+    const FONT       = CHART_FONT
     const baseScales = {
-      x: { grid: { color: GRID_COLOR }, ticks: { color: TICK_COLOR, font: { family: FONT, size: 11 } } },
-      y: { grid: { color: GRID_COLOR }, ticks: { color: TICK_COLOR, font: { family: FONT, size: 11 } } },
+      x: { grid: { color: GRID_COLOR }, ticks: { color: TICK_COLOR, font: { family: FONT, size: 12 } } },
+      y: { grid: { color: GRID_COLOR }, ticks: { color: TICK_COLOR, font: { family: FONT, size: 12 } } },
     }
     const baseTooltip = {
-      backgroundColor: '#18181b', borderColor: '#3f3f46', borderWidth: 1,
-      titleColor: '#e4e4e7', bodyColor: '#a1a1aa',
+      backgroundColor: token('--snowfield-raised'), borderColor: token('--hairline'), borderWidth: 1,
+      titleColor: token('--basalt'), bodyColor: token('--scree'),
       titleFont: { family: FONT, weight: '600', size: 12 },
-      bodyFont: { family: FONT, size: 11 }, padding: 10,
+      bodyFont: { family: FONT, size: 12 }, padding: 10,
     }
 
     const maxYears = 10
@@ -699,17 +698,17 @@ export default function EVCalculator() {
         const { ctx, scales: { x, y } } = chart
         const y100 = y.getPixelForValue(100)
         ctx.save()
-        ctx.fillStyle = 'rgba(52,211,153,0.04)'
+        ctx.fillStyle = withAlpha(token('--glacier'), 0.06)
         ctx.fillRect(x.left, y100, x.right - x.left, y.bottom - y100)
-        ctx.fillStyle = 'rgba(251,146,60,0.04)'
+        ctx.fillStyle = withAlpha(token('--fireweed'), 0.05)
         ctx.fillRect(x.left, y.top, x.right - x.left, y100 - y.top)
-        ctx.font = `600 10px ${FONT}`; ctx.fillStyle = refColor
+        ctx.font = `600 12px ${FONT}`; ctx.fillStyle = resolveColor(refColor)
         ctx.textAlign = 'left'
         ctx.fillText('100% — crv Gas baseline', x.left + 6, y100 - 6)
-        ctx.font = `500 9px ${FONT}`
-        ctx.fillStyle = 'rgba(251,146,60,0.6)'; ctx.textAlign = 'right'
+        ctx.font = `500 12px ${FONT}`
+        ctx.fillStyle = token('--scree'); ctx.textAlign = 'right'
         ctx.fillText(aboveLabel, x.right - 6, y.top + 14)
-        ctx.fillStyle = 'rgba(52,211,153,0.7)'
+        ctx.fillStyle = token('--glacier')
         ctx.fillText(belowLabel, x.right - 6, y.bottom - 6)
         ctx.restore()
       },
@@ -737,7 +736,7 @@ export default function EVCalculator() {
           datasets: vids.map(vid => ({
             label:       allVeh[vid].name + (vid === 'crv' ? ' (100% baseline)' : ''),
             data:        vid === 'crv' ? years.map(() => 100) : lifetimePct(vid),
-            borderColor: allVeh[vid].color,
+            borderColor: resolveColor(allVeh[vid].color),
             borderWidth: vid === 'crv' ? 3 : 2.5,
             borderDash:  vid === 'custom' ? [5, 3] : [],
             pointRadius: 0, fill: false, tension: 0.08,
@@ -747,7 +746,7 @@ export default function EVCalculator() {
           responsive: true, maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { labels: { color: TICK_COLOR, font: { family: FONT, size: 11 }, boxWidth: 12, padding: 12 } },
+            legend: { labels: { color: TICK_COLOR, font: { family: FONT, size: 12 }, boxWidth: 12, padding: 12 } },
             tooltip: {
               ...baseTooltip,
               callbacks: {
@@ -767,8 +766,8 @@ export default function EVCalculator() {
             },
           },
           scales: {
-            x: { ...baseScales.x, title: { display: true, text: 'years of ownership', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
-            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of crv Gas cumulative CO₂e', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
+            x: { ...baseScales.x, title: { display: true, text: 'years of ownership', color: TICK_COLOR, font: { family: FONT, size: 12 } } },
+            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of crv Gas cumulative CO₂e', color: TICK_COLOR, font: { family: FONT, size: 12 } } },
           },
         },
       })
@@ -798,7 +797,7 @@ export default function EVCalculator() {
           datasets: vids.map(vid => ({
             label:       allVeh[vid].name + (vid === 'crv' ? ' (100% baseline)' : ''),
             data:        vid === 'crv' ? years.map(() => 100) : toPct(allRaw[vid]),
-            borderColor: allVeh[vid].color,
+            borderColor: resolveColor(allVeh[vid].color),
             borderWidth: vid === 'crv' ? 3 : 2.5,
             borderDash:  vid === 'custom' ? [5, 3] : [],
             pointRadius: 0, fill: false, tension: 0.08,
@@ -808,7 +807,7 @@ export default function EVCalculator() {
           responsive: true, maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           plugins: {
-            legend: { labels: { color: TICK_COLOR, font: { family: FONT, size: 11 }, boxWidth: 12, padding: 12 } },
+            legend: { labels: { color: TICK_COLOR, font: { family: FONT, size: 12 }, boxWidth: 12, padding: 12 } },
             tooltip: {
               ...baseTooltip,
               callbacks: {
@@ -830,8 +829,8 @@ export default function EVCalculator() {
             },
           },
           scales: {
-            x: { ...baseScales.x, title: { display: true, text: 'years of ownership', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
-            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of crv Gas cumulative cost', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
+            x: { ...baseScales.x, title: { display: true, text: 'years of ownership', color: TICK_COLOR, font: { family: FONT, size: 12 } } },
+            y: { ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `${v.toFixed(0)}%` }, title: { display: true, text: '% of crv Gas cumulative cost', color: TICK_COLOR, font: { family: FONT, size: 12 } } },
           },
         },
       })
@@ -843,8 +842,8 @@ export default function EVCalculator() {
     const fuelTots = vids.map(vid => (annualCosts[vid] ?? 0) * yrs)
     const mntTots  = vids.map(vid => maintTotal(maintProxy(vid), totalKm))
     const labels   = vids.map(vid => allVeh[vid].name)
-    const barColors     = vids.map(vid => allVeh[vid].color)
-    const barColorsMuted= vids.map(vid => allVeh[vid].colorMuted)
+    const barColors     = vids.map(vid => resolveColor(allVeh[vid].color))
+    const barColorsMuted= vids.map(vid => withAlpha(allVeh[vid].color, 0.25))
 
     if (chartLifecycleRef.current) {
       chartInstances.current.lifecycle = new Chart(chartLifecycleRef.current, {
@@ -859,7 +858,7 @@ export default function EVCalculator() {
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: TICK_COLOR, font: { family: FONT, size: 11 }, boxWidth: 12, padding: 12 } },
+            legend: { labels: { color: TICK_COLOR, font: { family: FONT, size: 12 }, boxWidth: 12, padding: 12 } },
             tooltip: {
               ...baseTooltip,
               callbacks: {
@@ -869,8 +868,8 @@ export default function EVCalculator() {
             },
           },
           scales: {
-            x: { stacked: true, grid: { display: false }, ticks: { color: TICK_COLOR, font: { family: FONT, size: 11 } } },
-            y: { stacked: true, ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `$${(v / 1000).toFixed(0)}k` }, title: { display: true, text: '10-year total ($)', color: TICK_COLOR, font: { family: FONT, size: 11 } } },
+            x: { stacked: true, grid: { display: false }, ticks: { color: TICK_COLOR, font: { family: FONT, size: 12 } } },
+            y: { stacked: true, ...baseScales.y, ticks: { ...baseScales.y.ticks, callback: v => `$${(v / 1000).toFixed(0)}k` }, title: { display: true, text: '10-year total ($)', color: TICK_COLOR, font: { family: FONT, size: 12 } } },
           },
         },
       })
@@ -928,7 +927,7 @@ export default function EVCalculator() {
       annKm: annualKm, annualCosts: data.annualCosts, effPrices: effectivePrices,
     }), 50)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, effectivePrices, activeVids, allVehicles, customVehicle])
+  }, [annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, effectivePrices, activeVids, allVehicles, customVehicle, theme, a11y])
 
   useEffect(() => () => destroyCharts(), [])
 
@@ -940,27 +939,27 @@ export default function EVCalculator() {
     <div className="space-y-0">
 
       {/* Intro */}
-      <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+      <p className="text-sm text-scree leading-relaxed mb-6">
         Should you buy an EV? The answer depends on where you live and how much you drive.
         Enter your city and we'll show you the full picture: what you'd spend each year, what you'd emit, and at what point an EV
         starts winning — both financially and for the environment.
       </p>
 
       {/* ── Form ── */}
-      <div className="border border-zinc-700 bg-zinc-800/40 p-5 space-y-5">
+      <div className="border border-hairline bg-snowfield p-5 space-y-5 rounded-[10px]">
 
         {/* City + run button */}
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Your city</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-2">Your city</label>
           <div className="flex gap-2">
             <input type="text" value={city}
               onChange={e => setCity(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && runComparison()}
-              className="flex-1 bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors"
+              className="flex-1 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors"
               placeholder="Calgary, CA" />
             <button onClick={runComparison} disabled={status === 'loading'}
-              className="bg-emerald-400 text-zinc-950 font-bold text-xs uppercase tracking-widest px-5 py-2 hover:bg-emerald-300 transition-colors disabled:opacity-40 whitespace-nowrap">
-              {status === 'loading' ? 'Loading…' : 'Run comparison →'}
+              className="bg-glacier text-on-glacier font-bold text-[13px] px-5 py-2 hover:opacity-90 transition-colors disabled:opacity-40 whitespace-nowrap rounded-full">
+              {status === 'loading' ? 'Loading…' : 'Run comparison'}
             </button>
           </div>
         </div>
@@ -973,35 +972,35 @@ export default function EVCalculator() {
             { label: 'Gas price',      unit: '$/L',     value: gasPrice,  set: v => setGasPrice(v),  step: 0.05,  min: 0.80,  max: 3.00   },
           ].map(({ label, unit, value, set, step, min, max }) => (
             <div key={label}>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+              <label className="block tabular-nums text-[13px] text-scree mb-2">
                 {label} <span className="normal-case opacity-70">({unit})</span>
               </label>
               <input type="number" value={value} step={step} min={min} max={max}
                 onChange={e => set(parseFloat(e.target.value))}
-                className="w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors" />
+                className="w-full bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors" />
             </div>
           ))}
         </div>
 
         {/* Solar slider */}
-        <div className="border-t border-zinc-700 pt-4">
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+        <div className="border-t border-hairline pt-4">
+          <label className="block tabular-nums text-[13px] text-scree mb-2">
             Home solar charging <span className="normal-case opacity-70">(% from panels)</span>
           </label>
           <div className="flex items-center gap-3">
             <input type="range" min={0} max={100} step={5} value={solarPct}
               onChange={e => setSolarPct(Number(e.target.value))}
-              className="flex-1 min-w-0 accent-emerald-400" />
-            <span className="font-mono text-emerald-400 text-sm font-semibold w-9 text-right flex-shrink-0">{solarPct}%</span>
+              className="flex-1 min-w-0 accent-[var(--glacier)]" />
+            <span className="tabular-nums text-glacier text-sm font-semibold w-9 text-right flex-shrink-0">{solarPct}%</span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
+          <p className="text-[13px] text-scree mt-1.5 leading-relaxed">
             Solar charging is treated as 0 gCO₂e/kWh and $0/kWh — reduces both emissions and fuel cost proportionally.
           </p>
         </div>
 
         {/* Vehicle prices */}
-        <div className="border-t border-zinc-700 pt-4">
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-3">
+        <div className="border-t border-hairline pt-4">
+          <label className="block tabular-nums text-[13px] text-scree mb-3">
             Purchase prices <span className="normal-case opacity-70">(pre-incentive MSRP, $CAD)</span>
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1012,24 +1011,24 @@ export default function EVCalculator() {
               { key: 'rav4h',     label: 'RAV4 Hybrid Limited'   },
             ].map(({ key, label }) => (
               <div key={key}>
-                <label className="block font-mono text-[10px] text-zinc-400 mb-1">{label}</label>
+                <label className="block tabular-nums text-[13px] text-scree mb-1">{label}</label>
                 <input type="number" value={prices[key]} step={500} min={20000} max={150000}
                   onChange={e => setPrices(p => ({ ...p, [key]: parseFloat(e.target.value) }))}
-                  className="w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors" />
+                  className="w-full bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors" />
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Rebates toggle ── */}
-        <div className="border-t border-zinc-700 pt-4">
+        <div className="border-t border-hairline pt-4">
           <label className="flex items-center gap-3 cursor-pointer group">
             <div
               onClick={() => setApplyRebates(v => !v)}
-              className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${applyRebates ? 'bg-emerald-400' : 'bg-zinc-600'}`}>
-              <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${applyRebates ? 'translate-x-5' : 'translate-x-0'}`} />
+              className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${applyRebates ? 'bg-glacier' : 'bg-scree'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-snowfield-raised rounded-full transition-transform ${applyRebates ? 'translate-x-5' : 'translate-x-0'}`} />
             </div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 select-none">
+            <span className="tabular-nums text-[13px] text-scree select-none">
               Apply government rebates (EVAP + provincial)
             </span>
           </label>
@@ -1046,29 +1045,29 @@ export default function EVCalculator() {
         </div>
 
         {/* ── Custom vehicle ── */}
-        <div className="border-t border-zinc-700 pt-4">
+        <div className="border-t border-hairline pt-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">Custom vehicle</p>
+              <p className="tabular-nums text-[13px] text-scree">Custom vehicle</p>
               {customVehicle ? (
-                <p className="text-xs text-zinc-300 mt-0.5">
+                <p className="text-[13px] text-basalt mt-0.5">
                   <span style={{ color: CUSTOM_COLOR }}>{customVehicle.name}</span>
                   {' · '}
                   {customVehicle.effKwh100km != null ? `${fmt(customVehicle.effKwh100km, 1)} kWh/100km` : `${fmt(customVehicle.fuelL100km, 1)} L/100km`}
                 </p>
               ) : (
-                <p className="text-[11px] text-zinc-400 mt-0.5">Compare any vehicle using official NRCan fuel consumption ratings</p>
+                <p className="text-[13px] text-scree mt-0.5">Compare any vehicle using official NRCan fuel consumption ratings</p>
               )}
             </div>
             <div className="flex gap-2">
               {customVehicle && (
                 <button onClick={() => setCustomVehicle(null)}
-                  className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 hover:text-red-400 transition-colors">
+                  className="text-[13px] tabular-nums text-scree hover:text-fireweed transition-colors">
                   Remove
                 </button>
               )}
               <button onClick={() => setShowNrcanPanel(v => !v)}
-                className="text-[10px] font-mono uppercase tracking-widest border border-zinc-600 text-zinc-400 hover:border-emerald-400 hover:text-emerald-400 px-3 py-1.5 transition-colors">
+                className="text-[13px] tabular-nums border border-hairline text-scree hover:border-glacier hover:text-glacier px-3 py-1.5 transition-colors">
                 {showNrcanPanel ? 'Close' : customVehicle ? 'Change vehicle' : '+ Add vehicle'}
               </button>
             </div>
@@ -1089,13 +1088,13 @@ export default function EVCalculator() {
 
       {/* ── Status ── */}
       {status === 'loading' && (
-        <div className="flex items-center gap-3 py-10 justify-center text-zinc-400 text-sm font-mono">
-          <div className="w-5 h-5 border-2 border-zinc-600 border-t-emerald-400 rounded-full animate-spin" />
+        <div className="flex items-center gap-3 py-10 justify-center text-scree text-sm tabular-nums">
+          <div className="w-5 h-5 border-2 border-hairline border-t-glacier rounded-full animate-spin" />
           Fetching grid data for {city}…
         </div>
       )}
       {status === 'error' && (
-        <div className="border border-red-400/30 bg-red-400/5 text-red-400 text-sm p-4 mt-4 font-mono">{errorMsg}</div>
+        <div className="border border-fireweed bg-fireweed/5 text-fireweed text-sm p-4 mt-4 tabular-nums">{errorMsg}</div>
       )}
 
       {/* ── Results ── */}
@@ -1116,14 +1115,14 @@ export default function EVCalculator() {
             {(() => {
               const gl = gridLabel(r.grid)
               return (
-                <div className="bg-emerald-400/5 border border-emerald-400/20 px-4 py-3 mt-4 mb-2">
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 mb-1">
-                    <span><span className="text-emerald-400 font-semibold">{r.cityName}, {r.country}</span></span>
-                    <span><span className="text-emerald-400 font-semibold">{gl.text}</span> — {gl.hint}</span>
-                    {r.solarPct > 0 && <span className="text-emerald-400">↗ {r.solarPct}% solar applied</span>}
-                    {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
+                <div className="bg-glacier/5 border border-glacier px-4 py-3 mt-4 mb-2 rounded-[10px]">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] tabular-nums text-scree mb-1">
+                    <span><span className="text-glacier font-semibold">{r.cityName}, {r.country}</span></span>
+                    <span><span className="text-glacier font-semibold">{gl.text}</span> — {gl.hint}</span>
+                    {r.solarPct > 0 && <span className="text-glacier">↗ {r.solarPct}% solar applied</span>}
+                    {applyRebates && <span className="text-glacier">↗ Rebates applied</span>}
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-mono">
+                  <p className="text-[13px] text-scree tabular-nums">
                     Grid intensity: {Math.round(r.grid)} gCO₂e/kWh
                     {r.solarPct > 0 && ` · EV effective: ${Math.round(r.effectiveGrid)} gCO₂e/kWh`}
                     {' '}— <span className="italic">grams of CO₂ equivalent per kilowatt-hour of electricity used</span>
@@ -1138,8 +1137,8 @@ export default function EVCalculator() {
             <SectionHeader num="01 — Economics" title="What does it cost to own and run each vehicle?" />
 
             {/* Annual fuel costs */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-5 mb-2">Annual fuel & energy costs</p>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">What you pay every year just to move — fuel and electricity only.</p>
+            <p className="tabular-nums text-[13px] text-scree mt-5 mb-2">Annual fuel & energy costs</p>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">What you pay every year just to move — fuel and electricity only.</p>
             <div className={`grid ${gridColsVehicles} gap-3 mb-2`}>
               {vids.map(vid => {
                 const v    = allVeh[vid]
@@ -1150,13 +1149,13 @@ export default function EVCalculator() {
                 return <CostCard key={vid} v={v} annualCost={cost} isLowest={cost === minCost} detail={`${detail} · ${fmt(annualKm, 0)} km/yr`} />
               })}
             </div>
-            <p className="text-[11px] text-zinc-400 mb-6 leading-relaxed">
+            <p className="text-[13px] text-scree mb-6 leading-relaxed">
               Fuel and electricity only — maintenance savings shown below.
               {solarPct > 0 && ` Solar: ${solarPct}% of EV charging at $0/kWh.`}
             </p>
 
             {/* Annual savings vs crv */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Annual savings vs crv Gas</p>
+            <p className="tabular-nums text-[13px] text-scree mb-2">Annual savings vs crv Gas</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
               <StatCard label="Ioniq 5 — fuel saved"   value={`$${fmt(r.annualCosts.crv - r.annualCosts.ioniq5, 0)}`}    unit="/ year"  accent color={VEHICLES.ioniq5.color} />
               <StatCard label="Mach-E — fuel saved"    value={`$${fmt(r.annualCosts.crv - r.annualCosts.macheelfp, 0)}`} unit="/ year"  accent color={VEHICLES.macheelfp.color} />
@@ -1165,20 +1164,20 @@ export default function EVCalculator() {
             </div>
 
             {/* TCO chart */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Total cost of ownership</p>
-            <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative cost over 10 years — % of crv Gas cost</h3>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <p className="text-[17px] font-bold text-basalt mb-1">Total cost of ownership</p>
+            <h3 className="text-sm font-bold text-basalt mb-1">Cumulative cost over 10 years — % of crv Gas cost</h3>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               crv Gas is 100%. EVs start above it (higher purchase price) but their lower running costs compound over time.
               When a line crosses below 100%, it has become cheaper in total. Hover any year to see actual dollars.
               {applyRebates && ' Rebates applied to purchase price.'}
             </p>
-            <div className="bg-zinc-900 border border-zinc-700 p-4 mb-8" style={{ height: 380 }}>
+            <div className="bg-snowfield-raised border border-hairline p-4 mb-8 rounded-[10px]" style={{ height: 380 }}>
               <canvas ref={chartTCORef} />
             </div>
 
             {/* 10-year lifecycle */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">10-year running costs — fuel + maintenance</p>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <p className="tabular-nums text-[13px] text-scree mb-2">10-year running costs — fuel + maintenance</p>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               What it costs to keep each vehicle on the road for a decade, including scheduled servicing.
               Purchase price, insurance, and unscheduled repairs excluded.
             </p>
@@ -1188,16 +1187,16 @@ export default function EVCalculator() {
                 const fuelVal = (r.annualCosts[vid] ?? 0) * 10
                 const mntVal  = maintTotal(maintProxy(vid), annualKm * 10)
                 return (
-                  <div key={vid} className={`border p-4 ${lcVal === minLC ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
+                  <div key={vid} className={`border p-4 ${lcVal === minLC ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield'}`}>
                     <div className="flex items-center gap-1.5 mb-3">
                       <div className="w-0.5 h-3" style={{ background: allVeh[vid].color }} />
-                      <p className="text-[10px] font-mono text-zinc-400">{allVeh[vid].name}</p>
+                      <p className="text-[13px] tabular-nums text-scree">{allVeh[vid].name}</p>
                     </div>
-                    <p className="font-mono text-xl font-semibold mb-0.5" style={{ color: lcVal === minLC ? '#34d399' : '#e4e4e7' }}>
+                    <p className="tabular-nums text-xl font-semibold mb-0.5" style={{ color: lcVal === minLC ? 'var(--glacier)' : 'var(--basalt)' }}>
                       ${fmt(lcVal, 0)}
                     </p>
-                    <p className="font-mono text-[10px] text-zinc-400 mb-3">10-yr fuel + maintenance</p>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    <p className="tabular-nums text-[13px] text-scree mb-3">10-yr fuel + maintenance</p>
+                    <p className="text-[13px] text-scree leading-relaxed">
                       Fuel: ${fmt(fuelVal, 0)}<br />Maintenance: ${fmt(mntVal, 0)}
                     </p>
                   </div>
@@ -1206,10 +1205,10 @@ export default function EVCalculator() {
             </div>
 
             <div className="mt-2 mb-2">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Cost breakdown</p>
-              <h3 className="text-sm font-bold text-zinc-200 mb-1">10-year fuel + maintenance by vehicle</h3>
-              <p className="text-xs text-zinc-400 mb-4">Fuel and energy on the bottom, scheduled maintenance on top.</p>
-              <div className="bg-zinc-900 border border-zinc-700 p-4 mb-4" style={{ height: 280 }}>
+              <p className="text-[17px] font-bold text-basalt mb-1">Cost breakdown</p>
+              <h3 className="text-sm font-bold text-basalt mb-1">10-year fuel + maintenance by vehicle</h3>
+              <p className="text-[13px] text-scree mb-4">Fuel and energy on the bottom, scheduled maintenance on top.</p>
+              <div className="bg-snowfield-raised border border-hairline p-4 mb-4 rounded-[10px]" style={{ height: 280 }}>
                 <canvas ref={chartLifecycleRef} />
               </div>
             </div>
@@ -1221,8 +1220,8 @@ export default function EVCalculator() {
             <SectionHeader num="02 — Emissions" title="What's the carbon story — today and over a lifetime?" />
 
             {/* Per-km emissions cards */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-5 mb-2">Emissions per km on your grid right now</p>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <p className="tabular-nums text-[13px] text-scree mt-5 mb-2">Emissions per km on your grid right now</p>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               Live carbon intensity for {r.cityName}, {r.country} ({Math.round(r.grid)} gCO₂e/kWh today).
               Your EV's driving emissions are entirely a function of how clean your electricity is — which is why Quebec and Alberta get very different answers.
             </p>
@@ -1239,12 +1238,12 @@ export default function EVCalculator() {
             </div>
 
             {/* Manufacturing debt */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Manufacturing carbon — the debt that comes with every new vehicle</p>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <p className="tabular-nums text-[13px] text-scree mb-2">Manufacturing carbon — the debt that comes with every new vehicle</p>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               Every new vehicle arrives with CO₂ already emitted during manufacturing.
               EVs carry a bigger debt — largely from the battery — but their cleaner driving progressively pays it off.
             </p>
-            <div className="border border-zinc-700 bg-zinc-800/40 p-5 mb-6">
+            <div className="border border-hairline bg-snowfield p-5 mb-6 rounded-[10px]">
               {vids.map(vid => {
                 const v   = allVeh[vid]
                 const pct = (v.mfgKgCO2e / Math.max(...vids.map(x => allVeh[x].mfgKgCO2e)) * 100).toFixed(1)
@@ -1253,42 +1252,42 @@ export default function EVCalculator() {
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold" style={{ color: v.color }}>{v.name}</p>
-                        <p className="text-[11px] text-zinc-400 truncate">{v.sub}</p>
+                        <p className="text-[13px] text-scree truncate">{v.sub}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="font-mono text-sm text-zinc-200">{fmt(v.mfgKgCO2e / 1000, 1)} t</p>
-                        <p className="font-mono text-[10px] text-zinc-400">
+                        <p className="tabular-nums text-sm text-basalt">{fmt(v.mfgKgCO2e / 1000, 1)} t</p>
+                        <p className="tabular-nums text-[13px] text-scree">
                           {v.batteryMfgKgCO2e > 0 ? `batt: ${fmt(v.batteryMfgKgCO2e / 1000, 1)} t` : 'no traction battery'}
-                          {vid === 'custom' && <span className="block text-zinc-400">est.</span>}
+                          {vid === 'custom' && <span className="block text-scree">est.</span>}
                         </p>
                       </div>
                     </div>
-                    <div className="h-3 bg-zinc-700">
+                    <div className="h-3 bg-hairline">
                       <div className="h-full" style={{ width: `${pct}%`, background: v.color }} />
                     </div>
                   </div>
                 )
               })}
-              <p className="text-[11px] text-zinc-400 mt-4 pt-4 border-t border-zinc-700 leading-relaxed">
+              <p className="text-[13px] text-scree mt-4 pt-4 border-t border-hairline leading-relaxed">
                 Source: GREET 2023 (Argonne National Lab).
                 {vids.includes('custom') && ' Custom vehicle: estimated from class average.'}
               </p>
             </div>
             <DiveDeeper label="Why do EVs have a higher manufacturing footprint?">
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-[13px] text-scree leading-relaxed">
                 Building a battery pack is energy-intensive — mining lithium, cobalt, and nickel; refining them; manufacturing cells; assembling the pack. That process produces significant CO₂ before the car moves a single kilometre.
               </p>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                <span className="text-zinc-300 font-semibold">Battery chemistry makes a big difference.</span> The Ioniq 5 uses NMC811 cells — energy-dense but cobalt-intensive, at ~84 kg CO₂e per kWh of battery capacity. The Mach-E Standard Range uses LFP (lithium iron phosphate) — no cobalt or nickel, at ~52 kg CO₂e/kWh. On a 72 kWh pack that's roughly 2,300 kg CO₂e less, which can shave one to two years off the emissions breakeven time on a typical grid.
+              <p className="text-[13px] text-scree leading-relaxed">
+                <span className="text-basalt font-semibold">Battery chemistry makes a big difference.</span> The Ioniq 5 uses NMC811 cells — energy-dense but cobalt-intensive, at ~84 kg CO₂e per kWh of battery capacity. The Mach-E Standard Range uses LFP (lithium iron phosphate) — no cobalt or nickel, at ~52 kg CO₂e/kWh. On a 72 kWh pack that's roughly 2,300 kg CO₂e less, which can shave one to two years off the emissions breakeven time on a typical grid.
               </p>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-[13px] text-scree leading-relaxed">
                 These figures are GREET 2023 industry averages from Argonne National Lab — the standard used by governments and researchers worldwide. Real numbers vary by factory and energy source.
               </p>
             </DiveDeeper>
 
             {/* Breakeven */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">When does an EV become better for the planet?</p>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <p className="tabular-nums text-[13px] text-scree mb-2">When does an EV become better for the planet?</p>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               Building a battery takes energy — so an EV starts life with a higher carbon footprint than a gas car.
               But every kilometre driven on cleaner electricity chips away at that deficit.
               The number below is how far you need to drive before the EV comes out ahead, lifetime total.
@@ -1306,27 +1305,27 @@ export default function EVCalculator() {
               )}
             </div>
             <DiveDeeper label="How is this calculated?">
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-[13px] text-scree leading-relaxed">
                 The breakeven distance is calculated by dividing the manufacturing CO₂ gap between the two vehicles by the emissions savings per kilometre during driving.
               </p>
-              <p className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-2 leading-relaxed">
+              <p className="text-[13px] tabular-nums text-scree bg-snowfield-raised border border-hairline px-3 py-2 leading-relaxed">
                 Breakeven km = (EV mfg CO₂ − Gas car mfg CO₂) ÷ (Gas car g/km − EV g/km)
               </p>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-[13px] text-scree leading-relaxed">
                 If the EV's driving emissions are higher than the gas car's — which happens on a very carbon-heavy grid — the denominator goes negative and no breakeven exists. That's not a broken calculation; it means the grid is too dirty for EVs to win on emissions at the moment.
               </p>
             </DiveDeeper>
 
             {/* Lifetime emissions chart */}
             <div className="mt-6 mb-2">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1">Lifetime emissions</p>
-              <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative lifecycle CO₂e — % of crv Gas emissions</h3>
-              <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+              <p className="text-[17px] font-bold text-basalt mb-1">Lifetime emissions</p>
+              <h3 className="text-sm font-bold text-basalt mb-1">Cumulative lifecycle CO₂e — % of crv Gas emissions</h3>
+              <p className="text-[13px] text-scree mb-4 leading-relaxed">
                 crv Gas is pegged at 100%. EVs start above it (manufacturing debt), then arc down as cleaner driving accumulates.
                 When a line crosses below 100%, that vehicle has emitted less CO₂ than the gas car over its lifetime.
                 Hover any year to see actual tonnes.
               </p>
-              <div className="bg-zinc-900 border border-zinc-700 p-4" style={{ height: 380 }}>
+              <div className="bg-snowfield-raised border border-hairline p-4 rounded-[10px]" style={{ height: 380 }}>
                 <canvas ref={chartLifetimeRef} />
               </div>
             </div>
@@ -1335,7 +1334,7 @@ export default function EVCalculator() {
       })()}
 
       {/* ── Explainer + Sources — collapsed by default ── */}
-      <div className="border-t border-zinc-800 mt-12 pt-8">
+      <div className="border-t border-hairline mt-12 pt-8">
         <DiveDeeper label="Behind the numbers — what this tool is actually measuring">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
             {[
@@ -1353,12 +1352,12 @@ export default function EVCalculator() {
                 body: "Lifecycle analysis is genuinely tricky, battery manufacturing data improves every year, and model specs change. If a number looks off or a key variable is missing, we want to hear it.",
                 cta: true },
             ].map(({ title, body, cta }) => (
-              <div key={title} className="border border-zinc-800 bg-zinc-900/60 p-5">
-                <h3 className="text-sm font-bold text-zinc-200 mb-3 leading-snug">{title}</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">{body}</p>
+              <div key={title} className="border border-hairline bg-snowfield-raised p-5 rounded-[10px]">
+                <h3 className="text-sm font-bold text-basalt mb-3 leading-snug">{title}</h3>
+                <p className="text-[13px] text-scree leading-relaxed">{body}</p>
                 {cta && (
-                  <a href="mailto:info@cwmenergy.ca" className="inline-block mt-4 text-xs font-bold text-emerald-400 border border-emerald-400/30 px-4 py-2 hover:bg-emerald-400 hover:text-zinc-950 transition-colors">
-                    Send feedback →
+                  <a href="mailto:info@cwmenergy.ca" className="inline-block mt-4 text-[13px] font-bold text-glacier border border-glacier px-4 py-2 hover:opacity-90 hover:text-on-glacier transition-colors">
+                    Send feedback
                   </a>
                 )}
               </div>
@@ -1380,7 +1379,7 @@ export default function EVCalculator() {
               'IPCC AR5 — lifecycle CO₂e emission factor for gasoline (2.31 kg/L)',
               'Canada EV Affordability Program (EVAP) — federal incentive amounts',
             ].map(s => (
-              <li key={s} className="text-[11px] text-zinc-400 leading-relaxed pl-4 relative before:absolute before:left-0 before:text-emerald-400 before:content-['—']">
+              <li key={s} className="text-[13px] text-scree leading-relaxed pl-4 relative before:absolute before:left-0 before:text-glacier before:content-['—']">
                 {s}
               </li>
             ))}
@@ -1389,10 +1388,10 @@ export default function EVCalculator() {
       </div>
 
       {/* ── Transparency ── */}
-      <div className="border-t border-zinc-800 pt-8 mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
+      <div className="border-t border-hairline pt-8 mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
         <div>
-          <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono mb-3">We're not here to sell you an EV</h3>
-          <p className="text-xs text-zinc-400 leading-relaxed">
+          <h3 className="text-[13px] font-bold text-basalt tabular-nums mb-3">We're not here to sell you an EV</h3>
+          <p className="text-[13px] text-scree leading-relaxed">
             CWM Energy does clean energy consulting. We think EVs are a meaningful part of decarbonizing transportation —
             but the case is strong enough that it doesn't need exaggerating.
             Showing the inconvenient truths (manufacturing debt, grid dependency, longer breakevens in Alberta) builds more trust than hiding them.
@@ -1400,11 +1399,11 @@ export default function EVCalculator() {
           </p>
         </div>
         <div>
-          <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest font-mono mb-3">A few things worth noting</h3>
-          <ul className="text-xs text-zinc-400 leading-relaxed space-y-2">
-            <li><span className="text-zinc-300 font-semibold">Averages, not actuals:</span> Manufacturing CO₂ is based on industry-average lifecycle models. The actual figure depends on the specific factory and its energy source.</li>
-            <li><span className="text-zinc-300 font-semibold">Live data is a snapshot:</span> Grid carbon intensity changes hour by hour. Annual averages tell a more complete story.</li>
-            <li><span className="text-zinc-300 font-semibold">Not financial advice:</span> Buying a car involves financing, resale value, insurance, and a dozen other variables this tool doesn't model.</li>
+          <h3 className="text-[13px] font-bold text-basalt tabular-nums mb-3">A few things worth noting</h3>
+          <ul className="text-[13px] text-scree leading-relaxed space-y-2">
+            <li><span className="text-basalt font-semibold">Averages, not actuals:</span> Manufacturing CO₂ is based on industry-average lifecycle models. The actual figure depends on the specific factory and its energy source.</li>
+            <li><span className="text-basalt font-semibold">Live data is a snapshot:</span> Grid carbon intensity changes hour by hour. Annual averages tell a more complete story.</li>
+            <li><span className="text-basalt font-semibold">Not financial advice:</span> Buying a car involves financing, resale value, insurance, and a dozen other variables this tool doesn't model.</li>
           </ul>
         </div>
       </div>

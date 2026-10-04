@@ -23,7 +23,7 @@ export default function ModeSelector({ mode, onChange }) {
   return (
     <div className="mb-8">
       {/* Tab row */}
-      <div className="flex border-b border-zinc-700">
+      <div className="flex border-b border-hairline">
         {MODES.map(m => (
           <button
             key={m.id}
@@ -31,13 +31,13 @@ export default function ModeSelector({ mode, onChange }) {
             onClick={() => onChange(m.id)}
             className={`flex-1 py-3 text-center transition-colors relative ${
               mode === m.id
-                ? 'text-emerald-400'
-                : 'text-zinc-400 hover:text-zinc-400'
+                ? 'text-glacier'
+                : 'text-scree hover:text-scree'
             }`}
           >
-            <span className="text-xs uppercase tracking-widest font-mono font-bold">{m.label}</span>
+            <span className="text-[13px] tabular-nums font-bold">{m.label}</span>
             {mode === m.id && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-glacier" />
             )}
           </button>
         ))}
@@ -46,10 +46,10 @@ export default function ModeSelector({ mode, onChange }) {
       {/* Active mode description */}
       {MODES.filter(m => m.id === mode).map(m => (
         <div key={m.id} className="mt-3 flex items-center gap-3">
-          <span className="text-[10px] uppercase tracking-widest text-emerald-400 border border-emerald-400/30 px-2 py-0.5 font-mono">
+          <span className="text-[13px] text-glacier border border-glacier px-2 py-0.5 tabular-nums">
             {m.tag}
           </span>
-          <span className="text-xs text-zinc-400">{m.desc}</span>
+          <span className="text-[13px] text-scree">{m.desc}</span>
         </div>
       ))}
     </div>

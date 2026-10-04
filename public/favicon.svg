@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Emerald background -->
-  <rect width="32" height="32" fill="#34d399"/>
-  <!-- Two peaks with cwm (valley) between — the M-shape is the cwm -->
-  <path d="M1 29 L10 7 L16.5 18 L23 7 L31 29 Z" fill="#09090b"/>
+  <!-- Two peaks with the cwm (glacial valley) between, in snow on crevasse blue -->
+  <rect width="32" height="32" rx="6" fill="#144969"/>
+  <path d="M3 27 L11 8 L16.5 18 L22 8 L29 27 Z" fill="#F6F8F7"/>
 </svg>

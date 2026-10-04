@@ -55,29 +55,29 @@ export default function EnergyPricePanel({ inputs, className = '' }) {
   const anyProv = rows.some(r => r.source !== 'user-bills')
 
   return (
-    <div className={`border border-zinc-700 bg-zinc-900/40 p-4 ${className}`}>
-      <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2.5">
+    <div className={`border border-hairline bg-snowfield-raised p-4 ${className}`}>
+      <p className="tabular-nums text-[13px] text-scree mb-2.5">
         Energy prices we're using · {province}, 2024
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
         {rows.map(({ fuelType, perGJ, native, source }) => (
-          <div key={fuelType} className="flex items-baseline justify-between gap-3 border-b border-zinc-800 pb-1.5">
-            <span className="text-sm text-zinc-300 flex items-center gap-1.5">
+          <div key={fuelType} className="flex items-baseline justify-between gap-3 border-b border-hairline pb-1.5">
+            <span className="text-sm text-basalt flex items-center gap-1.5">
               {FUEL_LABELS[fuelType] ?? fuelType}
               {source === 'user-bills' && (
-                <span className="font-mono text-[8px] uppercase tracking-widest text-emerald-400 border border-emerald-400/30 bg-emerald-400/10 px-1 py-0.5">
+                <span className="tabular-nums text-[13px] text-glacier border border-glacier bg-glacier/10 px-1 py-0.5">
                   your bills
                 </span>
               )}
             </span>
-            <span className="font-mono text-sm text-zinc-200">
-              {native && <span className="text-zinc-400">{native} · </span>}
+            <span className="tabular-nums text-sm text-basalt">
+              {native && <span className="text-scree">{native} · </span>}
               ${perGJ.toFixed(2)}/GJ
             </span>
           </div>
         ))}
       </div>
-      <p className="text-[11px] text-zinc-500 leading-relaxed mt-2.5">
+      <p className="text-[13px] text-scree leading-relaxed mt-2.5">
         {anyUser && anyProv && 'Rates tagged “your bills” come from the bills you entered. The rest are '}
         {anyUser && !anyProv && 'Based on the bills you entered. '}
         {anyProv && (

@@ -12,10 +12,10 @@ const CATEGORY_LABELS = {
 }
 
 const CATEGORY_COLORS = {
-  envelope:   'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20',
-  heating:    'bg-orange-400/10 text-orange-400 border border-orange-400/20',
-  water:      'bg-blue-400/10 text-blue-400 border border-blue-400/20',
-  generation: 'bg-yellow-400/10 text-yellow-400 border border-yellow-400/20',
+  envelope:   'bg-glacier/10 text-glacier border border-glacier',
+  heating:    'bg-larch/10 text-basalt border border-larch',
+  water:      'bg-glacier/10 text-glacier border border-glacier',
+  generation: 'bg-larch/10 text-basalt border border-larch',
 }
 
 const HEATING_IDS = new Set(['furnaceUpgrade', 'heatPump'])
@@ -42,55 +42,55 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
   return (
     <div className={`border p-5 transition-colors ${
       isDone
-        ? 'border-zinc-700 bg-zinc-900/60 opacity-60'
+        ? 'border-hairline bg-snowfield-raised opacity-60'
         : highlight
-          ? 'bg-zinc-800 border-emerald-400/40 hover:border-emerald-400/60'
-          : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'
+          ? 'bg-snowfield border-glacier hover:border-glacier'
+          : 'bg-snowfield border-hairline hover:border-hairline'
     }`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             {rank != null && (
-              <span className="w-6 h-6 bg-emerald-400 text-zinc-950 text-xs flex items-center justify-center font-black flex-shrink-0">
+              <span className="w-6 h-6 bg-glacier text-on-glacier text-[13px] flex items-center justify-center font-black flex-shrink-0">
                 {rank}
               </span>
             )}
             {isDone && (
-              <span className="w-6 h-6 bg-zinc-600 text-zinc-300 text-xs flex items-center justify-center font-black flex-shrink-0">
+              <span className="w-6 h-6 bg-scree text-basalt text-[13px] flex items-center justify-center font-black flex-shrink-0">
                 ✓
               </span>
             )}
-            <h3 className="font-bold text-zinc-100 text-sm">{rec.title}</h3>
+            <h3 className="font-bold text-basalt text-sm">{rec.title}</h3>
           </div>
 
-          <span className={`inline-block text-[10px] px-2 py-0.5 font-mono uppercase tracking-wide mb-2 ${CATEGORY_COLORS[rec.category]}`}>
+          <span className={`inline-block text-[13px] px-2 py-0.5 tabular-nums   mb-2 ${CATEGORY_COLORS[rec.category]}`}>
             {CATEGORY_LABELS[rec.category]}
           </span>
 
-          <p className="text-xs text-zinc-400 mb-3 leading-relaxed">{rec.description}</p>
+          <p className="text-[13px] text-scree mb-3 leading-relaxed">{rec.description}</p>
 
           <DiveDeeper label="Technical details">
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-400 font-mono">
-              <span><span className="text-zinc-400">From:</span> {rec.currentValue}</span>
-              <span><span className="text-zinc-400">To:</span> {rec.targetValue}</span>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-scree tabular-nums">
+              <span><span className="text-scree">From:</span> {rec.currentValue}</span>
+              <span><span className="text-scree">To:</span> {rec.targetValue}</span>
             </div>
           </DiveDeeper>
         </div>
 
         <div className="flex-shrink-0 text-right">
-          <p className="text-2xl font-black text-emerald-400 font-mono">${Math.round(rec.annualSavingsCAD).toLocaleString()}</p>
-          <p className="text-xs text-zinc-400">saved/year</p>
-          <div className="mt-2 px-3 py-1.5 bg-zinc-700 border border-zinc-600 text-center">
-            <p className="text-sm font-bold text-zinc-200 font-mono">
+          <p className="text-2xl font-black text-glacier tabular-nums">${Math.round(rec.annualSavingsCAD).toLocaleString()}</p>
+          <p className="text-[13px] text-scree">saved/year</p>
+          <div className="mt-2 px-3 py-1.5 bg-hairline border border-hairline text-center">
+            <p className="text-sm font-bold text-basalt tabular-nums">
               {rec.paybackYears < 100 ? `${rec.paybackYears.toFixed(1)} yr` : 'Long'}
             </p>
-            <p className="text-[10px] text-zinc-400 uppercase tracking-wide">payback</p>
+            <p className="text-[13px] text-scree ">payback</p>
           </div>
-          <p className="text-xs text-zinc-400 mt-1 font-mono">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
+          <p className="text-[13px] text-scree mt-1 tabular-nums">~${Math.round(rec.estimatedCostCAD).toLocaleString()} installed</p>
           {rec.co2SavedTonnes > 0.01 && (
             <>
-              <p className="text-xs text-zinc-500 mt-1 font-mono">{rec.co2SavedTonnes.toFixed(1)} t CO₂/yr</p>
-              <p className="text-xs text-zinc-500 font-mono">${Math.round(carbonCostPerTonne(rec)).toLocaleString()}/t CO₂</p>
+              <p className="text-[13px] text-scree mt-1 tabular-nums">{rec.co2SavedTonnes.toFixed(1)} t CO₂/yr</p>
+              <p className="text-[13px] text-scree tabular-nums">${Math.round(carbonCostPerTonne(rec)).toLocaleString()}/t CO₂</p>
             </>
           )}
         </div>
@@ -98,21 +98,21 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
 
       {/* Replace-on-burnout proration for equipment upgrades */}
       {isProratable(rec.id) && !isDone && (
-        <div className="mt-4 pt-3 border-t border-zinc-700">
+        <div className="mt-4 pt-3 border-t border-hairline">
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="text-xs text-zinc-300">How old is your current {EQUIPMENT_LABEL[rec.id]}?</label>
+            <label className="text-[13px] text-basalt">How old is your current {EQUIPMENT_LABEL[rec.id]}?</label>
             <select
               value={age ?? ''}
               onChange={e => setAge(e.target.value ? Number(e.target.value) : null)}
-              className="bg-zinc-900 border border-zinc-600 text-zinc-200 text-xs font-mono px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+              className="bg-snowfield-raised border border-hairline text-basalt text-[13px] tabular-nums px-2 py-1 focus:outline-none focus:ring-1 focus:ring-glacier"
             >
               <option value="">Select age…</option>
               {AGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
           {prorated && (
-            <div className="mt-2 border border-emerald-400/30 bg-emerald-400/5 p-3">
-              <p className="text-[11px] text-zinc-300 leading-relaxed mb-2">
+            <div className="mt-2 border border-glacier bg-glacier/5 p-3 rounded-[10px]">
+              <p className="text-[13px] text-basalt leading-relaxed mb-2">
                 A {EQUIPMENT_LABEL[rec.id]} lasts about {prorated.lifespanYears} years, so yours will likely need
                 replacing {prorated.remainingYears <= 1 ? 'very soon' : `in roughly ${Math.round(prorated.remainingYears)} years`}.
                 Since you'll pay for a replacement either way, the real cost of choosing the efficient option is
@@ -120,16 +120,16 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
               </p>
               <div className="flex items-baseline gap-5">
                 <div>
-                  <p className="font-mono text-lg font-black text-emerald-400">~${prorated.effectiveCost.toLocaleString()}</p>
-                  <p className="text-[10px] text-zinc-400">
+                  <p className="tabular-nums text-lg font-black text-glacier">~${prorated.effectiveCost.toLocaleString()}</p>
+                  <p className="text-[13px] text-scree">
                     effective cost{' '}
-                    <span className="line-through text-zinc-500">${Math.round(rec.estimatedCostCAD).toLocaleString()}</span>
+                    <span className="line-through text-scree">${Math.round(rec.estimatedCostCAD).toLocaleString()}</span>
                   </p>
                 </div>
                 {proratedPaybackYrs != null && (
                   <div>
-                    <p className="font-mono text-lg font-black text-zinc-200">{proratedPaybackYrs.toFixed(1)} yr</p>
-                    <p className="text-[10px] text-zinc-400">prorated payback</p>
+                    <p className="tabular-nums text-lg font-black text-basalt">{proratedPaybackYrs.toFixed(1)} yr</p>
+                    <p className="text-[13px] text-scree">prorated payback</p>
                   </div>
                 )}
               </div>
@@ -138,10 +138,10 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
         </div>
       )}
 
-      <div className="mt-4 pt-3 border-t border-zinc-700 flex items-center justify-between gap-3 flex-wrap">
+      <div className="mt-4 pt-3 border-t border-hairline flex items-center justify-between gap-3 flex-wrap">
         <button
           onClick={() => onMarkDone(rec.id)}
-          className="text-xs font-mono uppercase tracking-wide transition-colors px-3 py-1.5 border border-zinc-600 text-zinc-400 hover:border-zinc-400 hover:text-zinc-300"
+          className="text-[13px] tabular-nums transition-colors px-3 py-1.5 border border-hairline text-scree hover:border-hairline hover:text-basalt"
         >
           {isDone ? '↩ Restore to list' : '✓ Already done'}
         </button>
@@ -149,18 +149,18 @@ function RecCard({ rec, rank, onMarkDone, isDone, onAddToPlan, isInPlan, highlig
         {onAddToPlan && !isDone && (
           isInPlan ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-emerald-400">✓ Added</span>
+              <span className="text-[13px] tabular-nums text-glacier">✓ Added</span>
               <Link
                 href="/plan"
-                className="text-xs font-mono uppercase tracking-wide border border-emerald-400/50 text-emerald-400 px-3 py-1.5 hover:bg-emerald-400/10 transition-colors whitespace-nowrap"
+                className="text-[13px] tabular-nums border border-glacier text-glacier px-3 py-1.5 hover:bg-glacier/10 transition-colors whitespace-nowrap"
               >
-                View plan →
+                View plan
               </Link>
             </div>
           ) : (
             <button
               onClick={() => onAddToPlan(rec.id)}
-              className="text-xs font-mono uppercase tracking-wide transition-colors px-3 py-1.5 border border-zinc-600 text-zinc-300 hover:border-emerald-400 hover:text-emerald-400"
+              className="text-[13px] tabular-nums transition-colors px-3 py-1.5 border border-hairline text-basalt hover:border-glacier hover:text-glacier"
             >
               + Add to my plan
             </button>
@@ -175,12 +175,12 @@ function HeatingComparisonGroup({ heatingRecs, priority, planSelected, onAddToPl
   const sorted = [...heatingRecs].sort(compareRecs(priority))
 
   return (
-    <div className="border border-zinc-700">
-      <div className="bg-zinc-900 border-b border-zinc-700 px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-orange-400">
+    <div className="border border-hairline">
+      <div className="bg-snowfield-raised border-b border-hairline px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+        <span className="tabular-nums text-[13px] text-basalt">
           Heating system — choose one
         </span>
-        <span className="text-[10px] text-zinc-500 font-mono">
+        <span className="text-[13px] text-scree tabular-nums">
           {priority === 'bills' ? 'Sorted by shortest payback' : 'Sorted by lowest cost per tonne of CO₂ ($/t)'}
         </span>
       </div>
@@ -189,15 +189,15 @@ function HeatingComparisonGroup({ heatingRecs, priority, planSelected, onAddToPl
           const bestFor = HEATING_BEST_FOR[rec.id]
           const isTop   = i === 0
           return (
-            <div key={rec.id} className={i > 0 ? 'border-t border-zinc-700/60' : ''}>
+            <div key={rec.id} className={i > 0 ? 'border-t border-hairline' : ''}>
               {bestFor && (
-                <div className={`px-4 py-1.5 border-l-2 ${
-                  isTop ? 'border-l-emerald-400 bg-emerald-400/5' : 'border-l-zinc-700 bg-zinc-900/40'
+                <div className={`px-4 py-1.5 ${
+                  isTop ? 'bg-glacier/10' : 'bg-snowfield'
                 }`}>
-                  <span className={`text-[10px] font-mono uppercase tracking-widest ${
-                    isTop ? 'text-emerald-400' : 'text-zinc-500'
+                  <span className={`text-[13px] tabular-nums   ${
+                    isTop ? 'text-glacier' : 'text-scree'
                   }`}>
-                    {isTop ? '▲ Best for: ' : 'Also: '}{bestFor}
+                    {isTop ? 'Best for: ' : 'Also: '}{bestFor}
                   </span>
                 </div>
               )}
@@ -234,12 +234,12 @@ export default function RecommendationsList({
   if (!recommendations.length && !doneRecs.length) {
     return mode === 'simple'
       ? (
-        <p className="text-zinc-400 text-sm leading-relaxed">
+        <p className="text-scree text-sm leading-relaxed">
           Nothing stands out with era-typical defaults — but that doesn't mean there's nothing to find.
-          Try <span className="text-zinc-300 font-medium">Refined mode</span> to enter your actual insulation values and get specific, personalised recommendations.
+          Try <span className="text-basalt font-medium">Refined mode</span> to enter your actual insulation values and get specific, personalised recommendations.
         </p>
       )
-      : <p className="text-zinc-400 text-sm">No additional recommendations — your home is already well-optimised!</p>
+      : <p className="text-scree text-sm">No additional recommendations — your home is already well-optimised!</p>
   }
 
   const doneIds = doneRecs.map(r => r.id)
@@ -291,7 +291,7 @@ export default function RecommendationsList({
       {(hiddenCount > 0 || showAll) && sortedRecs.length > TOP_N && (
         <button
           onClick={() => setShowAll(v => !v)}
-          className="mt-3 w-full border border-zinc-700 hover:border-emerald-400/50 text-zinc-300 hover:text-emerald-400 font-mono text-[11px] uppercase tracking-widest py-2.5 transition-colors"
+          className="mt-3 w-full border border-hairline hover:border-glacier text-basalt hover:text-glacier tabular-nums text-[13px] py-2.5 transition-colors"
         >
           {showAll ? '↑ Show fewer' : `↓ Show all ${sortedRecs.length} upgrades (${hiddenCount} more)`}
         </button>
@@ -302,7 +302,7 @@ export default function RecommendationsList({
         <div className="mt-6">
           <button
             onClick={() => setShowDone(v => !v)}
-            className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-400 hover:text-emerald-400 transition-colors mb-3"
+            className="flex items-center gap-2 tabular-nums text-[13px] text-scree hover:text-glacier transition-colors mb-3"
           >
             <svg
               width="10" height="10" viewBox="0 0 10 10" fill="none"
@@ -315,7 +315,7 @@ export default function RecommendationsList({
           </button>
 
           {showDone && (
-            <div className="space-y-3 border-l-2 border-zinc-700 pl-4">
+            <div className="space-y-3 border-l-2 border-hairline pl-4">
               {doneRecs.map(rec => (
                 <RecCard
                   key={rec.id}

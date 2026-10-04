@@ -10,15 +10,16 @@ const COMPONENT_LABELS = {
   airLeakage:    'Air leakage',
 }
 
-const COLORS = ['#34d399', '#10b981', '#059669', '#6ee7b7', '#a7f3d0', '#047857', '#065f46']
+// One hue: the bars are already ranked, so length carries the message.
+const COLORS = ['var(--glacier)']
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="bg-zinc-800 border border-zinc-600 px-3 py-2 text-xs font-mono">
-      <p className="text-zinc-300">{d.name}</p>
-      <p className="text-emerald-400 font-bold">{d.gjPerYear} GJ/yr ({d.pct}%)</p>
+    <div className="bg-snowfield border border-hairline px-3 py-2 text-[13px] tabular-nums">
+      <p className="text-basalt">{d.name}</p>
+      <p className="text-glacier font-bold">{d.gjPerYear} GJ/yr ({d.pct}%)</p>
     </div>
   )
 }
@@ -39,20 +40,20 @@ export default function HeatLossChart({ components, totalHeatLossGJ }) {
         <XAxis
           type="number"
           unit=" GJ"
-          tick={{ fontSize: 11, fill: '#71717a' }}
-          axisLine={{ stroke: '#3f3f46' }}
-          tickLine={{ stroke: '#3f3f46' }}
+          tick={{ fontSize: 12, fill: 'var(--scree)' }}
+          axisLine={{ stroke: 'var(--hairline)' }}
+          tickLine={{ stroke: 'var(--hairline)' }}
         />
         <YAxis
           type="category"
           dataKey="name"
           width={130}
           interval={0}
-          tick={{ fontSize: 12, fill: '#a1a1aa' }}
+          tick={{ fontSize: 13, fill: 'var(--basalt)' }}
           axisLine={false}
           tickLine={false}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--hairline)', fillOpacity: 0.4 }} />
         <Bar dataKey="gjPerYear" radius={[0, 2, 2, 0]}>
           {data.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />

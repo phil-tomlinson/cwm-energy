@@ -29,10 +29,13 @@
   --on-dark: #FFFFFF;
   --on-dark-muted: #D5DDDC;
 
-  /* Legacy pages read these */
-  --background: var(--snowfield);
-  --foreground: var(--basalt);
-  --a11y-focus-color: #1d4ed8;
+  /* Chart series: tell apart by lightness as well as hue */
+  --series-1: #16698A;
+  --series-2: #C7366F;
+  --series-3: #2E7D3E;
+  --series-4: #8A5A00;
+  --series-custom: #1A2A36;
+
 }
 
 :root[data-theme="dark"] {
@@ -53,7 +56,11 @@
   --grade-hard: #EAF1EF;
   --focus: #7FC4E0;
   --on-dark-muted: #D5DDDC;
-  --a11y-focus-color: #ffff00;
+  --series-1: #7FC4E0;
+  --series-2: #F07AA6;
+  --series-3: #5FBF6E;
+  --series-4: #F2B33D;
+  --series-custom: #EAF1EF;
 }
 
 /* Accessibility mode: maximum contrast, overrides both themes */
@@ -95,8 +102,6 @@
   --color-spruce: var(--spruce);
   --color-on-dark: var(--on-dark);
   --color-on-dark-muted: var(--on-dark-muted);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: "Overpass Variable", "Overpass", system-ui, sans-serif;
   --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -110,99 +115,71 @@ body {
   line-height: 26px;
 }
 
-/* Focus ring on the new pages: 3px solid, 2px offset */
-.cwm :where(a, button, input, select, textarea, summary):focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-}
-
-/* In accessibility mode, every text link on the new pages is underlined */
-[data-a11y="true"] .cwm a:not([data-button]) {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-/* Legacy pages keep their original dark look until each is restyled. */
-.legacy {
-  background: #09090b;
-  color: #f4f4f5;
-}
-[data-theme="light"] .legacy {
-  background: #ffffff;
-  color: #18181b;
-}
-
-/* Dot-grid texture — subtle technical feel */
-.dot-grid {
-  background-image: radial-gradient(circle, #27272a 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Focus-visible ring for keyboard navigation — applies to elements without custom focus handling */
 @layer base {
-  a:focus-visible,
-  button:focus-visible,
-  [role="button"]:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible {
-    outline: 2px solid #34d399;
+  /* Keyboard focus: 3px solid ring, 2px offset, everywhere */
+  :where(a, button, input, select, textarea, summary, [role="button"], [role="switch"], [tabindex]):focus-visible {
+    outline: 3px solid var(--focus);
     outline-offset: 2px;
+  }
+
+  /* Form controls: the routed-edge radius and a comfortable touch height */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    border-radius: 4px;
+    min-height: 44px;
+    accent-color: var(--glacier);
+  }
+  input[type="checkbox"], input[type="radio"], input[type="range"] {
+    accent-color: var(--glacier);
   }
 }
 
-/* Noise overlay for raw texture */
-.noise::after {
-  content: '';
+/* Skip-to-content link: hidden until focused */
+.skip-to-content {
   position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.75rem 1.5rem;
+  background: var(--glacier);
+  color: var(--on-glacier);
+  font-weight: 700;
+  border-radius: 0 0 4px 4px;
+  text-decoration: none;
+}
+.skip-to-content:focus {
+  top: 0;
 }
 
-/* ─── Accessibility Mode ─────────────────────────────────────────────────────
-   Activated via [data-a11y="true"] on <html>. Goals:
-   - WCAG AA contrast everywhere (background #000, text #fff, accent #ffff00)
-   - 18px minimum base font, 1.7 line-height
-   - 44×44px minimum touch targets
-   - 4px yellow focus ring on every interactive element
-   - Remove decorative textures and animations
+/* ─── High-contrast mode ──────────────────────────────────────────────────────
+   Turned on from the nav. The colour tokens above switch to black, white and
+   yellow; these rules add larger text, underlined links, bigger focus rings and
+   44px targets, and stop all motion.
    ──────────────────────────────────────────────────────────────────────────── */
-
-:root:is([data-a11y="true"]) {
-  --background: #000000;
-  --foreground: #ffffff;
-  --a11y-accent: #ffff00;
-  --a11y-focus: 4px solid #ffff00;
-}
-
 [data-a11y="true"] body {
-  background: #000000;
-  color: #ffffff;
   font-size: 20px;
-  line-height: 1.8;
+  line-height: 1.7;
+}
+[data-a11y="true"] [class*="text-[13px]"] { font-size: 1rem !important; }
+[data-a11y="true"] [class*="text-sm"]     { font-size: 1.05rem !important; }
+[data-a11y="true"] [class*="text-[15px]"] { font-size: 1.1rem !important; }
+
+[data-a11y="true"] a:not([data-button]) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+[data-a11y="true"] :where(a, button, input, select, textarea, summary, [role="button"], [role="switch"], [tabindex]):focus-visible {
+  outline: 4px solid var(--focus);
+  outline-offset: 4px;
+}
+[data-a11y="true"] :where(a, button, [role="button"], [role="switch"], select) {
+  min-height: 44px;
+}
+[data-a11y="true"] :where(input, select, textarea) {
+  border: 2px solid var(--basalt) !important;
 }
 
-/* Scale up text sizes set by Tailwind utility classes */
-[data-a11y="true"] [class*="text-xs"]  { font-size: 0.9rem  !important; }
-[data-a11y="true"] [class*="text-sm"]  { font-size: 1rem    !important; }
-[data-a11y="true"] [class*="text-base"]{ font-size: 1.125rem !important; }
-[data-a11y="true"] [class*="text-lg"]  { font-size: 1.3rem  !important; }
-[data-a11y="true"] [class*="text-xl"]  { font-size: 1.5rem  !important; }
-[data-a11y="true"] [class*="text-2xl"] { font-size: 1.75rem !important; }
-[data-a11y="true"] [class*="text-3xl"] { font-size: 2rem    !important; }
-[data-a11y="true"] [class*="text-4xl"] { font-size: 2.5rem  !important; }
-
-/* Remove all decorative textures */
-[data-a11y="true"] .dot-grid {
-  background-image: none;
-}
-[data-a11y="true"] .noise::after {
-  display: none;
-}
-
-/* Stop all animations in a11y mode or when the OS asks for it */
 [data-a11y="true"] *,
 [data-a11y="true"] *::before,
 [data-a11y="true"] *::after {
@@ -221,192 +198,4 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* Fat focus ring on every interactive element — colour adapts to theme */
-[data-a11y="true"] a:focus-visible,
-[data-a11y="true"] button:focus-visible,
-[data-a11y="true"] [role="button"]:focus-visible,
-[data-a11y="true"] [role="switch"]:focus-visible,
-[data-a11y="true"] [role="link"]:focus-visible,
-[data-a11y="true"] input:focus-visible,
-[data-a11y="true"] textarea:focus-visible,
-[data-a11y="true"] select:focus-visible,
-[data-a11y="true"] [tabindex]:focus-visible {
-  outline: 4px solid var(--a11y-focus-color) !important;
-  outline-offset: 4px !important;
-  border-radius: 2px;
-}
-
-/* 44×44px minimum touch/click targets (WCAG 2.5.5) */
-[data-a11y="true"] a,
-[data-a11y="true"] button,
-[data-a11y="true"] [role="button"],
-[data-a11y="true"] [role="switch"],
-[data-a11y="true"] input[type="checkbox"],
-[data-a11y="true"] input[type="radio"],
-[data-a11y="true"] select {
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Nav and header borders */
-[data-a11y="true"] .legacy header {
-  border-color: #ffffff !important;
-}
-
-/* Links — underlined and yellow so they are distinguishable without colour alone */
-[data-a11y="true"] .legacy a {
-  color: #ffff00;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-[data-a11y="true"] .legacy a:hover {
-  color: #ffffff;
-}
-
-/* Form inputs */
-[data-a11y="true"] input,
-[data-a11y="true"] textarea,
-[data-a11y="true"] select {
-  background: #111111;
-  color: #ffffff;
-  border: 2px solid #ffffff;
-  font-size: 1rem;
-}
-
-/* Emerald accent text → yellow on dark backgrounds */
-[data-a11y="true"] [class*="text-emerald"],
-[data-a11y="true"] [class*="text-green"] {
-  color: #ffff00 !important;
-}
-
-/* Emerald/green buttons keep dark text — yellow on green fails contrast */
-[data-a11y="true"] [class*="bg-emerald"],
-[data-a11y="true"] [class*="bg-emerald"] *,
-[data-a11y="true"] [class*="bg-green"],
-[data-a11y="true"] [class*="bg-green"] * {
-  color: #000000 !important;
-}
-
-/* Muted zinc text → white so nothing disappears */
-[data-a11y="true"] [class*="text-zinc-4"],
-[data-a11y="true"] [class*="text-zinc-5"],
-[data-a11y="true"] [class*="text-zinc-6"],
-[data-a11y="true"] [class*="text-zinc-7"] {
-  color: #ffffff !important;
-}
-
-/* Skip-to-content link — visually hidden until focused */
-.skip-to-content {
-  position: absolute;
-  top: -100%;
-  left: 1rem;
-  z-index: 9999;
-  padding: 0.75rem 1.5rem;
-  background: #ffff00;
-  color: #000000;
-  font-weight: 700;
-  font-size: 1rem;
-  border-radius: 0 0 4px 4px;
-  text-decoration: none;
-  transition: top 0.1s;
-}
-.skip-to-content:focus {
-  top: 0;
-  outline: 4px solid #000000;
-  outline-offset: 2px;
-}
-
-/* ─── Light Theme ─────────────────────────────────────────────────────────────
-   Activated via [data-theme="light"] on <html>.
-   Overrides the hardcoded dark zinc Tailwind classes used throughout the app.
-   ──────────────────────────────────────────────────────────────────────────── */
-
-[data-theme="light"] {
-  --a11y-focus-color: #1d4ed8;   /* dark blue — readable on white backgrounds */
-}
-
-
-/* Structural surfaces */
-[data-theme="light"] .legacy header {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: #e4e4e7 !important;
-}
-
-[data-theme="light"] .legacy footer {
-  background: #f4f4f5 !important;
-  border-color: #e4e4e7 !important;
-}
-
-/* Card/panel backgrounds */
-[data-theme="light"] [class*="bg-zinc-9"],
-[data-theme="light"] [class*="bg-zinc-8"] {
-  background-color: #f4f4f5 !important;
-}
-
-[data-theme="light"] [class*="bg-zinc-950"] {
-  background-color: #ffffff !important;
-}
-
-/* Borders */
-[data-theme="light"] [class*="border-zinc"] {
-  border-color: #d4d4d8 !important;
-}
-
-/* Text colours */
-[data-theme="light"] [class*="text-zinc-1"],
-[data-theme="light"] [class*="text-zinc-2"],
-[data-theme="light"] [class*="text-zinc-3"] {
-  color: #18181b !important;
-}
-
-[data-theme="light"] [class*="text-zinc-4"],
-[data-theme="light"] [class*="text-zinc-5"] {
-  color: #52525b !important;
-}
-
-[data-theme="light"] [class*="text-zinc-6"],
-[data-theme="light"] [class*="text-zinc-7"] {
-  color: #71717a !important;
-}
-
-/* Emerald accents — darken for contrast on white */
-[data-theme="light"] [class*="text-emerald"],
-[data-theme="light"] [class*="text-green"] {
-  color: #059669 !important;
-}
-
-/* Nav links */
-[data-theme="light"] .legacy nav a {
-  color: #52525b;
-}
-[data-theme="light"] .legacy nav a:hover {
-  color: #18181b;
-}
-
-/* Focus ring offset colour for light backgrounds */
-[data-theme="light"] a:focus-visible,
-[data-theme="light"] button:focus-visible,
-[data-theme="light"] [role="button"]:focus-visible,
-[data-theme="light"] input:focus-visible,
-[data-theme="light"] textarea:focus-visible,
-[data-theme="light"] select:focus-visible {
-  outline-color: #1d4ed8;
-  outline-offset: 2px;
-}
-
-/* Light + accessibility mode — focus colour already handled via --a11y-focus-color */
-[data-theme="light"][data-a11y="true"] .legacy a {
-  color: #1d4ed8;
-}
-[data-theme="light"][data-a11y="true"] .legacy a:hover {
-  color: #18181b;
-}
-[data-theme="light"][data-a11y="true"] [class*="text-emerald"],
-[data-theme="light"][data-a11y="true"] [class*="text-green"] {
-  color: #065f46 !important;  /* very dark green — passes AA on white */
 }

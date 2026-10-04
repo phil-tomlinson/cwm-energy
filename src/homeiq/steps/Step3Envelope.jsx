@@ -46,7 +46,7 @@ export default function Step3Envelope({ data, updateData }) {
   }, [data.era, data.houseType, data.floorArea, data.storeys, data.basementType, data.basementWallHeight])
 
   const env = data.envelope
-  if (!env) return <div className="text-zinc-400 text-sm p-4">Calculating defaults…</div>
+  if (!env) return <div className="text-scree text-sm p-4">Calculating defaults…</div>
 
   function update(field, value) {
     updateData({ envelope: { ...env, [field]: value } })
@@ -109,11 +109,11 @@ export default function Step3Envelope({ data, updateData }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-zinc-100 mb-1">Building envelope</h2>
-      <p className="text-zinc-400 text-sm mb-2">
+      <h2 className="text-xl font-bold text-basalt mb-1">Building envelope</h2>
+      <p className="text-scree text-sm mb-2">
         We've pre-filled these values based on your home's age. Adjust anything you know for better accuracy.
       </p>
-      <p className="text-xs text-emerald-400 bg-emerald-400/5 border border-emerald-400/20 px-3 py-2 mb-6">
+      <p className="text-[13px] text-glacier bg-glacier/5 border border-glacier px-3 py-2 mb-6">
         R-values are imperial (as on product labels). Areas are auto-estimated from your floor area — use the estimators below each field if you want to refine them.
       </p>
 
@@ -308,7 +308,7 @@ export default function Step3Envelope({ data, updateData }) {
           hint="How many times per hour indoor air is replaced by outdoor air through gaps and cracks."
         >
           {/* ACH mode toggle */}
-          <div className="flex gap-0 mb-3 text-xs font-mono overflow-hidden border border-zinc-600">
+          <div className="flex gap-0 mb-3 text-[13px] tabular-nums overflow-hidden border border-hairline">
             {[{ key: 'natural', label: 'Estimate' }, { key: 'ach50', label: 'I have a blower door number' }].map(opt => (
               <button
                 key={opt.key}
@@ -316,8 +316,8 @@ export default function Step3Envelope({ data, updateData }) {
                 onClick={() => setAchMode(opt.key)}
                 className={`flex-1 px-3 py-1.5 transition-colors ${
                   achMode === opt.key
-                    ? 'bg-emerald-400 text-zinc-950 font-bold'
-                    : 'bg-transparent text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-glacier text-on-glacier font-bold'
+                    : 'bg-transparent text-scree hover:text-basalt'
                 }`}
               >
                 {opt.label}
@@ -334,7 +334,7 @@ export default function Step3Envelope({ data, updateData }) {
                 min={0.05} max={2.0} step={0.05}
                 defaultNote={`${era.ach} ACH`}
               />
-              <p className="text-xs text-emerald-400 mt-1">{achDescription(env.ach)}</p>
+              <p className="text-[13px] text-glacier mt-1">{achDescription(env.ach)}</p>
             </>
           ) : (
             <>
@@ -348,10 +348,10 @@ export default function Step3Envelope({ data, updateData }) {
                 }}
                 min={1} max={20} step={0.5} unit="ACH50"
               />
-              <p className="text-xs text-emerald-400 mt-1">
+              <p className="text-[13px] text-glacier mt-1">
                 → Natural ACH: {parseFloat((ach50Value / 17).toFixed(2))} (used in calculation)
               </p>
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-[13px] text-scree mt-1">
                 Typical blower door results: under 2 = very tight | 3–5 = well-sealed | 6–10 = average | over 10 = leaky. We divide by 17 to convert to the natural air leakage rate used in the calculation.
               </p>
             </>
@@ -367,11 +367,11 @@ export default function Step3Envelope({ data, updateData }) {
         >
           {/* Chimney / fireplace */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-zinc-300 mb-1">Chimney / fireplace type</label>
+            <label className="block text-sm font-medium text-basalt mb-1">Chimney / fireplace type</label>
             <select
               value={data.airLeakageFactors?.chimney ?? 'none'}
               onChange={e => updateData({ airLeakageFactors: { ...data.airLeakageFactors, chimney: e.target.value } })}
-              className="w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full bg-snowfield border border-hairline text-basalt px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glacier"
             >
               <option value="none">None</option>
               <option value="masonry">Masonry fireplace — leaky or rarely used</option>
@@ -379,23 +379,23 @@ export default function Step3Envelope({ data, updateData }) {
               <option value="gas_vented">Gas fireplace — vented (pilot light or non-sealed)</option>
               <option value="gas_sealed">Gas fireplace — sealed combustion</option>
             </select>
-            <p className="mt-1 text-xs text-zinc-400">Open or vented chimneys are a significant and often overlooked heat loss source.</p>
+            <p className="mt-1 text-[13px] text-scree">Open or vented chimneys are a significant and often overlooked heat loss source.</p>
             <DiveDeeper label="How do I identify my fireplace type?">
-              <div className="space-y-2.5 text-xs text-zinc-400 leading-relaxed">
+              <div className="space-y-2.5 text-[13px] text-scree leading-relaxed">
                 <div>
-                  <p className="text-zinc-300 font-medium">Masonry fireplace</p>
+                  <p className="text-basalt font-medium">Masonry fireplace</p>
                   <p>A brick or stone opening built into the wall, designed for burning wood logs. Has a metal throat damper — a lever or chain inside the firebox that opens and closes. The firebox is open to the room when in use. May have been retrofit with a gas log set.</p>
                 </div>
                 <div>
-                  <p className="text-zinc-300 font-medium">Wood stove / sealed insert</p>
+                  <p className="text-basalt font-medium">Wood stove / sealed insert</p>
                   <p>A cast-iron or steel unit with a sealed door and glass window. Either freestanding on legs, or inserted into an existing masonry opening. Minimal leakage when the door is closed.</p>
                 </div>
                 <div>
-                  <p className="text-zinc-300 font-medium">Gas fireplace — vented (B-vent)</p>
+                  <p className="text-basalt font-medium">Gas fireplace — vented (B-vent)</p>
                   <p>Has a round metal flue pipe running up through the house to a cap on the roof, or connects to a masonry chimney. The glass front is decorative — not sealed to the room. You may notice cool air or drafts near the unit when the pilot is off. Often has a small always-on pilot flame.</p>
                 </div>
                 <div>
-                  <p className="text-zinc-300 font-medium">Gas fireplace — sealed combustion (direct-vent)</p>
+                  <p className="text-basalt font-medium">Gas fireplace — sealed combustion (direct-vent)</p>
                   <p>Look for a round vent cap on an <em>exterior wall</em> — typically low on the side of the house, with two concentric pipes (one for intake, one for exhaust). The glass front is sealed and doesn't open. No chimney running up through the interior. This is the most airtight type.</p>
                 </div>
               </div>
@@ -404,46 +404,46 @@ export default function Step3Envelope({ data, updateData }) {
 
           {/* Exposed rim joists */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Exposed rim joists in basement?</label>
+            <label className="block text-sm font-medium text-basalt mb-2">Exposed rim joists in basement?</label>
             <div className="flex gap-2">
               {[{ label: 'Yes — visible and uninsulated', value: true }, { label: 'No / already insulated', value: false }].map(opt => (
                 <button
                   key={String(opt.value)}
                   type="button"
                   onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, exposedRimJoists: opt.value } })}
-                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                  className={`border px-3 py-2 text-[13px] transition-colors flex-1 ${
                     (data.airLeakageFactors?.exposedRimJoists ?? false) === opt.value
-                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                      ? 'border-glacier bg-glacier/10 text-glacier'
+                      : 'border-hairline text-scree hover:border-hairline'
                   }`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-zinc-400">The band of framing between your foundation wall and first floor — spray foam here has excellent payback.</p>
+            <p className="mt-1 text-[13px] text-scree">The band of framing between your foundation wall and first floor — spray foam here has excellent payback.</p>
           </div>
 
           {/* Recessed pot lights */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Recessed pot lights in ceiling below attic?</label>
+            <label className="block text-sm font-medium text-basalt mb-2">Recessed pot lights in ceiling below attic?</label>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
                 <button
                   key={String(opt.value)}
                   type="button"
                   onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, recessedLights: opt.value } })}
-                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                  className={`border px-3 py-2 text-[13px] transition-colors flex-1 ${
                     (data.airLeakageFactors?.recessedLights ?? false) === opt.value
-                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                      ? 'border-glacier bg-glacier/10 text-glacier'
+                      : 'border-hairline text-scree hover:border-hairline'
                   }`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-zinc-400">Each uninsulated pot light is effectively a hole in your ceiling — they're sealed during attic insulation work.</p>
+            <p className="mt-1 text-[13px] text-scree">Each uninsulated pot light is effectively a hole in your ceiling — they're sealed during attic insulation work.</p>
           </div>
         </CardSection>
       </Card>
@@ -455,17 +455,17 @@ export default function Step3Envelope({ data, updateData }) {
           hint="An HRV or ERV captures heat from stale outgoing air and uses it to pre-warm fresh incoming air, cutting ventilation heat loss by 60–80%."
         >
           <div className="mb-4">
-            <label className="block text-sm font-medium text-zinc-300 mb-2">My home has an HRV or ERV (heat recovery ventilator)</label>
+            <label className="block text-sm font-medium text-basalt mb-2">My home has an HRV or ERV (heat recovery ventilator)</label>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
                 <button
                   key={String(opt.value)}
                   type="button"
                   onClick={() => updateData({ hrv: { ...(data.hrv ?? { effectiveness: 0.75 }), has: opt.value } })}
-                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                  className={`border px-3 py-2 text-[13px] transition-colors flex-1 ${
                     (data.hrv?.has ?? false) === opt.value
-                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                      ? 'border-glacier bg-glacier/10 text-glacier'
+                      : 'border-hairline text-scree hover:border-hairline'
                   }`}
                 >
                   {opt.label}
