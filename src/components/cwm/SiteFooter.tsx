@@ -12,7 +12,7 @@ const LINKS = [
 
 export default function SiteFooter() {
   return (
-    <footer className="cwm bg-crevasse text-on-dark">
+    <footer className="bg-crevasse text-on-dark">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-4 py-10 sm:px-6">
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
           <span className="mr-auto text-[20px] font-extrabold">CWM Energy</span>

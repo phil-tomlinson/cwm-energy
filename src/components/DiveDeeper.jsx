@@ -6,7 +6,7 @@ import { useState } from 'react'
  *
  * Usage:
  *   <DiveDeeper label="How is this calculated?">
- *     <p className="text-xs text-zinc-400 ...">...</p>
+ *     <p className="text-[13px] text-scree ...">...</p>
  *   </DiveDeeper>
  */
 export default function DiveDeeper({ label = 'Dive deeper', children }) {
@@ -17,7 +17,7 @@ export default function DiveDeeper({ label = 'Dive deeper', children }) {
       <button
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
-        className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-zinc-400 hover:text-emerald-400 transition-colors"
+        className="flex items-center gap-2 tabular-nums text-[13px] text-scree hover:text-glacier transition-colors"
       >
         {/* chevron */}
         <svg
@@ -31,7 +31,7 @@ export default function DiveDeeper({ label = 'Dive deeper', children }) {
       </button>
 
       {open && (
-        <div className="mt-3 border-l-2 border-zinc-700 pl-4 space-y-3">
+        <div className="mt-3 border-l-2 border-hairline pl-4 space-y-3">
           {children}
         </div>
       )}

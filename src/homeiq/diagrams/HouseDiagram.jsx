@@ -7,11 +7,11 @@ import DiagramFrame from './DiagramFrame'
 // Two display modes:
 //  • Results: pass `components` (heatLoss breakdown) to weight the loss arrows.
 //  • Companion: pass `highlight` (a trait key) to spotlight one part — it goes
-//    bright emerald while every other part fades to context. Used by the
+//    highlight colour while every other part fades to context. Used by the
 //    per-question companion panel.
 
-const EM = '#059669'   // emerald-600, reads on light + dark
-const EMB = '#10b981'  // brighter emerald for the highlighted part
+const EM = 'var(--glacier)'
+const EMB = 'var(--fireweed)'  // the part the current question is about
 
 const VB_W = 420
 const GRADE = 250

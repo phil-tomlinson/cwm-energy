@@ -1,22 +1,22 @@
 ﻿import { displayArea, displayLength, inputArea, inputLength, areaUnit, lengthUnit } from '../../utils/units'
 
-const inputClass = 'w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder-zinc-600'
-const selectClass = 'w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent'
+const inputClass = 'w-full bg-snowfield border border-hairline text-basalt px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glacier focus:border-transparent placeholder-scree'
+const selectClass = 'w-full bg-snowfield border border-hairline text-basalt px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glacier focus:border-transparent'
 
 // A labeled form field with optional help text and "default" badge.
 export default function FormField({ label, hint, defaultNote, children, className = '' }) {
   return (
     <div className={`mb-4 ${className}`}>
       <div className="flex items-baseline justify-between mb-1">
-        <label className="block text-sm font-medium text-zinc-300">{label}</label>
+        <label className="block text-[15px] font-semibold text-basalt">{label}</label>
         {defaultNote && (
-          <span className="text-xs text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 font-mono">
+          <span className="text-[13px] text-glacier bg-glacier/10 border border-glacier px-2 py-0.5 tabular-nums">
             default: {defaultNote}
           </span>
         )}
       </div>
       {children}
-      {hint && <p className="mt-1 text-xs text-zinc-400">{hint}</p>}
+      {hint && <p className="mt-1 text-[13px] text-scree">{hint}</p>}
     </div>
   )
 }
@@ -30,7 +30,7 @@ export function SelectField({ label, hint, defaultNote, value, onChange, options
         className={selectClass}
       >
         {options.map(opt => (
-          <option key={opt.value ?? opt} value={opt.value ?? opt} className="bg-zinc-800 text-zinc-100">
+          <option key={opt.value ?? opt} value={opt.value ?? opt} className="bg-snowfield text-basalt">
             {opt.label ?? opt}
           </option>
         ))}
@@ -52,7 +52,7 @@ export function NumberField({ label, hint, defaultNote, value, onChange, min, ma
           step={step}
           className={inputClass}
         />
-        {unit && <span className="text-sm text-zinc-400 whitespace-nowrap font-mono">{unit}</span>}
+        {unit && <span className="text-sm text-scree whitespace-nowrap tabular-nums">{unit}</span>}
       </div>
     </FormField>
   )

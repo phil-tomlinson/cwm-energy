@@ -28,13 +28,13 @@ export default function EVCalculatorTabs() {
 
         {/* "Choose a mode" label */}
         <div className="px-6 sm:px-8 mb-0">
-          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-400 mb-2">
+          <p className="tabular-nums text-[13px] text-scree mb-2">
             Select a tool
           </p>
         </div>
 
         {/* Tab strip */}
-        <div className="flex border-y border-zinc-700 bg-zinc-900">
+        <div className="flex border-y border-hairline bg-snowfield-raised">
           {TABS.map((tab, i) => {
             const active = mode === tab.id
             return (
@@ -43,23 +43,23 @@ export default function EVCalculatorTabs() {
                 onClick={() => setMode(tab.id)}
                 className={`
                   relative flex-1 flex flex-col items-start px-6 sm:px-8 py-4
-                  border-r border-zinc-700 last:border-r-0
+                  border-r border-hairline last:border-r-0
                   transition-colors duration-150
                   ${active
-                    ? 'bg-zinc-800 text-zinc-100'
-                    : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-300'}
+                    ? 'bg-snowfield text-basalt'
+                    : 'bg-snowfield-raised text-scree hover:bg-snowfield hover:text-basalt'}
                 `}
               >
                 {/* Top accent bar — only on active */}
-                <div className={`absolute top-0 left-0 right-0 h-0.5 transition-colors ${active ? 'bg-emerald-400' : 'bg-transparent'}`} />
+                <div className={`absolute top-0 left-0 right-0 h-0.5 transition-colors ${active ? 'bg-glacier' : 'bg-transparent'}`} />
 
                 <div className="flex items-center gap-2 mt-1">
                   {/* Active dot */}
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${active ? 'bg-emerald-400' : 'bg-zinc-700'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${active ? 'bg-glacier' : 'bg-hairline'}`} />
                   <span className="text-sm font-bold tracking-tight leading-tight">{tab.label}</span>
                 </div>
 
-                <p className={`text-[10px] font-mono mt-1.5 ml-3.5 leading-relaxed ${active ? 'text-zinc-400' : 'text-zinc-400'}`}>
+                <p className={`text-[13px] tabular-nums mt-1.5 ml-3.5 leading-relaxed ${active ? 'text-scree' : 'text-scree'}`}>
                   {tab.sub}
                 </p>
               </button>

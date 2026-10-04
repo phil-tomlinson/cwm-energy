@@ -89,7 +89,7 @@ export default function SimpleMode({ data, updateData }) {
 
       {/* Row 1: Province + City */}
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-3">Location</p>
+        <p className="text-[13px] text-scree tabular-nums mb-3">Location</p>
         <div className="grid grid-cols-2 gap-4">
           <SelectField
             label="Province"
@@ -108,7 +108,7 @@ export default function SimpleMode({ data, updateData }) {
 
       {/* Row 2: House type + Storeys */}
       <div>
-        <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-3">Your home</p>
+        <p className="text-[13px] text-scree tabular-nums mb-3">Your home</p>
         <div className="grid grid-cols-2 gap-4">
           <SelectField
             label="House type"
@@ -136,7 +136,7 @@ export default function SimpleMode({ data, updateData }) {
 
       {/* Row 4: Floor area with quick-select */}
       <div>
-        <p className="text-xs font-medium text-zinc-300 mb-2">Floor area</p>
+        <p className="text-[13px] font-medium text-basalt mb-2">Floor area</p>
         <div className="grid grid-cols-3 gap-2 mb-3">
           {SIZE_PRESETS.map(p => (
             <button
@@ -145,12 +145,12 @@ export default function SimpleMode({ data, updateData }) {
               onClick={() => updateData({ floorArea: p.m2, envelope: null })}
               className={`border px-3 py-2 text-left transition-colors ${
                 Math.abs(data.floorArea - p.m2) < 10
-                  ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                  : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                  ? 'border-glacier bg-glacier/10 text-glacier'
+                  : 'border-hairline text-scree hover:border-hairline'
               }`}
             >
-              <div className="text-xs font-bold">{p.label}</div>
-              <div className="text-[10px] text-zinc-400 font-mono">{p.sub}</div>
+              <div className="text-[13px] font-bold">{p.label}</div>
+              <div className="text-[13px] text-scree tabular-nums">{p.sub}</div>
             </button>
           ))}
         </div>
@@ -183,40 +183,40 @@ export default function SimpleMode({ data, updateData }) {
 
       {/* Climate summary */}
       {data.climate && (
-        <div className="border border-zinc-700 bg-zinc-800/50 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-mono mb-3">
+        <div className="border border-hairline bg-snowfield p-4 rounded-[10px]">
+          <p className="text-[13px] text-scree tabular-nums mb-3">
             Climate — {data.city}, {data.province}
           </p>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
-              <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.hdd.toLocaleString()}</p>
-              <p className="text-[10px] text-zinc-400 font-medium">{hddLabel(data.climate.hdd)}</p>
-              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">HDD base 18°C</p>
+              <p className="text-lg font-black text-glacier tabular-nums">{data.climate.hdd.toLocaleString()}</p>
+              <p className="text-[13px] text-scree font-medium">{hddLabel(data.climate.hdd)}</p>
+              <p className="text-[13px] text-scree tabular-nums mt-0.5">HDD base 18°C</p>
             </div>
             <div>
-              <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.designTemp}°C</p>
-              <p className="text-[10px] text-zinc-400 font-medium">{designTempLabel(data.climate.designTemp)}</p>
-              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Design temp</p>
+              <p className="text-lg font-black text-glacier tabular-nums">{data.climate.designTemp}°C</p>
+              <p className="text-[13px] text-scree font-medium">{designTempLabel(data.climate.designTemp)}</p>
+              <p className="text-[13px] text-scree tabular-nums mt-0.5">Design temp</p>
             </div>
             <div>
-              <p className="text-lg font-black text-emerald-400 font-mono">{data.climate.coldWaterTemp}°C</p>
-              <p className="text-[10px] text-zinc-400 font-medium leading-tight">{coldWaterLabel(data.climate.coldWaterTemp)}</p>
-              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Cold water</p>
+              <p className="text-lg font-black text-glacier tabular-nums">{data.climate.coldWaterTemp}°C</p>
+              <p className="text-[13px] text-scree font-medium leading-tight">{coldWaterLabel(data.climate.coldWaterTemp)}</p>
+              <p className="text-[13px] text-scree tabular-nums mt-0.5">Cold water</p>
             </div>
           </div>
 
           <DiveDeeper label="What are heating degree days?">
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-[13px] text-scree leading-relaxed">
               Heating Degree Days (HDD) measure how cold a location is over a full year.
               Each day adds to the total based on how far the temperature falls below 18°C —
               the point where most homes need active heating.
             </p>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              <strong className="text-zinc-300">Example:</strong> If it's 3°C outside, that day contributes
+            <p className="text-[13px] text-scree leading-relaxed">
+              <strong className="text-basalt">Example:</strong> If it's 3°C outside, that day contributes
               15 HDD (18 − 3 = 15). Add up all such days across a year and you get the annual HDD figure.
               Vancouver has ~2,900 HDD; Winnipeg has ~5,600 HDD — nearly twice as much heating demand.
             </p>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-[13px] text-scree leading-relaxed">
               The design temperature is the coldest it gets in your city about 97.5% of the time —
               used to size your heating equipment for a typical worst-case day.
               Cold water temperature affects how much energy your water heater needs:
@@ -226,7 +226,7 @@ export default function SimpleMode({ data, updateData }) {
         </div>
       )}
 
-      <p className="text-xs text-zinc-400 font-mono">
+      <p className="text-[13px] text-scree tabular-nums">
         Results will use era-typical insulation values. Switch to Refined for better accuracy.
       </p>
     </div>

@@ -39,11 +39,11 @@ export default function Disclaimer({ context = 'plan' }) {
   const copy = COPY[context] ?? COPY.plan
 
   return (
-    <div className="border border-zinc-800 bg-zinc-900/40 p-4">
-      <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-500 mb-1.5">
+    <div className="border border-hairline bg-snowfield-raised p-4 rounded-[10px]">
+      <p className="tabular-nums text-[13px] text-scree mb-1.5">
         {copy.headline}
       </p>
-      <p className="text-[11px] text-zinc-500 leading-relaxed">
+      <p className="text-[13px] text-scree leading-relaxed">
         {copy.body}
       </p>
     </div>

@@ -12,8 +12,7 @@ export const VEHICLES = {
     co2PerFuelL:          null,
     mfgKgCO2e:            14500,  // GREET 2023: ~6500 kg battery + ~8000 kg glider
     batteryMfgKgCO2e:     6500,   // 77.4 kWh × ~84 kg CO₂e/kWh (NMC811)
-    color:                '#34d399',  // emerald-400
-    colorMuted:           'rgba(52,211,153,0.15)',
+    color:                'var(--series-1)',
   },
   macheelfp: {
     id:                   'macheelfp',
@@ -26,8 +25,7 @@ export const VEHICLES = {
     co2PerFuelL:          null,
     mfgKgCO2e:            11740,  // GREET 2023: ~3740 kg battery + ~8000 kg glider
     batteryMfgKgCO2e:     3740,   // 72 kWh × ~52 kg CO₂e/kWh (LFP — no Co/Ni)
-    color:                '#f87171',  // red-400
-    colorMuted:           'rgba(248,113,113,0.15)',
+    color:                'var(--series-2)',
   },
   crv: {
     id:                   'crv',
@@ -40,8 +38,7 @@ export const VEHICLES = {
     co2PerFuelL:          2.31,   // kg CO₂e/L gasoline (IPCC AR5)
     mfgKgCO2e:            8500,   // GREET 2023 mid-size ICE SUV
     batteryMfgKgCO2e:     0,
-    color:                '#fb923c',  // orange-400
-    colorMuted:           'rgba(251,146,60,0.15)',
+    color:                'var(--series-3)',
   },
   rav4h: {
     id:                   'rav4h',
@@ -54,8 +51,7 @@ export const VEHICLES = {
     co2PerFuelL:          2.31,
     mfgKgCO2e:            9200,   // GREET 2023 + ~700 kg NiMH premium
     batteryMfgKgCO2e:     700,
-    color:                '#60a5fa',  // blue-400
-    colorMuted:           'rgba(96,165,250,0.15)',
+    color:                'var(--series-4)',
   },
 }
 

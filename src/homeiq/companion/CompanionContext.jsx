@@ -28,7 +28,7 @@ export function CompanionTarget({ id, children, className = '' }) {
   const isActive = active === id
   return (
     <div
-      className={`${className} transition-colors ${isActive ? 'border-l-2 border-emerald-400/50 pl-3 -ml-3' : 'border-l-2 border-transparent pl-3 -ml-3'}`}
+      className={`${className} transition-colors ${isActive ? 'border-l-2 border-glacier pl-3 -ml-3' : 'border-l-2 border-transparent pl-3 -ml-3'}`}
       onFocusCapture={() => setActive(id)}
       onMouseEnter={() => setActive(id)}
     >

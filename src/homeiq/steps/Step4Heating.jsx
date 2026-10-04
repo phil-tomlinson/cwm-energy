@@ -33,8 +33,8 @@ export default function Step4Heating({ data, updateData }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-zinc-100 mb-1">Heating system</h2>
-      <p className="text-zinc-400 text-sm mb-6">
+      <h2 className="text-xl font-bold text-basalt mb-1">Heating system</h2>
+      <p className="text-scree text-sm mb-6">
         Your heating system efficiency determines how much fuel is needed to deliver the heat your home requires.
       </p>
 

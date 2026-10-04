@@ -52,14 +52,14 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="text-xs text-emerald-400 hover:text-emerald-300 underline decoration-dashed underline-offset-2 font-mono"
+        className="text-[13px] text-glacier hover:text-glacier underline decoration-dashed underline-offset-2 tabular-nums"
       >
         {open ? '▲ Hide estimator' : '▼ Estimate from window counts'}
       </button>
 
       {open && (
-        <div className="mt-3 border border-zinc-600 bg-zinc-800 p-4">
-          <p className="text-xs text-zinc-400 mb-3 font-mono">
+        <div className="mt-3 border border-hairline bg-snowfield p-4 rounded-[10px]">
+          <p className="text-[13px] text-scree mb-3 tabular-nums">
             Count each window by approximate size. Areas include the frame.
           </p>
 
@@ -67,9 +67,9 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
           <div className="grid grid-cols-4 gap-2 mb-3">
             {WINDOW_TYPES.map(t => (
               <div key={t.key} className="text-center">
-                <div className="text-xs font-bold text-zinc-300">{t.label}</div>
-                <div className="text-xs text-zinc-400 font-mono">{t.area} m²</div>
-                <div className="text-xs text-zinc-400 italic hidden sm:block">{t.desc}</div>
+                <div className="text-[13px] font-bold text-basalt">{t.label}</div>
+                <div className="text-[13px] text-scree tabular-nums">{t.area} m²</div>
+                <div className="text-[13px] text-scree italic hidden sm:block">{t.desc}</div>
               </div>
             ))}
           </div>
@@ -78,7 +78,7 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
           <div className="space-y-3">
             {floors.map(floor => (
               <div key={floor}>
-                <div className="text-xs font-medium text-zinc-400 mb-1 uppercase tracking-wide">{floor}</div>
+                <div className="text-[13px] font-medium text-scree mb-1 ">{floor}</div>
                 <div className="grid grid-cols-4 gap-2">
                   {WINDOW_TYPES.map(t => (
                     <input
@@ -88,7 +88,7 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
                       max="30"
                       value={counts[floor][t.key]}
                       onChange={e => setCount(floor, t.key, e.target.value)}
-                      className="w-full bg-zinc-700 border border-zinc-600 text-zinc-100 px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                      className="w-full bg-hairline border border-hairline text-basalt px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-glacier"
                       aria-label={`${floor} ${t.label} windows`}
                     />
                   ))}
@@ -100,18 +100,18 @@ export default function WindowEstimator({ storeys, basementType, onApply }) {
           {/* Total + apply */}
           <div className="mt-4 flex items-center justify-between">
             <div>
-              <span className="text-sm font-bold text-emerald-400 font-mono">
+              <span className="text-sm font-bold text-glacier tabular-nums">
                 Total: {estimated.toFixed(1)} m²
               </span>
               {estimated === 0 && (
-                <span className="text-xs text-zinc-400 ml-2">(enter counts above)</span>
+                <span className="text-[13px] text-scree ml-2">(enter counts above)</span>
               )}
             </div>
             <button
               type="button"
               onClick={handleApply}
               disabled={estimated === 0}
-              className="px-3 py-1.5 text-xs font-bold bg-emerald-400 text-zinc-950 hover:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 text-[13px] font-bold bg-glacier text-on-glacier hover:opacity-90 disabled:bg-hairline disabled:text-scree disabled:cursor-not-allowed transition-colors rounded-full"
             >
               Use this estimate
             </button>

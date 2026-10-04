@@ -6,21 +6,21 @@
           <div key={i} className="flex flex-col items-center flex-1">
             <div className={`
               w-8 h-8 flex items-center justify-center text-sm font-bold
-              ${i < current   ? 'bg-emerald-400 text-zinc-950'
-              : i === current  ? 'bg-emerald-400 text-zinc-950 ring-4 ring-emerald-400/20'
-              : 'bg-zinc-700 text-zinc-400'}
+              ${i < current   ? 'bg-glacier text-on-glacier'
+              : i === current  ? 'bg-glacier text-on-glacier ring-4 ring-glacier'
+              : 'bg-hairline text-scree'}
             `}>
               {i < current ? '✓' : i + 1}
             </div>
-            <span className={`mt-1 text-xs hidden sm:block ${i === current ? 'text-emerald-400 font-medium' : 'text-zinc-400'}`}>
+            <span className={`mt-1 text-[13px] hidden sm:block ${i === current ? 'text-glacier font-medium' : 'text-scree'}`}>
               {label}
             </span>
           </div>
         ))}
       </div>
-      <div className="relative h-1 bg-zinc-700 mt-1">
+      <div className="relative h-1 bg-hairline mt-1">
         <div
-          className="absolute h-1 bg-emerald-400 transition-all duration-300"
+          className="absolute h-1 bg-glacier transition-all duration-300"
           style={{ width: `${(current / (total - 1)) * 100}%` }}
         />
       </div>

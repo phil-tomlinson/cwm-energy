@@ -36,30 +36,25 @@ export default function ContactPage() {
   }
 
   const inputClass =
-    "w-full bg-zinc-800 border border-zinc-700 text-zinc-100 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent placeholder-zinc-600 transition-colors";
-  const labelClass = "block text-xs uppercase tracking-widest text-zinc-400 font-mono mb-2";
+    "w-full bg-snowfield border border-hairline text-basalt px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-glacier focus:border-transparent placeholder-scree transition-colors";
+  const labelClass = "block text-[15px] font-semibold text-basalt mb-1";
 
   return (
-    <div className="bg-zinc-950 min-h-screen px-4 sm:px-6 py-20">
+    <div className="min-h-screen px-4 sm:px-6 pt-14 pb-20">
       <div className="max-w-xl mx-auto">
 
-        {/* Header */}
-        <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono mb-3">Contact</p>
-        <h1 className="text-4xl font-black tracking-tight text-zinc-100 mb-3">Get in touch.</h1>
-        <p className="text-zinc-400 text-sm mb-10 leading-relaxed">
-          Questions, feedback, or want to explore a partnership?
-          <br />
-          We&apos;d love to hear from you.
+        <h1 className="m-0 mb-3 text-[32px] font-extrabold leading-[34px] tracking-[-0.01em] text-basalt sm:text-[48px] sm:leading-[50px]">Get in touch.</h1>
+        <p className="text-scree mb-10">
+          Questions, feedback, or want to explore a partnership? We&apos;d love to hear from you.
         </p>
 
         {status === "success" ? (
-          <div className="border border-emerald-400/30 bg-emerald-400/5 p-8 text-center">
-            <div className="text-3xl mb-3">✓</div>
-            <p className="text-emerald-400 font-bold text-lg mb-1">Message sent.</p>
-            <p className="text-zinc-400 text-sm">We&apos;ll get back to you at {form.email}.</p>
+          <div className="border border-glacier bg-glacier/5 p-8 text-center rounded-[10px]">
+            <p className="text-glacier font-bold text-lg mb-1">Message sent.</p>
+            <p className="text-scree text-sm">We&apos;ll get back to you at {form.email}.</p>
             <button
               onClick={() => { setStatus("idle"); setForm({ name: "", email: "", subject: "", message: "" }); }}
-              className="mt-6 text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-300 font-mono border border-zinc-700 px-4 py-2 transition-colors"
+              className="mt-6 text-[13px] text-scree hover:text-basalt tabular-nums border border-hairline px-4 py-2 transition-colors"
             >
               Send another
             </button>
@@ -115,22 +110,22 @@ export default function ContactPage() {
             </div>
 
             {status === "error" && (
-              <p className="text-red-400 text-xs font-mono">
+              <p className="text-fireweed text-[13px] tabular-nums">
                 Something went wrong — try emailing us directly at{" "}
                 <a href="mailto:info@cwmenergy.ca" className="underline">info@cwmenergy.ca</a>
               </p>
             )}
 
             <div className="flex items-center justify-between pt-2">
-              <p className="text-xs text-zinc-400 font-mono">
-                Or: <a href="mailto:info@cwmenergy.ca" className="text-zinc-400 hover:text-zinc-300 transition-colors">info@cwmenergy.ca</a>
+              <p className="text-[13px] text-scree tabular-nums">
+                Or: <a href="mailto:info@cwmenergy.ca" className="text-scree hover:text-basalt transition-colors">info@cwmenergy.ca</a>
               </p>
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="bg-emerald-400 text-zinc-950 px-8 py-3 text-sm font-black uppercase tracking-widest hover:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-400 transition-colors"
+                className="bg-glacier text-on-glacier px-8 py-3 text-sm font-black hover:opacity-90 disabled:bg-hairline disabled:text-scree transition-colors rounded-full"
               >
-                {status === "sending" ? "Sending..." : "Send →"}
+                {status === "sending" ? "Sending..." : "Send"}
               </button>
             </div>
           </form>

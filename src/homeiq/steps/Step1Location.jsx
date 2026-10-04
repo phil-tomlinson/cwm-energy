@@ -20,8 +20,8 @@ export default function Step1Location({ data, updateData }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-zinc-100 mb-1">Where is your home?</h2>
-      <p className="text-zinc-400 text-sm mb-6">
+      <h2 className="text-xl font-bold text-basalt mb-1">Where is your home?</h2>
+      <p className="text-scree text-sm mb-6">
         Your location determines outdoor temperatures and heating degree days — the foundation of all energy calculations.
       </p>
 
@@ -42,20 +42,20 @@ export default function Step1Location({ data, updateData }) {
         />
 
         {climate && (
-          <div className="mt-4 p-4 bg-emerald-400/5 border border-emerald-400/20">
-            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-2">Climate data for {data.city}</p>
+          <div className="mt-4 p-4 bg-glacier/5 border border-glacier rounded-[10px]">
+            <p className="text-[13px] font-semibold text-glacier mb-2">Climate data for {data.city}</p>
             <div className="grid grid-cols-3 gap-3 text-center">
               <div>
-                <p className="text-lg font-bold text-emerald-400">{climate.hdd.toLocaleString()}</p>
-                <p className="text-xs text-zinc-400">Degree days<br />(HDD base 18°C)</p>
+                <p className="text-lg font-bold text-glacier">{climate.hdd.toLocaleString()}</p>
+                <p className="text-[13px] text-scree">Degree days<br />(HDD base 18°C)</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-emerald-400">{climate.designTemp}°C</p>
-                <p className="text-xs text-zinc-400">Design outdoor<br />temperature</p>
+                <p className="text-lg font-bold text-glacier">{climate.designTemp}°C</p>
+                <p className="text-[13px] text-scree">Design outdoor<br />temperature</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-emerald-400">{climate.coldWaterTemp}°C</p>
-                <p className="text-xs text-zinc-400">Cold water<br />inlet temp</p>
+                <p className="text-lg font-bold text-glacier">{climate.coldWaterTemp}°C</p>
+                <p className="text-[13px] text-scree">Cold water<br />inlet temp</p>
               </div>
             </div>
           </div>

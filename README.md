@@ -8,9 +8,11 @@ Live site: [cwmenergy.ca](https://cwmenergy.ca)
 
 ## How it's organised
 
-- `src/app/(cwm)/`: the new pages (landing, My Footprint, the timeline wizard at `/start`, Tools).
-- `src/app/(legacy)/`: the original calculators and pages, at their original URLs, until each is restyled.
-  The EV Benefit Calculator stays at `/ev-benefit-calculator`.
+- `src/app/(cwm)/`: every page (landing, My Footprint, the timeline wizard at `/start`, the calculators, Plan,
+  Rebates and the rest). The EV Benefit Calculator stays at `/ev-benefit-calculator`.
+- `src/app/globals.css`: the design tokens (Daylight, Alpine night and high-contrast). Use the token classes
+  (`bg-snowfield`, `text-basalt`, `text-scree`, `bg-glacier`…) rather than raw colours; canvas charts read the
+  same tokens through `src/lib/theme.ts`.
 - `src/lib/factors.ts`: every emission factor and assumption, with its source.
 - `src/lib/timeline/`: the timeline data model, local-first storage and the engine that computes each
   year's footprint and each change's impact.

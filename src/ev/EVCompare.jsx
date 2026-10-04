@@ -1,5 +1,7 @@
 ﻿'use client'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { token, CHART_FONT } from '@/lib/theme'
+import { useA11y } from '@/components/A11yProvider'
 import { WEATHER_PROXY, CARBON_PROXY, maintTotal, fmt } from './evData'
 import DiveDeeper from '@/components/DiveDeeper'
 import SaveToPlanBanner from '@/components/SaveToPlanBanner'
@@ -15,8 +17,8 @@ function gridLabel(gCO2kWh) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const CO2_PER_FUEL_L = 2.31           // kg CO₂e/L gasoline (IPCC AR5)
-const COLOR_A        = '#818cf8'      // indigo-400
-const COLOR_B        = '#fb923c'      // orange-400
+const COLOR_A        = 'var(--series-1)'
+const COLOR_B        = 'var(--series-2)'
 
 // ── Vehicle lifespan defaults (km) ────────────────────────────────────────────
 // ICE / Hybrid: S&P Global Mobility 2025 reports avg U.S. scrappage age of 12.8 yrs at
@@ -88,11 +90,8 @@ function numRepsAtKm(kmDriven, remKm, lifespan) {
 // ── Section header ─────────────────────────────────────────────────────────────
 function SectionHeader({ num, title }) {
   return (
-    <div className="flex items-center gap-3 pt-8 pb-4 border-b border-zinc-800">
-      <span className="font-mono text-[10px] font-semibold text-emerald-400 border border-emerald-400/30 px-2 py-0.5 whitespace-nowrap">
-        {num}
-      </span>
-      <h2 className="text-base font-bold text-zinc-100 tracking-tight">{title}</h2>
+    <div className="flex items-center gap-3 pt-8 pb-3 border-b border-hairline">
+      <h2 className="m-0 text-[22px] font-bold leading-[28px] text-basalt">{title}</h2>
     </div>
   )
 }
@@ -113,7 +112,7 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
   const [load,  setLoad]  = useState('')
   const [err,   setErr]   = useState('')
 
-  const sc = 'w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors disabled:opacity-40'
+  const sc = 'w-full bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors disabled:opacity-40'
   const TYPE_LABEL = { ev: 'Battery Electric (BEV)', phev: 'Plug-in Hybrid (PHEV)', ice: 'Gas / Hybrid' }
 
   async function onYr(y) {
@@ -154,27 +153,27 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
   return (
     <div>
       {err && (
-        <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-2 mb-3">{err}</p>
+        <p className="text-[13px] text-fireweed bg-fireweed/10 border border-fireweed p-2 mb-3">{err}</p>
       )}
 
       {/* Year / Make / Model */}
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Year</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-1.5">Year</label>
           <select value={year} onChange={e => onYr(e.target.value)} className={sc}>
             <option value="">Select</option>
             {yrs.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Make</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-1.5">Make</label>
           <select value={make} onChange={e => onMk(e.target.value)} className={sc} disabled={!year || load === 'm'}>
             <option value="">{load === 'm' ? 'Loading…' : 'Select'}</option>
             {makes.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Model</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-1.5">Model</label>
           <select value={mod} onChange={e => onMo(e.target.value)} className={sc} disabled={!make || load === 'mo'}>
             <option value="">{load === 'mo' ? 'Loading…' : 'Select'}</option>
             {mods.map(m => <option key={m} value={m}>{m}</option>)}
@@ -182,12 +181,12 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
         </div>
       </div>
 
-      {load === 'v' && <p className="text-xs text-zinc-400 font-mono mb-2">Loading variants…</p>}
+      {load === 'v' && <p className="text-[13px] text-scree tabular-nums mb-2">Loading variants…</p>}
 
       {/* Variant radio list */}
       {vars.length > 1 && (
         <div className="space-y-1 mb-3">
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">Variant</label>
+          <label className="block tabular-nums text-[13px] text-scree mb-1.5">Variant</label>
           {vars.map((v, i) => {
             const lbl = [
               TYPE_LABEL[v.type] ?? v.type,
@@ -196,11 +195,11 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
               v.fuelL100km   != null ? `${fmt(v.fuelL100km,  1)} L/100km`   : null,
             ].filter(Boolean).join(' · ')
             return (
-              <label key={i} className={`flex items-start gap-2 border p-2.5 cursor-pointer transition-colors ${sel === v ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 hover:border-zinc-500'}`}>
+              <label key={i} className={`flex items-start gap-2 border p-2.5 cursor-pointer transition-colors ${sel === v ? 'border-glacier bg-glacier/5' : 'border-hairline hover:border-hairline'}`}>
                 <input type="radio" name={`var-${slot}`} checked={sel === v}
                   onChange={() => { setSel(v); onSelect(v) }}
-                  className="mt-0.5 accent-emerald-400" />
-                <span className="text-xs text-zinc-300 leading-relaxed">{lbl}</span>
+                  className="mt-0.5 accent-[var(--glacier)]" />
+                <span className="text-[13px] text-basalt leading-relaxed">{lbl}</span>
               </label>
             )
           })}
@@ -211,11 +210,11 @@ function VehiclePicker({ slot, accentColor, onSelect }) {
       {sel && (
         <div className="border rounded-sm p-3"
           style={{ borderColor: `${accentColor}55`, background: `${accentColor}08` }}>
-          <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color: accentColor }}>
+          <p className="tabular-nums text-[13px] mb-1" style={{ color: accentColor }}>
             Selected — NRCan data
           </p>
-          <p className="text-sm font-bold text-zinc-100">{year} {make} {mod}</p>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-sm font-bold text-basalt">{year} {make} {mod}</p>
+          <p className="text-[13px] text-scree mt-0.5">
             {TYPE_LABEL[sel.type] ?? sel.type}
             {sel.effKwh100km != null ? ` · ${fmt(sel.effKwh100km, 1)} kWh/100km` : ''}
             {sel.fuelL100km   != null ? ` · ${fmt(sel.fuelL100km,  1)} L/100km`   : ''}
@@ -241,24 +240,24 @@ function VehicleInputPanel({
   prov, setProv,
   annualKm, applyRebates,
 }) {
-  const ic = 'w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors'
+  const ic = 'w-full bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors'
   const remainingKm  = Math.max(0, lifespan - startKm)
   const remainingYrs = annualKm > 0 ? remainingKm / annualKm : 0
 
   return (
-    <div className="flex-1 border border-zinc-700 bg-zinc-900/40 p-5 min-w-0">
-      <p className="font-mono text-[10px] uppercase tracking-widest mb-4" style={{ color: accentColor }}>
+    <div className="flex-1 border border-hairline bg-snowfield-raised p-5 min-w-0 rounded-[10px]">
+      <p className="tabular-nums text-[13px] mb-4" style={{ color: accentColor }}>
         {label}
       </p>
 
       <VehiclePicker slot={label} accentColor={accentColor} onSelect={onSel} />
 
       {vehicle && (
-        <div className="mt-4 space-y-3 border-t border-zinc-800 pt-4">
+        <div className="mt-4 space-y-3 border-t border-hairline pt-4">
           {/* Price + starting mileage */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+              <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                 Purchase price ($CAD)
               </label>
               <input type="number" value={price} step={500} min={5000} max={300000}
@@ -266,7 +265,7 @@ function VehicleInputPanel({
                 className={ic} />
             </div>
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+              <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                 Starting mileage (km)
               </label>
               <input type="number" value={startKm} step={1000} min={0}
@@ -278,40 +277,40 @@ function VehicleInputPanel({
 
           {/* Used vehicle extras — shown only when starting mileage > 0 */}
           {startKm > 0 && (
-            <div className="bg-zinc-950 border border-zinc-800 p-3 space-y-3">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+            <div className="bg-snowfield border border-hairline p-3 space-y-3 rounded-[10px]">
+              <p className="tabular-nums text-[13px] text-scree">
                 Already own this vehicle?
               </p>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">
+              <p className="text-[13px] text-scree leading-relaxed">
                 Your original purchase price is sunk — it no longer affects the decision.
-                What matters is the car's <span className="text-zinc-300">current resale value</span>: by keeping it
+                What matters is the car's <span className="text-basalt">current resale value</span>: by keeping it
                 instead of selling it and buying the other vehicle, you're implicitly spending that amount.
               </p>
 
               {/* Resale / opportunity cost */}
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+                <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                   Current resale value ($CAD)
                   <span className="normal-case opacity-60 ml-1">— opportunity cost</span>
                 </label>
                 <input type="number" value={resale} step={500} min={0} max={300000}
                   onChange={e => setResale(parseFloat(e.target.value) || 0)}
                   className={ic} />
-                <p className="text-[10px] text-zinc-400 mt-1 font-mono">
+                <p className="text-[13px] text-scree mt-1 tabular-nums">
                   Check Autotrader / Kijiji for a realistic estimate.
                 </p>
               </div>
 
               {/* Replacement cost */}
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+                <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                   Replacement vehicle cost ($CAD)
                   <span className="normal-case opacity-60 ml-1">— when this one reaches end of life</span>
                 </label>
                 <input type="number" value={replPrice} step={500} min={5000} max={300000}
                   onChange={e => setReplPrice(parseFloat(e.target.value) || 0)}
                   className={ic} />
-                <p className="text-[10px] text-zinc-400 mt-1 font-mono">
+                <p className="text-[13px] text-scree mt-1 tabular-nums">
                   Used vehicles reach end of life sooner — set what you'd spend on the next one.
                 </p>
               </div>
@@ -320,7 +319,7 @@ function VehicleInputPanel({
 
           {/* Lifespan */}
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+            <label className="block tabular-nums text-[13px] text-scree mb-1.5">
               Est. lifespan (km)
               <span className="normal-case opacity-60 ml-1">
                 {vehicle.type === 'ev'
@@ -336,7 +335,7 @@ function VehicleInputPanel({
           {/* Battery size (EVs / PHEVs) */}
           {(vehicle.type === 'ev' || vehicle.type === 'phev') && (
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+              <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                 Battery size (kWh)
                 <span className="normal-case opacity-60 ml-1">— for manufacturing CO₂ estimate</span>
               </label>
@@ -351,11 +350,11 @@ function VehicleInputPanel({
           {applyRebates && (
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+                <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                   Federal rebate ($)
                 </label>
                 {vehicle.type === 'ice' ? (
-                  <span className="text-zinc-400 font-mono text-sm">—</span>
+                  <span className="text-scree tabular-nums text-sm">—</span>
                 ) : (
                   <input type="number" value={fed} step={500} min={0} max={10000}
                     onChange={e => setFed(parseFloat(e.target.value) || 0)}
@@ -363,7 +362,7 @@ function VehicleInputPanel({
                 )}
               </div>
               <div>
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+                <label className="block tabular-nums text-[13px] text-scree mb-1.5">
                   Provincial rebate ($)
                 </label>
                 <input type="number" value={prov} step={500} min={0} max={15000}
@@ -374,14 +373,14 @@ function VehicleInputPanel({
           )}
 
           {/* Remaining life summary */}
-          <div className="bg-zinc-950 border border-zinc-800 p-3">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">
+          <div className="bg-snowfield border border-hairline p-3 rounded-[10px]">
+            <p className="tabular-nums text-[13px] text-scree mb-1">
               Remaining life estimate
             </p>
-            <p className="font-mono text-lg font-semibold" style={{ color: accentColor }}>
+            <p className="tabular-nums text-lg font-semibold" style={{ color: accentColor }}>
               {fmt(remainingKm, 0)} km
             </p>
-            <p className="font-mono text-[11px] text-zinc-400 mt-0.5">
+            <p className="tabular-nums text-[13px] text-scree mt-0.5">
               ≈ {fmt(remainingYrs, 1)} years at {fmt(annualKm, 0)} km/yr
             </p>
           </div>
@@ -393,6 +392,9 @@ function VehicleInputPanel({
 
 // ── Main compare component ─────────────────────────────────────────────────────
 export default function EVCompare() {
+  // Canvas charts use resolved colours: redraw the last result when the theme changes.
+  const { theme, a11y } = useA11y()
+  const lastDraw = useRef(null)
   // ── Shared inputs ────────────────────────────────────────────────────────
   const [city,      setCity]      = useState('Calgary, CA')
   const [annualKm,  setAnnualKm]  = useState(20000)
@@ -470,12 +472,14 @@ export default function EVCompare() {
       lifespanA, lifespanB,
     } = data
 
-    const TICK = '#71717a', GRID = '#27272a', FONT = 'ui-monospace, monospace'
+    lastDraw.current = data
+    const TICK = token('--scree'), GRID = token('--hairline'), FONT = CHART_FONT
+    const colorA = token('--series-1'), colorB = token('--series-2')
     const tip = {
-      backgroundColor: '#18181b', borderColor: '#3f3f46', borderWidth: 1,
-      titleColor: '#e4e4e7', bodyColor: '#a1a1aa',
+      backgroundColor: token('--snowfield-raised'), borderColor: token('--hairline'), borderWidth: 1,
+      titleColor: token('--basalt'), bodyColor: token('--scree'),
       titleFont: { family: FONT, weight: '600', size: 12 },
-      bodyFont:  { family: FONT, size: 11 }, padding: 10,
+      bodyFont:  { family: FONT, size: 12 }, padding: 10,
     }
 
     const MAX   = 10
@@ -510,10 +514,10 @@ export default function EVCompare() {
       return (mfgB.total * (1 + reps) + co2kmB * km) / 1000
     })
 
-    const baseX = { grid: { color: GRID }, ticks: { color: TICK, font: { family: FONT, size: 11 } } }
-    const baseY = { grid: { color: GRID }, ticks: { color: TICK, font: { family: FONT, size: 11 } } }
-    const legend = { labels: { color: TICK, font: { family: FONT, size: 11 }, boxWidth: 12, padding: 12 } }
-    const titleStyle = (text) => ({ display: true, text, color: TICK, font: { family: FONT, size: 11 } })
+    const baseX = { grid: { color: GRID }, ticks: { color: TICK, font: { family: FONT, size: 12 } } }
+    const baseY = { grid: { color: GRID }, ticks: { color: TICK, font: { family: FONT, size: 12 } } }
+    const legend = { labels: { color: TICK, font: { family: FONT, size: 12 }, boxWidth: 12, padding: 12 } }
+    const titleStyle = (text) => ({ display: true, text, color: TICK, font: { family: FONT, size: 12 } })
     const titleCb = items => {
       const yr = parseInt(items[0].label.replace('Yr ', ''))
       return isNaN(yr) ? 'Purchase' : `Year ${yr} · ${fmt(yr * annKm, 0)} km driven`
@@ -525,8 +529,8 @@ export default function EVCompare() {
         data: {
           labels: years,
           datasets: [
-            { label: nameA, data: cumCostA, borderColor: COLOR_A, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
-            { label: nameB, data: cumCostB, borderColor: COLOR_B, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
+            { label: nameA, data: cumCostA, borderColor: colorA, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
+            { label: nameB, data: cumCostB, borderColor: colorB, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
           ],
         },
         options: {
@@ -563,8 +567,8 @@ export default function EVCompare() {
         data: {
           labels: years,
           datasets: [
-            { label: nameA, data: cumCO2A, borderColor: COLOR_A, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
-            { label: nameB, data: cumCO2B, borderColor: COLOR_B, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
+            { label: nameA, data: cumCO2A, borderColor: colorA, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
+            { label: nameB, data: cumCO2B, borderColor: colorB, borderWidth: 2.5, pointRadius: 0, fill: false, tension: 0.1, spanGaps: false },
           ],
         },
         options: {
@@ -670,23 +674,28 @@ export default function EVCompare() {
       priceA, priceB, replPriceA, replPriceB, resaleA, resaleB,
       fedA, fedB, provA, provB, applyRebates])
 
+  useEffect(() => {
+    if (lastDraw.current) drawCharts(lastDraw.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme, a11y])
+
   // ── Render ─────────────────────────────────────────────────────────────────
   const r = results
 
   return (
     <div className="space-y-0">
-      <p className="text-sm text-zinc-400 leading-relaxed mb-6">
+      <p className="text-sm text-scree leading-relaxed mb-6">
         Choose any two vehicles from the NRCan fuel consumption database and compare their true cost of
         ownership, carbon footprint, and lifetime economics. Works for new or used vehicles — enter a
         starting mileage to see how much life is left in each.
       </p>
 
       {/* ── Inputs ────────────────────────────────────────────────────── */}
-      <div className="border border-zinc-700 bg-zinc-800/40 p-5 space-y-5">
+      <div className="border border-hairline bg-snowfield p-5 space-y-5 rounded-[10px]">
 
         {/* City + run */}
         <div>
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+          <label className="block tabular-nums text-[13px] text-scree mb-2">
             Your city
           </label>
           <div className="flex gap-2">
@@ -694,19 +703,19 @@ export default function EVCompare() {
               type="text" value={city}
               onChange={e => setCity(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && runComparison()}
-              className="flex-1 bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors"
+              className="flex-1 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors"
               placeholder="Calgary, CA"
             />
             <button
               onClick={runComparison}
               disabled={!vA || !vB || status === 'loading'}
-              className="bg-emerald-400 text-zinc-950 font-bold text-xs uppercase tracking-widest px-5 py-2 hover:bg-emerald-300 transition-colors disabled:opacity-40 whitespace-nowrap"
+              className="bg-glacier text-on-glacier font-bold text-[13px] px-5 py-2 hover:opacity-90 transition-colors disabled:opacity-40 whitespace-nowrap rounded-full"
             >
-              {status === 'loading' ? 'Loading…' : 'Compare →'}
+              {status === 'loading' ? 'Loading…' : 'Compare'}
             </button>
           </div>
           {(!vA || !vB) && (
-            <p className="text-[11px] text-zinc-400 mt-1.5">
+            <p className="text-[13px] text-scree mt-1.5">
               Select both vehicles below to enable the comparison.
             </p>
           )}
@@ -720,58 +729,58 @@ export default function EVCompare() {
             { label: 'Gas price',      unit: '$/L',     val: gasPrice,  set: setGasPrice,  step: 0.05,  min: 0.80,  max: 3.00   },
           ].map(({ label, unit, val, set, step, min, max }) => (
             <div key={label}>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+              <label className="block tabular-nums text-[13px] text-scree mb-2">
                 {label} <span className="normal-case opacity-70">({unit})</span>
               </label>
               <input
                 type="number" value={val} step={step} min={min} max={max}
                 onChange={e => set(parseFloat(e.target.value))}
-                className="w-full bg-zinc-900 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm font-mono focus:outline-none focus:border-emerald-400 transition-colors"
+                className="w-full bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors"
               />
             </div>
           ))}
         </div>
 
         {/* Solar slider */}
-        <div className="border-t border-zinc-700 pt-4">
-          <label className="block font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">
+        <div className="border-t border-hairline pt-4">
+          <label className="block tabular-nums text-[13px] text-scree mb-2">
             Home solar <span className="normal-case opacity-70">(% from panels)</span>
           </label>
           <div className="flex items-center gap-3">
             <input type="range" min={0} max={100} step={5} value={solarPct}
               onChange={e => setSolarPct(Number(e.target.value))}
-              className="flex-1 min-w-0 accent-emerald-400" />
-            <span className="font-mono text-emerald-400 text-sm font-semibold w-9 text-right flex-shrink-0">
+              className="flex-1 min-w-0 accent-[var(--glacier)]" />
+            <span className="tabular-nums text-glacier text-sm font-semibold w-9 text-right flex-shrink-0">
               {solarPct}%
             </span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
+          <p className="text-[13px] text-scree mt-1.5 leading-relaxed">
             Solar charging is treated as 0 gCO₂e/kWh and $0/kWh.
           </p>
         </div>
 
         {/* Rebates toggle */}
-        <div className="border-t border-zinc-700 pt-4">
+        <div className="border-t border-hairline pt-4">
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               onClick={() => setApplyRebates(v => !v)}
-              className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${applyRebates ? 'bg-emerald-400' : 'bg-zinc-600'}`}>
-              <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${applyRebates ? 'translate-x-5' : 'translate-x-0'}`} />
+              className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ${applyRebates ? 'bg-glacier' : 'bg-scree'}`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-snowfield-raised rounded-full transition-transform ${applyRebates ? 'translate-x-5' : 'translate-x-0'}`} />
             </div>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 select-none">
+            <span className="tabular-nums text-[13px] text-scree select-none">
               Apply government rebates (EVAP + provincial)
             </span>
           </label>
           {applyRebates && (
-            <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
+            <p className="text-[13px] text-scree mt-2 leading-relaxed">
               Federal amounts pre-filled per EVAP (BEV: $5,000 · PHEV: $2,500 · ICE: $0). Edit per your vehicle's eligibility.
-              Verify at <a href="https://tc.gc.ca/ev" target="_blank" rel="noopener" className="text-emerald-400 hover:underline">tc.gc.ca/ev</a>.
+              Verify at <a href="https://tc.gc.ca/ev" target="_blank" rel="noopener" className="text-glacier hover:underline">tc.gc.ca/ev</a>.
             </p>
           )}
         </div>
 
         {/* Vehicle A / B panels */}
-        <div className="border-t border-zinc-700 pt-4">
+        <div className="border-t border-hairline pt-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <VehicleInputPanel
               label="Vehicle A"  accentColor={COLOR_A}
@@ -805,13 +814,13 @@ export default function EVCompare() {
 
       {/* Status */}
       {status === 'loading' && (
-        <div className="flex items-center gap-3 py-10 justify-center text-zinc-400 text-sm font-mono">
-          <div className="w-5 h-5 border-2 border-zinc-600 border-t-emerald-400 rounded-full animate-spin" />
+        <div className="flex items-center gap-3 py-10 justify-center text-scree text-sm tabular-nums">
+          <div className="w-5 h-5 border-2 border-hairline border-t-glacier rounded-full animate-spin" />
           Fetching grid data for {city}…
         </div>
       )}
       {status === 'error' && (
-        <div className="border border-red-400/30 bg-red-400/5 text-red-400 text-sm p-4 mt-4 font-mono">
+        <div className="border border-fireweed bg-fireweed/5 text-fireweed text-sm p-4 mt-4 tabular-nums">
           {errorMsg}
         </div>
       )}
@@ -837,14 +846,14 @@ export default function EVCompare() {
             {(() => {
               const gl = gridLabel(r.grid)
               return (
-                <div className="bg-emerald-400/5 border border-emerald-400/20 px-4 py-3 mt-4 mb-2">
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 mb-1">
-                    <span><span className="text-emerald-400 font-semibold">{r.cityName}, {r.country}</span></span>
-                    <span><span className="text-emerald-400 font-semibold">{gl.text}</span> — {gl.hint}</span>
-                    {r.solarPct > 0 && <span className="text-emerald-400">↗ {r.solarPct}% solar applied</span>}
-                    {applyRebates && <span className="text-emerald-400">↗ Rebates applied</span>}
+                <div className="bg-glacier/5 border border-glacier px-4 py-3 mt-4 mb-2 rounded-[10px]">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] tabular-nums text-scree mb-1">
+                    <span><span className="text-glacier font-semibold">{r.cityName}, {r.country}</span></span>
+                    <span><span className="text-glacier font-semibold">{gl.text}</span> — {gl.hint}</span>
+                    {r.solarPct > 0 && <span className="text-glacier">↗ {r.solarPct}% solar applied</span>}
+                    {applyRebates && <span className="text-glacier">↗ Rebates applied</span>}
                   </div>
-                  <p className="text-[11px] text-zinc-400 font-mono">
+                  <p className="text-[13px] text-scree tabular-nums">
                     Grid intensity: {Math.round(r.grid)} gCO₂e/kWh
                     {r.solarPct > 0 && ` · EV effective: ${Math.round(r.effGrid)} gCO₂e/kWh`}
                     {' '}— <span className="italic">grams of CO₂ equivalent per kilowatt-hour of electricity used</span>
@@ -858,7 +867,7 @@ export default function EVCompare() {
             {/* ══ 01 — ECONOMICS ══ */}
             <SectionHeader num="01 — Economics" title="What does it cost to own and run each vehicle?" />
 
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-5 mb-2">
+            <p className="tabular-nums text-[13px] text-scree mt-5 mb-2">
               Annual fuel &amp; energy costs
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -867,16 +876,16 @@ export default function EVCompare() {
                 const rep10       = numRepsAtKm(10 * annKm, remKm, lifespan)
                 const totalCost10 = effInit + rep10 * effRepl + run10
                 return (
-                  <div key={label} className={`relative border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
+                  <div key={label} className={`relative border p-4 ${isLowest ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield'}`}>
                     {isLowest && (
-                      <span className="absolute top-0 right-0 bg-emerald-400 text-zinc-950 text-[9px] font-black uppercase tracking-wider px-2 py-0.5">
+                      <span className="absolute top-0 right-0 bg-glacier text-on-glacier text-[13px] font-black px-2 py-0.5 rounded-full">
                         Lower cost
                       </span>
                     )}
                     <div className="h-0.5 w-full mb-3" style={{ background: color }} />
-                    <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color }}>{label}</p>
-                    <p className="text-sm font-bold text-zinc-100 mb-3 leading-snug">{v.make} {v.model}</p>
-                    <div className="space-y-2 text-xs">
+                    <p className="tabular-nums text-[13px] mb-1" style={{ color }}>{label}</p>
+                    <p className="text-sm font-bold text-basalt mb-3 leading-snug">{v.make} {v.model}</p>
+                    <div className="space-y-2 text-[13px]">
                       {[
                         { k: 'Annual fuel / energy',  val: `$${fmt(cost, 0)}/yr`,  hi: isLowest },
                         { k: 'Annual maintenance',    val: `$${fmt(maint, 0)}/yr`, hi: false },
@@ -890,9 +899,9 @@ export default function EVCompare() {
                         { k: 'Remaining life',        val: `${fmt(remKm, 0)} km`,  hi: false, sep: true },
                         { k: '≈ years remaining',     val: `${fmt(remKm / annKm, 1)} yrs`, hi: false },
                       ].map(({ k, val, hi, sep }) => (
-                        <div key={k} className={`flex justify-between items-baseline ${sep ? 'border-t border-zinc-800 pt-2 mt-2' : ''}`}>
-                          <span className="text-zinc-400">{k}</span>
-                          <span className={`font-mono font-semibold ${hi ? 'text-emerald-400' : 'text-zinc-200'}`}>{val}</span>
+                        <div key={k} className={`flex justify-between items-baseline ${sep ? 'border-t border-hairline pt-2 mt-2' : ''}`}>
+                          <span className="text-scree">{k}</span>
+                          <span className={`tabular-nums font-semibold ${hi ? 'text-glacier' : 'text-basalt'}`}>{val}</span>
                         </div>
                       ))}
                     </div>
@@ -903,12 +912,12 @@ export default function EVCompare() {
 
             {/* Annual savings callout (if types differ meaningfully) */}
             {(costA !== costB) && (
-              <div className="border border-zinc-700 bg-zinc-800/40 p-4 mt-3">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">Annual fuel difference</p>
-                <p className="font-mono text-2xl font-semibold text-emerald-400">
+              <div className="border border-hairline bg-snowfield p-4 mt-3 rounded-[10px]">
+                <p className="tabular-nums text-[13px] text-scree mb-1">Annual fuel difference</p>
+                <p className="tabular-nums text-2xl font-semibold text-glacier">
                   ${fmt(Math.abs(costA - costB), 0)}/yr
                 </p>
-                <p className="text-xs text-zinc-400 mt-1">
+                <p className="text-[13px] text-scree mt-1">
                   {costA < costB
                     ? `${vehicleA.make} ${vehicleA.model} saves $${fmt(costB - costA, 0)} per year in fuel and energy costs.`
                     : `${vehicleB.make} ${vehicleB.model} saves $${fmt(costA - costB, 0)} per year in fuel and energy costs.`}
@@ -917,26 +926,26 @@ export default function EVCompare() {
             )}
 
             {/* TCO chart */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1 mt-8">
+            <p className="text-[17px] font-bold text-basalt mb-1 mt-8">
               Total cost of ownership
             </p>
-            <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative cost over 10 years</h3>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <h3 className="text-sm font-bold text-basalt mb-1">Cumulative cost over 10 years</h3>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               Purchase price + annual fuel + annual maintenance compound over time.
               When a vehicle reaches end of life, a replacement purchase is added — causing a visible step up in cost.
               {applyRebates && ' Rebates applied to each purchase.'}
             </p>
-            <div className="bg-zinc-900 border border-zinc-700 p-4 mb-8" style={{ height: 340 }}>
+            <div className="bg-snowfield-raised border border-hairline p-4 mb-8 rounded-[10px]" style={{ height: 340 }}>
               <canvas ref={tcoRef} />
             </div>
 
             {/* ══ 02 — EMISSIONS ══ */}
             <SectionHeader num="02 — Emissions" title="What's the carbon story?" />
 
-            <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-5 mb-2">
+            <p className="tabular-nums text-[13px] text-scree mt-5 mb-2">
               Driving emissions on your grid
             </p>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               Live carbon intensity for {r.cityName} ({Math.round(r.grid)} gCO₂e/kWh).
               EV emissions are entirely a function of your grid — Quebec and Alberta get very different answers.
             </p>
@@ -944,30 +953,30 @@ export default function EVCompare() {
               {pairs.map(({ v, color, label, co2km, mfg, remKm }) => {
                 const isLowest = co2km === minCO2
                 return (
-                  <div key={label} className={`border p-4 ${isLowest ? 'border-emerald-400 bg-emerald-400/5' : 'border-zinc-700 bg-zinc-800/40'}`}>
+                  <div key={label} className={`border p-4 ${isLowest ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield'}`}>
                     <div className="h-0.5 w-full mb-3" style={{ background: color }} />
-                    <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color }}>{label}</p>
-                    <p className="text-sm font-bold text-zinc-100 mb-3 leading-snug">{v.make} {v.model}</p>
+                    <p className="tabular-nums text-[13px] mb-1" style={{ color }}>{label}</p>
+                    <p className="text-sm font-bold text-basalt mb-3 leading-snug">{v.make} {v.model}</p>
 
                     {/* Emissions bar */}
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">
+                    <p className="tabular-nums text-[13px] text-scree mb-1">
                       Driving emissions
                     </p>
-                    <p className="font-mono text-3xl font-semibold leading-none mb-0.5"
-                      style={{ color: isLowest ? '#34d399' : '#e4e4e7' }}>
+                    <p className="tabular-nums text-3xl font-semibold leading-none mb-0.5"
+                      style={{ color: isLowest ? 'var(--glacier)' : 'var(--basalt)' }}>
                       {fmt(co2km * 1000, 1)}
                     </p>
-                    <p className="font-mono text-[11px] text-zinc-400 mb-3">gCO₂e / km</p>
+                    <p className="tabular-nums text-[13px] text-scree mb-3">gCO₂e / km</p>
 
-                    <div className="space-y-2 text-xs border-t border-zinc-800 pt-3">
+                    <div className="space-y-2 text-[13px] border-t border-hairline pt-3">
                       {[
                         { k: 'Annual driving CO₂',   val: `${fmt(co2km * annKm / 1000, 2)} t/yr` },
                         { k: 'Manufacturing CO₂',    val: `${fmt(mfg.total / 1000, 1)} t` },
                         ...(mfg.battery > 0 ? [{ k: '↳ of which battery', val: `${fmt(mfg.battery / 1000, 1)} t` }] : []),
                       ].map(({ k, val }) => (
                         <div key={k} className="flex justify-between items-baseline">
-                          <span className="text-zinc-400">{k}</span>
-                          <span className="font-mono text-zinc-300">{val}</span>
+                          <span className="text-scree">{k}</span>
+                          <span className="tabular-nums text-basalt">{val}</span>
                         </div>
                       ))}
                     </div>
@@ -978,44 +987,44 @@ export default function EVCompare() {
 
             {/* Carbon breakeven */}
             {breakevenKm !== null && (
-              <div className="mt-5 border border-zinc-700 bg-zinc-800/40 p-4">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-1">
+              <div className="mt-5 border border-hairline bg-snowfield p-4 rounded-[10px]">
+                <p className="tabular-nums text-[13px] text-scree mb-1">
                   When does the EV become better for the planet?
                 </p>
-                <p className="text-xs text-zinc-400 mb-3 leading-relaxed">
+                <p className="text-[13px] text-scree mb-3 leading-relaxed">
                   Building a battery takes energy, so an EV starts with a higher carbon footprint than a gas car.
                   Every kilometre driven on cleaner electricity chips away at that gap.
                   The distance below is when the EV comes out ahead, lifetime total.
                 </p>
                 {!isFinite(breakevenKm) || breakevenKm <= 0 ? (
-                  <p className="text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 p-3 leading-relaxed">
+                  <p className="text-[13px] text-basalt bg-larch/10 border border-larch p-3 leading-relaxed rounded-[10px]">
                     On your current grid, the EV produces more CO₂ per km than the gas vehicle — no carbon breakeven point exists at this grid intensity.
                   </p>
                 ) : breakevenKm > 500000 ? (
-                  <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 p-3">
+                  <p className="text-[13px] text-fireweed bg-fireweed/10 border border-fireweed p-3">
                     Breakeven at {fmt(Math.round(breakevenKm / 1000), 0)}k km — beyond a typical vehicle lifespan at current grid intensity.
                   </p>
                 ) : (
                   <>
-                    <p className="font-mono text-2xl font-semibold text-emerald-400">
+                    <p className="tabular-nums text-2xl font-semibold text-glacier">
                       {fmt(Math.round(breakevenKm / 1000) * 1000, 0)}
                     </p>
-                    <p className="font-mono text-[11px] text-zinc-400 mb-2">km to carbon breakeven</p>
-                    <div className="bg-emerald-400/10 border border-emerald-400/20 p-3 text-xs text-zinc-400 leading-relaxed">
-                      At <span className="text-emerald-400 font-semibold">{fmt(annKm, 0)} km/yr</span> →{' '}
-                      <span className="text-emerald-400 font-semibold">{fmt(breakevenKm / annKm, 1)} years</span>{' '}
+                    <p className="tabular-nums text-[13px] text-scree mb-2">km to carbon breakeven</p>
+                    <div className="bg-glacier/10 border border-glacier p-3 text-[13px] text-scree leading-relaxed rounded-[10px]">
+                      At <span className="text-glacier font-semibold">{fmt(annKm, 0)} km/yr</span> →{' '}
+                      <span className="text-glacier font-semibold">{fmt(breakevenKm / annKm, 1)} years</span>{' '}
                       to recover the EV's higher manufacturing carbon debt through cleaner driving.
                     </div>
                   </>
                 )}
                 <DiveDeeper label="How is this calculated?">
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-[13px] text-scree leading-relaxed">
                     The breakeven point compares the manufacturing CO₂ gap between the two vehicles against the per-kilometre emissions savings during driving.
                   </p>
-                  <p className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-2 leading-relaxed">
+                  <p className="text-[13px] tabular-nums text-scree bg-snowfield-raised border border-hairline px-3 py-2 leading-relaxed">
                     Breakeven km = (EV mfg CO₂ − Gas car mfg CO₂) ÷ (Gas car g/km − EV g/km)
                   </p>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
+                  <p className="text-[13px] text-scree leading-relaxed">
                     If the EV emits more per km than the gas car (possible on a very carbon-heavy grid), no breakeven exists — the grid is too dirty for an emissions advantage at that moment.
                     Manufacturing CO₂ estimates use GREET 2023 (Argonne National Lab): ~75 kg CO₂e/kWh blended battery average, plus ~8,000 kg for the vehicle glider.
                   </p>
@@ -1024,43 +1033,43 @@ export default function EVCompare() {
             )}
 
             {/* Lifetime CO₂ chart */}
-            <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-1 mt-8">
+            <p className="text-[17px] font-bold text-basalt mb-1 mt-8">
               Lifetime emissions
             </p>
-            <h3 className="text-sm font-bold text-zinc-200 mb-1">Cumulative CO₂e over 10 years</h3>
-            <p className="text-xs text-zinc-400 mb-4 leading-relaxed">
+            <h3 className="text-sm font-bold text-basalt mb-1">Cumulative CO₂e over 10 years</h3>
+            <p className="text-[13px] text-scree mb-4 leading-relaxed">
               Manufacturing carbon (at purchase) + driving emissions accumulate year by year.
               Where a lower-emission vehicle's line crosses below the other is the carbon breakeven point.
             </p>
-            <div className="bg-zinc-900 border border-zinc-700 p-4 mb-6" style={{ height: 340 }}>
+            <div className="bg-snowfield-raised border border-hairline p-4 mb-6 rounded-[10px]" style={{ height: 340 }}>
               <canvas ref={co2Ref} />
             </div>
 
             {/* Lifespan data sources */}
             <DiveDeeper label="Where do the lifespan defaults come from?">
-              <ul className="text-[11px] text-zinc-400 space-y-2 leading-relaxed">
+              <ul className="text-[13px] text-scree space-y-2 leading-relaxed">
                 <li>
-                  <span className="text-zinc-300 font-semibold">Gas / Hybrid ({fmt(LIFESPAN_KM.ice, 0)} km):</span>{' '}
+                  <span className="text-basalt font-semibold">Gas / Hybrid ({fmt(LIFESPAN_KM.ice, 0)} km):</span>{' '}
                   S&P Global Mobility 2025 reports an average U.S. scrappage age of 12.8 years; at ~24,000 km/yr that's ~306,000 km.
                   CAA Canada confirms modern, well-maintained vehicles regularly exceed 300,000 km.
                 </li>
                 <li>
-                  <span className="text-zinc-300 font-semibold">PHEV ({fmt(LIFESPAN_KM.phev, 0)} km):</span>{' '}
+                  <span className="text-basalt font-semibold">PHEV ({fmt(LIFESPAN_KM.phev, 0)} km):</span>{' '}
                   Limited by the ICE powertrain; treated the same as conventional gas.
                 </li>
                 <li>
-                  <span className="text-zinc-300 font-semibold">EV — NMC default ({fmt(LIFESPAN_KM.ev, 0)} km):</span>{' '}
+                  <span className="text-basalt font-semibold">EV — NMC default ({fmt(LIFESPAN_KM.ev, 0)} km):</span>{' '}
                   Geotab's real-world battery study (22,700+ EVs) shows ~80% capacity remaining at 200–250k km.
                   Hyundai/Kia warrant 70% at 10 yrs/200k km — a warranty floor, not end of life.
                   Practical end of life (~70% capacity) for NMC batteries is ~300–400k km.
                 </li>
                 <li>
-                  <span className="text-zinc-300 font-semibold">LFP batteries (Tesla SR, BYD, some GM):</span>{' '}
+                  <span className="text-basalt font-semibold">LFP batteries (Tesla SR, BYD, some GM):</span>{' '}
                   Battery Performance Index 2025 shows 85%+ capacity at 8–9 years; conservative practical estimate 500k+ km.
                   If you know your EV uses LFP, raise the lifespan slider to 500k–800k km.
                 </li>
               </ul>
-              <p className="text-[10px] text-zinc-400 mt-2 pt-2 border-t border-zinc-800">
+              <p className="text-[13px] text-scree mt-2 pt-2 border-t border-hairline">
                 All lifespan values are editable in the inputs above.
                 EV motors and inverters typically outlast the battery; a battery swap can extend the effective lifespan significantly.
               </p>

@@ -20,12 +20,12 @@ export default function QuestionCompanion({ data, className = '' }) {
           basementType={data.basementType}
           highlight={guide.highlight}
         />
-        <div className="mt-3 border border-zinc-700 bg-zinc-900/40 p-4">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">{guide.title}</p>
+        <div className="mt-3 border border-hairline bg-snowfield-raised p-4 rounded-[10px]">
+          <p className="text-[17px] font-bold text-basalt mb-2">{guide.title}</p>
           <ul className="space-y-2">
             {guide.hints.map((h, i) => (
-              <li key={i} className="text-xs text-zinc-400 leading-relaxed flex gap-2">
-                <span className="text-emerald-400/60 shrink-0">›</span>
+              <li key={i} className="text-[13px] text-scree leading-relaxed flex gap-2">
+                <span className="text-glacier shrink-0">›</span>
                 <span>{h}</span>
               </li>
             ))}

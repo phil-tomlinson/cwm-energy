@@ -10,8 +10,8 @@ import { CompanionTarget } from '../companion/CompanionContext'
 function SectionHeader({ label }) {
   return (
     <div className="flex items-center gap-4 pt-4 pb-2">
-      <span className="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-mono whitespace-nowrap">{label}</span>
-      <div className="h-px flex-1 bg-zinc-800" />
+      <span className="text-[13px] text-scree tabular-nums whitespace-nowrap">{label}</span>
+      <div className="h-px flex-1 bg-snowfield" />
     </div>
   )
 }
@@ -125,7 +125,7 @@ export default function TechnicalMode({ data, updateData }) {
 
       {/* ── Envelope — Insulation ─────────────────────────────── */}
       <SectionHeader label="Envelope — Insulation & Air Sealing" />
-      <p className="text-xs text-zinc-400 font-mono">R-values are nominal imperial (as labelled on insulation). Window/door values are U (W/m²·K).</p>
+      <p className="text-[13px] text-scree tabular-nums">R-values are nominal imperial (as labelled on insulation). Window/door values are U (W/m²·K).</p>
 
       <div className="grid grid-cols-2 gap-4">
         <NumberField label="Wall insulation" unit="R" value={env.wallR ?? 0}
@@ -152,7 +152,7 @@ export default function TechnicalMode({ data, updateData }) {
           hint="Typical steel door ≈ 1.8" />
         <div>
           {/* ACH mode toggle */}
-          <div className="flex gap-0 mb-1 text-xs font-mono overflow-hidden border border-zinc-600">
+          <div className="flex gap-0 mb-1 text-[13px] tabular-nums overflow-hidden border border-hairline">
             {[{ key: 'natural', label: 'Natural ACH' }, { key: 'ach50', label: 'ACH50' }].map(opt => (
               <button
                 key={opt.key}
@@ -160,8 +160,8 @@ export default function TechnicalMode({ data, updateData }) {
                 onClick={() => setAchMode(opt.key)}
                 className={`flex-1 px-2 py-1 transition-colors ${
                   achMode === opt.key
-                    ? 'bg-emerald-400 text-zinc-950 font-bold'
-                    : 'bg-transparent text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-glacier text-on-glacier font-bold'
+                    : 'bg-transparent text-scree hover:text-basalt'
                 }`}
               >
                 {opt.label}
@@ -179,7 +179,7 @@ export default function TechnicalMode({ data, updateData }) {
                   setAch50Value(v)
                   updateEnv({ ach: parseFloat((v / 17).toFixed(2)) })
                 }} min={1} max={20} step={0.5} />
-              <p className="text-[10px] text-emerald-400 font-mono mt-0.5">
+              <p className="text-[13px] text-glacier tabular-nums mt-0.5">
                 → Natural ACH: {parseFloat((ach50Value / 17).toFixed(2))} (÷17 per NRCan Sherman-Grimsrud)
               </p>
             </>
@@ -193,16 +193,16 @@ export default function TechnicalMode({ data, updateData }) {
 
       {/* ── Envelope — Air Leakage Factors ───────────────────── */}
       <SectionHeader label="Envelope — Air Leakage Factors" />
-      <p className="text-xs text-zinc-400 font-mono">Unlocks targeted recommendations for chimney and rim joist losses.</p>
+      <p className="text-[13px] text-scree tabular-nums">Unlocks targeted recommendations for chimney and rim joist losses.</p>
 
       <div className="grid grid-cols-1 gap-4">
         {/* Chimney */}
         <CompanionTarget id="chimney">
-          <label className="block text-sm font-medium text-zinc-300 mb-1">Chimney / fireplace type</label>
+          <label className="block text-sm font-medium text-basalt mb-1">Chimney / fireplace type</label>
           <select
             value={data.airLeakageFactors?.chimney ?? 'none'}
             onChange={e => updateData({ airLeakageFactors: { ...data.airLeakageFactors, chimney: e.target.value } })}
-            className="w-full bg-zinc-800 border border-zinc-600 text-zinc-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full bg-snowfield border border-hairline text-basalt px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-glacier"
           >
             <option value="none">None</option>
             <option value="masonry">Masonry fireplace — leaky or rarely used</option>
@@ -211,21 +211,21 @@ export default function TechnicalMode({ data, updateData }) {
             <option value="gas_sealed">Gas fireplace — sealed combustion</option>
           </select>
           <DiveDeeper label="How do I identify my fireplace type?">
-            <div className="space-y-2.5 text-xs text-zinc-400 leading-relaxed">
+            <div className="space-y-2.5 text-[13px] text-scree leading-relaxed">
               <div>
-                <p className="text-zinc-300 font-medium">Masonry fireplace</p>
+                <p className="text-basalt font-medium">Masonry fireplace</p>
                 <p>A brick or stone opening built into the wall, designed for burning wood logs. Has a metal throat damper — a lever or chain inside the firebox. The firebox is open to the room when in use. May have been retrofit with a gas log set.</p>
               </div>
               <div>
-                <p className="text-zinc-300 font-medium">Wood stove / sealed insert</p>
+                <p className="text-basalt font-medium">Wood stove / sealed insert</p>
                 <p>A cast-iron or steel unit with a sealed door and glass window. Either freestanding on legs, or inserted into an existing masonry opening. Minimal leakage when the door is closed.</p>
               </div>
               <div>
-                <p className="text-zinc-300 font-medium">Gas fireplace — vented (B-vent)</p>
+                <p className="text-basalt font-medium">Gas fireplace — vented (B-vent)</p>
                 <p>Has a round metal flue pipe running up through the house to a roof cap, or connects to a masonry chimney. The glass front is decorative — not sealed to the room. You may notice drafts near the unit when the pilot is off.</p>
               </div>
               <div>
-                <p className="text-zinc-300 font-medium">Gas fireplace — sealed combustion (direct-vent)</p>
+                <p className="text-basalt font-medium">Gas fireplace — sealed combustion (direct-vent)</p>
                 <p>Look for a round vent cap on an exterior wall — typically low on the side of the house, with two concentric pipes (intake + exhaust). The glass front is sealed and doesn't open. No chimney runs through the interior. This is the most airtight type.</p>
               </div>
             </div>
@@ -235,60 +235,60 @@ export default function TechnicalMode({ data, updateData }) {
         {/* Rim joists + pot lights */}
         <div className="grid grid-cols-2 gap-4">
           <CompanionTarget id="rimJoist">
-            <p className="text-sm font-medium text-zinc-300 mb-2">Exposed rim joists?</p>
+            <p className="text-sm font-medium text-basalt mb-2">Exposed rim joists?</p>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
                 <button
                   key={String(opt.value)}
                   type="button"
                   onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, exposedRimJoists: opt.value } })}
-                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                  className={`border px-3 py-2 text-[13px] transition-colors flex-1 ${
                     (data.airLeakageFactors?.exposedRimJoists ?? false) === opt.value
-                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                      ? 'border-glacier bg-glacier/10 text-glacier'
+                      : 'border-hairline text-scree hover:border-hairline'
                   }`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-[10px] text-zinc-400 font-mono">Uninsulated rim joists in basement</p>
+            <p className="mt-1 text-[13px] text-scree tabular-nums">Uninsulated rim joists in basement</p>
           </CompanionTarget>
           <CompanionTarget id="recessedLights">
-            <p className="text-sm font-medium text-zinc-300 mb-2">Recessed pot lights?</p>
+            <p className="text-sm font-medium text-basalt mb-2">Recessed pot lights?</p>
             <div className="flex gap-2">
               {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
                 <button
                   key={String(opt.value)}
                   type="button"
                   onClick={() => updateData({ airLeakageFactors: { ...data.airLeakageFactors, recessedLights: opt.value } })}
-                  className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                  className={`border px-3 py-2 text-[13px] transition-colors flex-1 ${
                     (data.airLeakageFactors?.recessedLights ?? false) === opt.value
-                      ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                      : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                      ? 'border-glacier bg-glacier/10 text-glacier'
+                      : 'border-hairline text-scree hover:border-hairline'
                   }`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-[10px] text-zinc-400 font-mono">In ceiling below unconditioned attic</p>
+            <p className="mt-1 text-[13px] text-scree tabular-nums">In ceiling below unconditioned attic</p>
           </CompanionTarget>
         </div>
 
         {/* HRV / ERV */}
         <div>
-          <p className="text-sm font-medium text-zinc-300 mb-2">HRV / ERV installed?</p>
+          <p className="text-sm font-medium text-basalt mb-2">HRV / ERV installed?</p>
           <div className="flex gap-2 mb-2">
             {[{ label: 'Yes', value: true }, { label: 'No', value: false }].map(opt => (
               <button
                 key={String(opt.value)}
                 type="button"
                 onClick={() => updateData({ hrv: { ...(data.hrv ?? { effectiveness: 0.75 }), has: opt.value } })}
-                className={`border px-3 py-2 text-xs transition-colors flex-1 ${
+                className={`border px-3 py-2 text-[13px] transition-colors flex-1 ${
                   (data.hrv?.has ?? false) === opt.value
-                    ? 'border-emerald-400 bg-emerald-400/10 text-emerald-400'
-                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                    ? 'border-glacier bg-glacier/10 text-glacier'
+                    : 'border-hairline text-scree hover:border-hairline'
                 }`}
               >
                 {opt.label}
@@ -304,13 +304,13 @@ export default function TechnicalMode({ data, updateData }) {
               min={55} max={85} step={5}
               hint="HRV: 70–80%. ERV: 60–75%. Per CSA C439." />
           )}
-          <p className="mt-1 text-[10px] text-zinc-400 font-mono">HRV/ERV reduces effective infiltration heat loss by the effectiveness fraction</p>
+          <p className="mt-1 text-[13px] text-scree tabular-nums">HRV/ERV reduces effective infiltration heat loss by the effectiveness fraction</p>
         </div>
       </div>
 
       {/* ── Envelope — Areas ─────────────────────────────────── */}
       <SectionHeader label="Envelope — Areas" />
-      <p className="text-xs text-zinc-400 font-mono">Pre-filled from floor area geometry. Override with measured values if available.</p>
+      <p className="text-[13px] text-scree tabular-nums">Pre-filled from floor area geometry. Override with measured values if available.</p>
 
       <div className="grid grid-cols-2 gap-4">
         <AreaField label="Net wall area" value={env.netWallArea ?? 0}

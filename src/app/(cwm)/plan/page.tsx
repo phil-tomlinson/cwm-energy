@@ -1,4 +1,5 @@
 ﻿'use client'
+import PageHeader from "@/components/cwm/PageHeader"
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { VEHICLES, maintTotal } from '@/ev/evData'
@@ -47,11 +48,11 @@ const GRANTS: Record<string, string> = {
 
 // ── Category styling ─────────────────────────────────────────────────────
 const CAT_STYLE: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  envelope:   { label: 'Envelope',    color: 'text-emerald-400', bg: 'bg-emerald-400/10',  border: 'border-emerald-400/30' },
-  heating:    { label: 'Heating',     color: 'text-orange-400',  bg: 'bg-orange-400/10',   border: 'border-orange-400/30'  },
-  water:      { label: 'Hot Water',   color: 'text-blue-400',    bg: 'bg-blue-400/10',     border: 'border-blue-400/30'    },
-  transport:  { label: 'Transport',   color: 'text-purple-400',  bg: 'bg-purple-400/10',   border: 'border-purple-400/30'  },
-  generation: { label: 'Generation',  color: 'text-yellow-400',  bg: 'bg-yellow-400/10',   border: 'border-yellow-400/30'  },
+  envelope:   { label: 'Envelope',    color: 'text-glacier', bg: 'bg-glacier/10',  border: 'border-glacier' },
+  heating:    { label: 'Heating',     color: 'text-basalt',  bg: 'bg-larch/10',   border: 'border-larch'  },
+  water:      { label: 'Hot Water',   color: 'text-glacier',    bg: 'bg-glacier/10',     border: 'border-glacier'    },
+  transport:  { label: 'Transport',   color: 'text-glacier',  bg: 'bg-glacier/10',   border: 'border-glacier'  },
+  generation: { label: 'Generation',  color: 'text-basalt',  bg: 'bg-larch/10',   border: 'border-larch'  },
 }
 
 // ── Plan generator ───────────────────────────────────────────────────────
@@ -229,62 +230,62 @@ function StepCard({
   }
 
   return (
-    <div className="border border-zinc-700 bg-zinc-900">
+    <div className="border border-hairline bg-snowfield-raised">
 
       {/* Step header */}
-      <div className="flex items-start gap-4 p-5 border-b border-zinc-800">
-        <div className="shrink-0 w-8 h-8 border border-zinc-700 flex items-center justify-center">
-          <span className="font-mono text-xs font-bold text-zinc-400">{String(index + 1).padStart(2, '0')}</span>
+      <div className="flex items-start gap-4 p-5 border-b border-hairline">
+        <div className="shrink-0 w-8 h-8 border border-hairline flex items-center justify-center">
+          <span className="tabular-nums text-[13px] font-bold text-scree">{String(index + 1).padStart(2, '0')}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <span className={`font-mono text-[9px] uppercase tracking-widest border px-2 py-0.5 ${cat.color} ${cat.bg} ${cat.border}`}>
+            <span className={`tabular-nums text-[13px]   border px-2 py-0.5 ${cat.color} ${cat.bg} ${cat.border}`}>
               {cat.label}
             </span>
             {hasQuote && (
-              <span className="font-mono text-[9px] uppercase tracking-widest border px-2 py-0.5 text-amber-400 bg-amber-400/10 border-amber-400/30">
+              <span className="tabular-nums text-[13px] border px-2 py-0.5 text-basalt bg-larch/10 border-larch">
                 Quoted
               </span>
             )}
           </div>
-          <h3 className="text-sm font-bold text-zinc-100 leading-snug">{step.title}</h3>
+          <h3 className="text-sm font-bold text-basalt leading-snug">{step.title}</h3>
         </div>
       </div>
 
       {/* Description */}
       <div className="px-5 pt-4 pb-3">
-        <p className="text-xs text-zinc-400 leading-relaxed">{step.description}</p>
+        <p className="text-[13px] text-scree leading-relaxed">{step.description}</p>
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-px bg-zinc-800 mx-5 mb-2">
-        <div className="bg-zinc-900 p-3">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-1">Investment</p>
-          <p className={`font-mono text-base font-semibold ${hasQuote ? 'text-amber-400' : 'text-zinc-200'}`}>
+      <div className="grid grid-cols-3 gap-px bg-snowfield mx-5 mb-2">
+        <div className="bg-snowfield-raised p-3">
+          <p className="tabular-nums text-[13px] text-scree mb-1">Investment</p>
+          <p className={`tabular-nums text-base font-semibold ${hasQuote ? 'text-basalt' : 'text-basalt'}`}>
             {effectiveCost > 0 ? `$${fmt(effectiveCost)}` : 'None'}
           </p>
           {hasQuote && (
-            <p className="font-mono text-[9px] text-zinc-400 mt-0.5">
+            <p className="tabular-nums text-[13px] text-scree mt-0.5">
               Est. ${fmt(step.estimatedCostCAD)}
             </p>
           )}
         </div>
-        <div className="bg-zinc-900 p-3">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-1">Annual savings</p>
-          <p className="font-mono text-base font-semibold text-emerald-400">${fmt(step.annualSavingsCAD)}/yr</p>
+        <div className="bg-snowfield-raised p-3">
+          <p className="tabular-nums text-[13px] text-scree mb-1">Annual savings</p>
+          <p className="tabular-nums text-base font-semibold text-glacier">${fmt(step.annualSavingsCAD)}/yr</p>
         </div>
-        <div className="bg-zinc-900 p-3">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-1">CO₂ cut</p>
-          <p className="font-mono text-base font-semibold text-zinc-200">{fmt(step.co2SavedTonnes, 1)} t/yr</p>
+        <div className="bg-snowfield-raised p-3">
+          <p className="tabular-nums text-[13px] text-scree mb-1">CO₂ cut</p>
+          <p className="tabular-nums text-base font-semibold text-basalt">{fmt(step.co2SavedTonnes, 1)} t/yr</p>
         </div>
       </div>
 
       {/* Vendor quote row */}
-      <div className="px-5 py-2.5 flex items-center gap-3 flex-wrap border-b border-zinc-800/60">
+      <div className="px-5 py-2.5 flex items-center gap-3 flex-wrap border-b border-hairline">
         {editing ? (
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-xs text-zinc-400 pointer-events-none">$</span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 tabular-nums text-[13px] text-scree pointer-events-none">$</span>
               <input
                 type="number"
                 min="0"
@@ -293,18 +294,18 @@ function StepCard({
                 onKeyDown={e => { if (e.key === 'Enter') confirmEdit(); if (e.key === 'Escape') setEditing(false) }}
                 autoFocus
                 placeholder="0"
-                className="w-36 bg-zinc-950 border border-amber-400/50 pl-6 pr-3 py-1 font-mono text-xs text-zinc-200 focus:outline-none focus:border-amber-400"
+                className="w-36 bg-snowfield border border-larch pl-6 pr-3 py-1 tabular-nums text-[13px] text-basalt focus:outline-none focus:border-larch"
               />
             </div>
             <button
               onClick={confirmEdit}
-              className="font-mono text-[10px] font-bold bg-amber-400 text-zinc-950 px-3 py-1 hover:bg-amber-300 transition-colors"
+              className="tabular-nums text-[13px] font-bold bg-larch text-on-glacier px-3 py-1 hover:bg-larch transition-colors"
             >
               Set
             </button>
             <button
               onClick={() => setEditing(false)}
-              className="font-mono text-[10px] text-zinc-400 hover:text-zinc-300 transition-colors"
+              className="tabular-nums text-[13px] text-scree hover:text-basalt transition-colors"
             >
               Cancel
             </button>
@@ -313,14 +314,14 @@ function StepCard({
           <div className="flex items-center gap-4">
             <button
               onClick={openEdit}
-              className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-amber-400 transition-colors"
+              className="tabular-nums text-[13px] text-scree hover:text-basalt transition-colors"
             >
-              {hasQuote ? '✎ Edit vendor quote' : '+ Add vendor quote'}
+              {hasQuote ? 'Edit vendor quote' : '+ Add vendor quote'}
             </button>
             {hasQuote && (
               <button
                 onClick={() => onQuoteChange(step.id, null)}
-                className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 hover:text-red-400 transition-colors"
+                className="tabular-nums text-[13px] text-scree hover:text-fireweed transition-colors"
               >
                 × Clear
               </button>
@@ -331,28 +332,28 @@ function StepCard({
 
       <div className="flex items-center justify-between px-5 py-3 gap-4">
         <div className="flex items-center gap-x-4 gap-y-1 flex-wrap">
-          <p className="text-[11px] text-zinc-400 font-mono">
+          <p className="text-[13px] text-scree tabular-nums">
             {isFinite(pb) ? `Payback: ${fmt(pb, 1)} years` : 'No payback calculated'}
           </p>
           {step.co2SavedTonnes > 0 && (
-            <p className="text-[11px] text-zinc-400 font-mono">
-              Abatement: <span className="text-zinc-200">${fmt(effectiveCost / step.co2SavedTonnes)}/t CO₂</span>
+            <p className="text-[13px] text-scree tabular-nums">
+              Abatement: <span className="text-basalt">${fmt(effectiveCost / step.co2SavedTonnes)}/t CO₂</span>
             </p>
           )}
         </div>
         {step.grants && (
-          <p className="text-[10px] text-emerald-400 font-mono text-right">
+          <p className="text-[13px] text-glacier tabular-nums text-right">
             ↗ {step.grants}
           </p>
         )}
       </div>
 
       {/* Running totals */}
-      <div className="bg-zinc-950 border-t border-zinc-800 px-5 py-3 flex flex-wrap gap-x-6 gap-y-1">
-        <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wide">After this step:</span>
-        <span className="font-mono text-[10px] text-zinc-400">Total invested: <span className="text-zinc-200">${fmt(step.cumCost)}</span></span>
-        <span className="font-mono text-[10px] text-zinc-400">Saving: <span className="text-emerald-400">${fmt(step.cumSavings)}/yr</span></span>
-        <span className="font-mono text-[10px] text-zinc-400">CO₂ cut: <span className="text-emerald-400">{fmt(step.cumCO2, 1)} t/yr</span></span>
+      <div className="bg-snowfield border-t border-hairline px-5 py-3 flex flex-wrap gap-x-6 gap-y-1">
+        <span className="tabular-nums text-[13px] text-scree ">After this step:</span>
+        <span className="tabular-nums text-[13px] text-scree">Total invested: <span className="text-basalt">${fmt(step.cumCost)}</span></span>
+        <span className="tabular-nums text-[13px] text-scree">Saving: <span className="text-glacier">${fmt(step.cumSavings)}/yr</span></span>
+        <span className="tabular-nums text-[13px] text-scree">CO₂ cut: <span className="text-glacier">{fmt(step.cumCO2, 1)} t/yr</span></span>
       </div>
 
     </div>
@@ -425,34 +426,30 @@ export default function PlanPage() {
   const last       = steps[steps.length - 1]
 
   return (
-    <div className="bg-zinc-950 min-h-screen">
+    <div className="min-h-screen">
+      <PageHeader
+        width="max-w-3xl"
+        title="Your plan"
+        intro="Actions across your home and transport, ranked by what matters most to you."
+      />
 
-      {/* Header */}
-      <div className="border-b border-zinc-800 bg-zinc-900 px-4 sm:px-6 py-4">
-        <div className="max-w-3xl mx-auto">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-0.5">CWM Energy</p>
-          <h1 className="text-lg font-black text-zinc-100 tracking-tight">Your Carbon Reduction Plan</h1>
-          <p className="text-xs text-zinc-400 mt-1">Prioritised actions across your home and transport — ranked by what matters most to you.</p>
-        </div>
-      </div>
-
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 space-y-8">
 
         {/* ── Mode toggle ── */}
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-3">Optimise for</p>
-          <div className="flex border border-zinc-700 w-fit">
+          <p className="tabular-nums text-[13px] text-scree mb-3">Optimise for</p>
+          <div className="flex border border-hairline w-fit">
             {([['bills', 'Cut bills first', 'Shortest payback at the top'],
                ['emissions', 'Cut emissions first', 'Lowest cost per tonne of CO₂ ($/t) at the top']] as const).map(([id, label, sub]) => (
               <button
                 key={id}
                 onClick={() => setMode(id)}
-                className={`px-5 py-3 text-left transition-colors border-r last:border-r-0 border-zinc-700 ${
-                  mode === id ? 'bg-emerald-400 text-zinc-950' : 'bg-transparent text-zinc-400 hover:text-zinc-200'
+                className={`px-5 py-3 text-left transition-colors border-r last:border-r-0 border-hairline ${
+                  mode === id ? 'bg-glacier text-on-glacier' : 'bg-transparent text-scree hover:text-basalt'
                 }`}
               >
-                <p className={`text-xs font-bold uppercase tracking-widest ${mode === id ? 'text-zinc-950' : ''}`}>{label}</p>
-                <p className={`text-[10px] font-mono mt-0.5 ${mode === id ? 'text-zinc-800' : 'text-zinc-400'}`}>{sub}</p>
+                <p className={`text-[13px] font-bold   ${mode === id ? 'text-on-glacier' : ''}`}>{label}</p>
+                <p className={`text-[13px] tabular-nums mt-0.5 ${mode === id ? 'text-on-glacier' : 'text-scree'}`}>{sub}</p>
               </button>
             ))}
           </div>
@@ -460,7 +457,7 @@ export default function PlanPage() {
 
         {/* ── Data sources ── */}
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-3">Using data from</p>
+          <p className="tabular-nums text-[13px] text-scree mb-3">Using data from</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {planSources.map((m) => {
               const data = m.planDataKey === 'cwm_ev' ? evData : homeiqData
@@ -474,25 +471,25 @@ export default function PlanPage() {
               : m.id === 'solar' ? (homeiqData ? 'Pre-filled from HomeIQ · configure below' : null)
               : null
               return (
-                <div key={m.id} className={`border p-4 flex items-start gap-3 ${data ? 'border-emerald-400/30 bg-emerald-400/5' : 'border-zinc-800 bg-zinc-900'}`}>
-                  <div className={`mt-0.5 w-4 h-4 flex items-center justify-center shrink-0 ${data ? 'bg-emerald-400' : 'bg-zinc-700'}`}>
+                <div key={m.id} className={`border p-4 flex items-start gap-3 ${data ? 'border-glacier bg-glacier/5' : 'border-hairline bg-snowfield-raised'}`}>
+                  <div className={`mt-0.5 w-4 h-4 flex items-center justify-center shrink-0 ${data ? 'bg-glacier' : 'bg-hairline'}`}>
                     {data
-                      ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-5" stroke="#09090b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      : <span className="text-zinc-400 text-[10px]">–</span>
+                      ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      : <span className="text-scree text-[13px]">–</span>
                     }
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-semibold ${data ? 'text-zinc-200' : 'text-zinc-400'}`}>{m.title}</p>
+                    <p className={`text-[13px] font-semibold ${data ? 'text-basalt' : 'text-scree'}`}>{m.title}</p>
                     {meta
                       ? (
                         <div className="flex items-baseline justify-between gap-2 mt-0.5">
-                          <p className="font-mono text-[10px] text-zinc-400 truncate">{meta}</p>
-                          <Link href={m.href} className="font-mono text-[10px] text-emerald-400 hover:underline whitespace-nowrap flex-shrink-0">
-                            Update →
+                          <p className="tabular-nums text-[13px] text-scree truncate">{meta}</p>
+                          <Link href={m.href} className="tabular-nums text-[13px] text-glacier hover:underline whitespace-nowrap flex-shrink-0">
+                            Update
                           </Link>
                         </div>
                       )
-                      : <Link href={m.href} className="font-mono text-[10px] text-emerald-400 hover:underline">Run calculator →</Link>
+                      : <Link href={m.href} className="tabular-nums text-[13px] text-glacier hover:underline">Run calculator</Link>
                     }
                   </div>
                 </div>
@@ -508,23 +505,23 @@ export default function PlanPage() {
             <button
               type="button"
               onClick={() => setShowEnergyModal(true)}
-              className="mt-2 font-mono text-[10px] uppercase tracking-widest text-emerald-400 hover:underline"
+              className="mt-2 tabular-nums text-[13px] text-glacier hover:underline"
             >
-              ✎ Use my actual energy costs →
+              Use my actual energy costs
             </button>
           </div>
         )}
 
         {/* ── No data state ── */}
         {!hasData && (
-          <div className="border border-zinc-800 bg-zinc-900 p-10 text-center">
-            <p className="text-zinc-400 text-sm mb-4">Run at least one calculator to generate your plan.</p>
+          <div className="border border-hairline bg-snowfield-raised p-10 text-center rounded-[10px]">
+            <p className="text-scree text-sm mb-4">Run at least one calculator to generate your plan.</p>
             <div className="flex justify-center gap-4">
-              <Link href="/calculator" className="text-xs uppercase tracking-widest font-bold bg-emerald-400 text-zinc-950 px-5 py-2.5 hover:bg-emerald-300 transition-colors">
-                Home analysis →
+              <Link href="/calculator" className="text-[13px] font-bold bg-glacier text-on-glacier px-5 py-2.5 hover:opacity-90 transition-colors rounded-full">
+                Home analysis
               </Link>
-              <Link href="/ev-benefit-calculator" className="text-xs uppercase tracking-widest font-bold border border-zinc-700 text-zinc-400 px-5 py-2.5 hover:border-zinc-500 transition-colors">
-                EV calculator →
+              <Link href="/ev-benefit-calculator" className="text-[13px] font-bold border border-hairline text-scree px-5 py-2.5 hover:border-hairline transition-colors">
+                EV calculator
               </Link>
             </div>
           </div>
@@ -535,7 +532,7 @@ export default function PlanPage() {
           <>
             <div>
               <div className="flex items-center justify-between mb-4">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+                <p className="tabular-nums text-[13px] text-scree">
                   {steps.length} action{steps.length !== 1 ? 's' : ''} · sorted by {mode === 'bills' ? 'fastest payback' : 'biggest CO₂ impact'}
                 </p>
               </div>
@@ -548,8 +545,8 @@ export default function PlanPage() {
 
             {/* ── Summary ── */}
             {last && (
-              <div className="border border-emerald-400/30 bg-emerald-400/5 p-6">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-4">Full plan summary</p>
+              <div className="border border-glacier bg-glacier/5 p-6 rounded-[10px]">
+                <p className="text-[17px] font-bold text-basalt mb-4">Full plan summary</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {[
                     { label: 'Total investment',  value: `~$${fmt(Math.round(last.cumCost    / 500) * 500)}` },
@@ -558,12 +555,12 @@ export default function PlanPage() {
                     { label: 'CO₂ cut per year',  value: `~${fmt(last.cumCO2, 1)} tonnes` },
                   ].map(({ label, value }) => (
                     <div key={label}>
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-zinc-400 mb-1">{label}</p>
-                      <p className="font-mono text-xl font-semibold text-emerald-400">{value}</p>
+                      <p className="tabular-nums text-[13px] text-scree mb-1">{label}</p>
+                      <p className="tabular-nums text-xl font-semibold text-glacier">{value}</p>
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-zinc-400 mt-4 leading-relaxed">
+                <p className="text-[13px] text-scree mt-4 leading-relaxed">
                   Default costs are mid-range installed estimates (2024 CAD). Add a vendor quote to any step to recalculate
                   payback with your actual number — the plan re-sorts instantly. Government grants can significantly reduce
                   out-of-pocket costs; see each step for applicable incentives.
@@ -572,17 +569,17 @@ export default function PlanPage() {
             )}
 
             {/* ── Save / auth prompt ── */}
-            <div className="flex items-center justify-between border-t border-zinc-800 pt-6">
+            <div className="flex items-center justify-between border-t border-hairline pt-6">
               {authed ? (
-                <p className="text-xs text-zinc-400">
+                <p className="text-[13px] text-scree">
                   Save your calculator results from the{' '}
-                  <Link href="/calculator" className="text-emerald-400 hover:underline">HomeIQ</Link> and{' '}
-                  <Link href="/ev-benefit-calculator" className="text-emerald-400 hover:underline">EV calculator</Link>{' '}
+                  <Link href="/calculator" className="text-glacier hover:underline">HomeIQ</Link> and{' '}
+                  <Link href="/ev-benefit-calculator" className="text-glacier hover:underline">EV calculator</Link>{' '}
                   pages to keep this plan across sessions.
                 </p>
               ) : (
-                <p className="text-xs text-zinc-400">
-                  <Link href="/auth/login?next=/plan" className="text-emerald-400 hover:underline font-semibold">Create a free account</Link>{' '}
+                <p className="text-[13px] text-scree">
+                  <Link href="/auth/login?next=/plan" className="text-glacier hover:underline font-semibold">Create a free account</Link>{' '}
                   to save your calculator results and return to this plan anytime.
                 </p>
               )}
@@ -597,10 +594,9 @@ export default function PlanPage() {
         <Disclaimer context="plan" />
 
         {/* ── Long-range vision ── */}
-        <div className="border-t border-zinc-800 pt-8">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400 mb-2">The bigger picture</p>
-          <p className="text-sm font-bold text-zinc-200 mb-3">A systematic tool for reducing your carbon footprint across your whole life</p>
-          <p className="text-xs text-zinc-400 leading-relaxed max-w-2xl">
+        <div className="border-t border-hairline pt-8">
+          <h2 className="m-0 mb-2 text-[22px] font-bold leading-[28px] text-basalt">Where this is heading</h2>
+          <p className="text-[13px] text-scree leading-relaxed max-w-2xl">
             Right now, the plan covers your home and your vehicle — typically the two largest sources of household emissions.
             Future modules will add flights, diet, consumer goods, and a unified priority action ranking that pulls from all of them.
             The goal: a single, honest, quantitative answer to "what should I do first?"
@@ -609,12 +605,12 @@ export default function PlanPage() {
             {MODULES.filter((m) => m.id !== 'plan').map((m) => {
               const live = m.status === 'live'
               return (
-                <div key={m.id} className={`border p-3 ${live ? 'border-emerald-400/30' : 'border-zinc-800'}`}>
-                  <p className={`font-mono text-xs font-semibold ${live ? 'text-zinc-200' : 'text-zinc-400'}`}>{m.num} {m.navLabel}</p>
-                  <p className={`font-mono text-[9px] uppercase tracking-widest mt-1 ${live ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                <div key={m.id} className={`rounded-[10px] border p-3 ${live ? 'border-glacier' : 'border-hairline'}`}>
+                  <p className={`tabular-nums text-[13px] font-semibold ${live ? 'text-basalt' : 'text-scree'}`}>{m.title}</p>
+                  <p className={`tabular-nums text-[13px]   mt-1 ${live ? 'text-glacier' : 'text-scree'}`}>
                     {live ? 'Available' : 'Coming soon'}
                   </p>
-                  {live && <Link href={m.href} className="block font-mono text-[9px] text-zinc-400 hover:text-emerald-400 mt-1">Open →</Link>}
+                  {live && <Link href={m.href} className="block tabular-nums text-[13px] text-scree hover:text-glacier mt-1">Open</Link>}
                 </div>
               )
             })}
@@ -626,27 +622,27 @@ export default function PlanPage() {
       {/* ── Actual energy cost modal ── */}
       {showEnergyModal && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-snowfield backdrop-blur-sm"
           onClick={() => setShowEnergyModal(false)}
         >
           <div
-            className="max-w-xl w-full max-h-[90vh] overflow-y-auto bg-zinc-900 border border-zinc-700"
+            className="max-w-xl w-full max-h-[90vh] overflow-y-auto bg-snowfield-raised border border-hairline"
             onClick={e => e.stopPropagation()}
           >
-            <div className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+            <div className="border-b border-hairline px-6 py-4 flex items-center justify-between">
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest text-emerald-400">Actual energy cost</p>
-                <h2 className="text-base font-black text-zinc-100">Enter a few bills</h2>
+                <p className="tabular-nums text-[13px] text-glacier">Actual energy cost</p>
+                <h2 className="text-base font-black text-basalt">Enter a few bills</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEnergyModal(false)}
-                className="text-zinc-500 hover:text-zinc-300 text-lg leading-none"
+                className="text-scree hover:text-basalt text-lg leading-none"
                 aria-label="Close"
               >×</button>
             </div>
             <div className="px-6 py-5">
-              <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+              <p className="text-[13px] text-scree leading-relaxed mb-4">
                 We'll split your bills into a true marginal cost per GJ and a fixed monthly service charge, then
                 re-derive your whole plan from your real numbers.
               </p>
