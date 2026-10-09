@@ -122,6 +122,30 @@ describe('computeTimeline', () => {
     }
   })
 
+  it('keeps the original vehicle, at its own distance and passengers, in the do-nothing line', () => {
+    // Gas SUV, 12,000 km a year shared by 2, replaced by an EV driven 20,000 km alone.
+    const switched: Timeline = {
+      ...SAMPLE_TIMELINE,
+      vehicles: [
+        { id: 'gas', label: 'Gas SUV', fuel: 'gasoline', efficiency: 9, annualKm: 12000, people: 2, start: '2015-06', end: '2024-11' },
+        { id: 'ev', label: 'EV', fuel: 'ev', efficiency: 19, annualKm: 20000, people: 1, start: '2024-11', replaces: 'gas' },
+      ],
+    }
+    const homeOnly = computeTimeline({ ...SAMPLE_TIMELINE, vehicles: [] }, NOW)
+    const res = computeTimeline(switched, NOW)
+    const gasShareKg = (9 * 12000 / 100) * 2.307 / 2
+
+    for (const year of [2023, 2024, 2025, 2026]) {
+      const withCar = res.years.find((y) => y.year === year)!
+      const home = homeOnly.years.find((y) => y.year === year)!
+      // The car's part of the do-nothing line is the original SUV as it was used,
+      // before and after the switch alike.
+      expect(withCar.baselineKg - home.baselineKg).toBeCloseTo(gasShareKg, 1)
+      const saved = withCar.saved.reduce((s, p) => s + p.kg, 0)
+      expect(saved).toBeCloseTo(withCar.baselineKg - withCar.actualKg, 3)
+    }
+  })
+
   it('takes a replaced car off the road when its replacement starts, even if its saved end is later', () => {
     const stale: Timeline = {
       ...SAMPLE_TIMELINE,
