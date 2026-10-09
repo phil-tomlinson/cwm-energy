@@ -303,15 +303,24 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
     const province = provinceAt(m)
     for (const v of t.vehicles) {
       if (!vehicleActive(v, m)) continue
-      const share = 1 / Math.max(1, v.people)
-      const actual = vehicleAnnual(v, province, year)
+      // Your share of a vehicle's year, at its own distance and its own number
+      // of people sharing it.
+      const yours = (x: Vehicle): Annual => {
+        const a = vehicleAnnual(x, province, year)
+        const share = 1 / Math.max(1, x.people)
+        return { kg: a.kg * share, dollars: a.dollars * share }
+      }
+      const actual = yours(v)
       covered = true
-      point.actualKg += (actual.kg / 12) * share
-      addPart({ key: `vehicle-${v.id}`, label: v.label || 'Vehicle', detail: `${v.annualKm.toLocaleString('en-CA')} km a year${v.people > 1 ? `, shared by ${v.people}` : ''}`, kg: actual.kg }, share)
+      point.actualKg += actual.kg / 12
+      addPart({ key: `vehicle-${v.id}`, label: v.label || 'Vehicle', detail: `${v.annualKm.toLocaleString('en-CA')} km a year${v.people > 1 ? `, shared by ${v.people}` : ''}`, kg: actual.kg }, 1)
 
-      // Walk back the replacement chain (C replaced B, which replaced A). Each
-      // switch keeps the credit for its own step, measured at the distance you
-      // drive today, so the steps add up to "original vehicle minus this one".
+      // Walk back the replacement chain (C replaced B, which replaced A).
+      // "If you'd changed nothing" keeps the original vehicle exactly as it was:
+      // its own distance and its own passengers. Each switch is credited with the
+      // difference between the vehicle before it and the one after, each as you
+      // used it, so driving more after a switch counts against that switch, and
+      // the steps add up exactly to "original vehicle minus this one".
       const chain: Vehicle[] = [v]
       const seen = new Set<string>([v.id])
       let cur = v
@@ -320,19 +329,18 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
         seen.add(cur.id)
         chain.push(cur)
       }
-      const at = (x: Vehicle) => vehicleAnnual({ ...x, annualKm: v.annualKm }, province, year)
-      const baseline = at(chain.at(-1)!)
-      point.baselineKg += (baseline.kg / 12) * share
+      const baseline = yours(chain.at(-1)!)
+      point.baselineKg += baseline.kg / 12
 
       for (let i = 0; i < chain.length - 1; i++) {
         const newer = chain[i]
         const older = chain[i + 1]
-        const nNew = i === 0 ? actual : at(newer)
-        const nOld = at(older)
+        const nNew = i === 0 ? actual : yours(newer)
+        const nOld = yours(older)
         const { label, short, grade } = vehicleLabel(newer)
         const a = ensure(newer.id, label, short, newer.start, grade)
-        const dKg = (nOld.kg - nNew.kg) * share
-        const d$ = (nOld.dollars - nNew.dollars) * share
+        const dKg = nOld.kg - nNew.kg
+        const d$ = nOld.dollars - nNew.dollars
         if (!future) { a.kgToDate += (dKg / 12) * w; a.dollarsToDate += (d$ / 12) * w }
         if (m === nowIdx) { a.kgPerYearNow += dKg; a.dollarsPerYearNow += d$ }
         addSaved(newer.id, label, dKg)
