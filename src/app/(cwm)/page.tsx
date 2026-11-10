@@ -152,7 +152,7 @@ export default function Home() {
       <section className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6">
         <h2 className="m-0 mb-2 text-[26px] font-bold leading-[32px]">Just want a quick answer?</h2>
         <p className="m-0 mb-4 max-w-[620px] text-scree">
-          The EV Benefit Calculator compares any two vehicles on emissions and running costs for your city.
+          The EV Benefit Calculator compares any two vehicles on emissions and running costs for your province.
         </p>
         <Link href="/ev-benefit-calculator" className="text-[17px] font-bold text-glacier underline">
           Open the EV Benefit Calculator

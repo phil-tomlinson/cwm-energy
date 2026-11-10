@@ -68,6 +68,18 @@ export function gridFactor(province: Province, year: number): Factor {
   }
 }
 
+/**
+ * The newest published annual grid intensity for a province, for tools that
+ * show a single "your grid" figure (the EV calculators). g CO2e per kWh.
+ */
+export function latestGrid(province: Province): { gPerKWh: number; dataYear: number; source: string } {
+  return {
+    gPerKWh: GRID_G_PER_KWH[province][LAST_GRID_YEAR],
+    dataYear: LAST_GRID_YEAR,
+    source: NIR_SOURCE[LAST_GRID_YEAR],
+  }
+}
+
 // Fuel combustion factors.
 export const FUEL = {
   // kg CO2e per GJ of fuel input. Source: NRCan national averages (METHODOLOGY.md §12).

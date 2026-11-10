@@ -181,8 +181,6 @@ export const SERVICE_ITEMS = [
 ]
 
 // ── Internal API routes (server-side proxies — no CORS, key stays server-side) ──
-export const WEATHER_PROXY = '/api/weather'
-export const CARBON_PROXY  = '/api/carbon'
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 export function co2PerKm(vehicle, gridGCO2kWh) {
