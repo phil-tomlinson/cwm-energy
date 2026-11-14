@@ -35,7 +35,7 @@ export const MODULES: AppModule[] = [
   {
     id: 'ev', num: '02', navLabel: 'EVs',
     title: 'EV Benefit Calculator',
-    desc: 'Compare EVs, hybrids, and gas vehicles — emissions, fuel cost, and maintenance over 10 years using live grid data for your city.',
+    desc: 'Compare EVs, hybrids, and gas vehicles — emissions, fuel cost, and maintenance over 10 years using your provincial grid.',
     href: '/ev-benefit-calculator', category: 'transport', status: 'live', inNav: true,
     storageKey: 'cwm_ev', planDataKey: 'cwm_ev',
   },

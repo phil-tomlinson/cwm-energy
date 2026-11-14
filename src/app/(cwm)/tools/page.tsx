@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 const TOOLS = [
-  { href: "/ev-benefit-calculator", title: "EV Benefit Calculator", text: "Compare any two vehicles on emissions and running costs, using your city's grid.", big: true },
+  { href: "/ev-benefit-calculator", title: "EV Benefit Calculator", text: "Compare any two vehicles on emissions and running costs, using your province's grid.", big: true },
   { href: "/calculator", title: "Home Heat Loss", text: "Walls, windows, basement and roof, ranked by heat loss and payback." },
   { href: "/solar", title: "Solar estimator", text: "What rooftop solar could generate and save on your home." },
   { href: "/energy-cost", title: "Your real energy rate", text: "Turn a few bills into the rate that actually drives your savings." },

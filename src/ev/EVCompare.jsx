@@ -2,7 +2,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { token, CHART_FONT } from '@/lib/theme'
 import { useA11y } from '@/components/A11yProvider'
-import { WEATHER_PROXY, CARBON_PROXY, maintTotal, fmt } from './evData'
+import { maintTotal, fmt } from './evData'
+import { PROVINCES, latestGrid } from '@/lib/factors'
 import DiveDeeper from '@/components/DiveDeeper'
 import SaveToPlanBanner from '@/components/SaveToPlanBanner'
 
@@ -396,7 +397,7 @@ export default function EVCompare() {
   const { theme, a11y } = useA11y()
   const lastDraw = useRef(null)
   // ── Shared inputs ────────────────────────────────────────────────────────
-  const [city,      setCity]      = useState('Calgary, CA')
+  const [province,  setProvince]  = useState('AB')
   const [annualKm,  setAnnualKm]  = useState(20000)
   const [elecPrice, setElecPrice] = useState(0.134)
   const [gasPrice,  setGasPrice]  = useState(1.50)
@@ -597,17 +598,15 @@ export default function EVCompare() {
 
   // ── Run comparison ─────────────────────────────────────────────────────────
   const runComparison = useCallback(async () => {
-    if (!vA || !vB || !city.trim()) return
-    setStatus('loading'); setResults(null); destroyCharts()
+    if (!vA || !vB) return
+    setResults(null); destroyCharts()
 
     try {
-      const wRes = await fetch(`${WEATHER_PROXY}/?q=${encodeURIComponent(city)}`)
-      if (!wRes.ok) throw new Error(`City not found: "${city}". Try adding a country code — e.g. "Calgary, CA".`)
-      const w = await wRes.json()
-
-      const cRes = await fetch(`${CARBON_PROXY}/?lat=${w.coord.lat}&lon=${w.coord.lon}`)
-      const c    = await cRes.json()
-      const grid = c.carbonIntensity
+      // The province's annual average from Canada's National Inventory Report,
+      // the same figure My Footprint uses.
+      const g    = latestGrid(province)
+      const grid = g.gPerKWh
+      const name = PROVINCES.find(p => p.code === province)?.name ?? province
 
       const effGrid = grid * (1 - solarPct / 100)
       const effElec = elecPrice * (1 - solarPct / 100)
@@ -646,7 +645,7 @@ export default function EVCompare() {
 
       const r = {
         source: 'compare',
-        grid, effGrid, effElec, cityName: w.name, country: w.sys.country,
+        grid, effGrid, effElec, cityName: name, country: 'CA', gridYear: g.dataYear, gridSource: g.source,
         vehicleA: vA, vehicleB: vB,
         costA, costB, co2kmA, co2kmB, mfgA, mfgB,
         remKmA, remKmB, effPA, effPB,
@@ -669,7 +668,7 @@ export default function EVCompare() {
       setErrorMsg(err.message)
       setStatus('error')
     }
-  }, [vA, vB, city, annualKm, elecPrice, gasPrice, solarPct,
+  }, [vA, vB, province, annualKm, elecPrice, gasPrice, solarPct,
       startKmA, startKmB, lifespanA, lifespanB, battA, battB,
       priceA, priceB, replPriceA, replPriceB, resaleA, resaleB,
       fedA, fedB, provA, provB, applyRebates])
@@ -695,17 +694,17 @@ export default function EVCompare() {
 
         {/* City + run */}
         <div>
-          <label className="block tabular-nums text-[13px] text-scree mb-2">
-            Your city
+          <label htmlFor="cmp-province" className="block tabular-nums text-[13px] text-scree mb-2">
+            Your province or territory
           </label>
           <div className="flex gap-2">
-            <input
-              type="text" value={city}
-              onChange={e => setCity(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && runComparison()}
+            <select
+              id="cmp-province" value={province}
+              onChange={e => setProvince(e.target.value)}
               className="flex-1 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors"
-              placeholder="Calgary, CA"
-            />
+            >
+              {PROVINCES.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+            </select>
             <button
               onClick={runComparison}
               disabled={!vA || !vB || status === 'loading'}
@@ -813,12 +812,6 @@ export default function EVCompare() {
       </div>
 
       {/* Status */}
-      {status === 'loading' && (
-        <div className="flex items-center gap-3 py-10 justify-center text-scree text-sm tabular-nums">
-          <div className="w-5 h-5 border-2 border-hairline border-t-glacier rounded-full animate-spin" />
-          Fetching grid data for {city}…
-        </div>
-      )}
       {status === 'error' && (
         <div className="border border-fireweed bg-fireweed/5 text-fireweed text-sm p-4 mt-4 tabular-nums">
           {errorMsg}
@@ -848,7 +841,7 @@ export default function EVCompare() {
               return (
                 <div className="bg-glacier/5 border border-glacier px-4 py-3 mt-4 mb-2 rounded-[10px]">
                   <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] tabular-nums text-scree mb-1">
-                    <span><span className="text-glacier font-semibold">{r.cityName}, {r.country}</span></span>
+                    <span><span className="text-glacier font-semibold">{r.cityName}</span></span>
                     <span><span className="text-glacier font-semibold">{gl.text}</span> — {gl.hint}</span>
                     {r.solarPct > 0 && <span className="text-glacier">↗ {r.solarPct}% solar applied</span>}
                     {applyRebates && <span className="text-glacier">↗ Rebates applied</span>}
@@ -946,7 +939,7 @@ export default function EVCompare() {
               Driving emissions on your grid
             </p>
             <p className="text-[13px] text-scree mb-4 leading-relaxed">
-              Live carbon intensity for {r.cityName} ({Math.round(r.grid)} gCO₂e/kWh).
+              {r.cityName}&apos;s grid averaged {Math.round(r.grid)} gCO₂e/kWh in {r.gridYear}, from Canada&apos;s National Inventory Report.
               EV emissions are entirely a function of your grid — Quebec and Alberta get very different answers.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

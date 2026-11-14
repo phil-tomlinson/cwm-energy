@@ -4,11 +4,11 @@ import { token, resolveColor, withAlpha, CHART_FONT } from '@/lib/theme'
 import { useA11y } from '@/components/A11yProvider'
 import {
   VEHICLES, VEHICLE_ORDER, SERVICE_ITEMS,
-  WEATHER_PROXY, CARBON_PROXY,
   co2PerKm, maintTotal, fmt,
 } from './evData'
 import DiveDeeper from '@/components/DiveDeeper'
 import SaveToPlanBanner from '@/components/SaveToPlanBanner'
+import { PROVINCES, latestGrid } from '@/lib/factors'
 
 // Human-readable label for grid carbon intensity
 function gridLabel(gCO2kWh) {
@@ -527,7 +527,7 @@ export default function EVCalculator() {
   // Charts are drawn on canvas with resolved colours, so redraw when the theme changes.
   const { theme, a11y } = useA11y()
   // ── Core inputs ─────────────────────────────────────────────────────────
-  const [city,       setCity]       = useState('Calgary, CA')
+  const [province,   setProvince]   = useState('AB')
   const [annualKm,   setAnnualKm]   = useState(20000)
   const [elecPrice,  setElecPrice]  = useState(0.134)
   const [gasPrice,   setGasPrice]   = useState(1.50)
@@ -878,21 +878,17 @@ export default function EVCalculator() {
 
   // ── Run comparison ────────────────────────────────────────────────────────
   const runComparison = useCallback(async () => {
-    if (!city.trim()) return
-    setStatus('loading')
     setResults(null)
     destroyCharts()
 
     try {
-      const wRes = await fetch(`${WEATHER_PROXY}/?q=${encodeURIComponent(city)}`)
-      if (!wRes.ok) throw new Error(`City not found: "${city}". Try adding a country code — e.g. "Calgary, CA".`)
-      const w = await wRes.json()
+      // The province's annual average from Canada's National Inventory Report,
+      // the same figure My Footprint uses.
+      const g    = latestGrid(province)
+      const grid = g.gPerKWh
+      const name = PROVINCES.find(p => p.code === province)?.name ?? province
 
-      const cRes = await fetch(`${CARBON_PROXY}/?lat=${w.coord.lat}&lon=${w.coord.lon}`)
-      const c    = await cRes.json()
-      const grid = c.carbonIntensity
-
-      const resultData = computeResults(grid, w.name, w.sys.country)
+      const resultData = { ...computeResults(grid, name, 'CA'), gridYear: g.dataYear, gridSource: g.source }
 
       setResults(resultData)
       setStatus('done')
@@ -912,14 +908,14 @@ export default function EVCalculator() {
       setErrorMsg(err.message)
       setStatus('error')
     }
-  }, [city, annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, customVehicle, activeVids, allVehicles, effectivePrices])
+  }, [province, annualKm, elecPrice, gasPrice, solarPct, prices, customPrice, customVehicle, activeVids, allVehicles, effectivePrices])
 
   // Recompute + redraw when inputs OR the vehicle set change (reusing the
   // already-fetched grid). Without recomputing here, adding a custom vehicle
   // after a run left it with no annualCosts/c2km/lc entry → costs showed $0.
   useEffect(() => {
     if (status !== 'done' || !results) return
-    const data = computeResults(results.grid, results.cityName, results.country)
+    const data = { ...computeResults(results.grid, results.cityName, results.country), gridYear: results.gridYear, gridSource: results.gridSource }
     setResults(data)
     destroyCharts()
     setTimeout(() => drawCharts({
@@ -941,7 +937,7 @@ export default function EVCalculator() {
       {/* Intro */}
       <p className="text-sm text-scree leading-relaxed mb-6">
         Should you buy an EV? The answer depends on where you live and how much you drive.
-        Enter your city and we'll show you the full picture: what you'd spend each year, what you'd emit, and at what point an EV
+        Pick your province and we'll show you the full picture: what you'd spend each year, what you'd emit, and at what point an EV
         starts winning — both financially and for the environment.
       </p>
 
@@ -950,13 +946,13 @@ export default function EVCalculator() {
 
         {/* City + run button */}
         <div>
-          <label className="block tabular-nums text-[13px] text-scree mb-2">Your city</label>
+          <label htmlFor="ev-province" className="block tabular-nums text-[13px] text-scree mb-2">Your province or territory</label>
           <div className="flex gap-2">
-            <input type="text" value={city}
-              onChange={e => setCity(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && runComparison()}
-              className="flex-1 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors"
-              placeholder="Calgary, CA" />
+            <select id="ev-province" value={province}
+              onChange={e => setProvince(e.target.value)}
+              className="flex-1 bg-snowfield-raised border border-hairline text-basalt px-3 py-2 text-sm tabular-nums focus:outline-none focus:border-glacier transition-colors">
+              {PROVINCES.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+            </select>
             <button onClick={runComparison} disabled={status === 'loading'}
               className="bg-glacier text-on-glacier font-bold text-[13px] px-5 py-2 hover:opacity-90 transition-colors disabled:opacity-40 whitespace-nowrap rounded-full">
               {status === 'loading' ? 'Loading…' : 'Run comparison'}
@@ -1087,12 +1083,6 @@ export default function EVCalculator() {
       </div>
 
       {/* ── Status ── */}
-      {status === 'loading' && (
-        <div className="flex items-center gap-3 py-10 justify-center text-scree text-sm tabular-nums">
-          <div className="w-5 h-5 border-2 border-hairline border-t-glacier rounded-full animate-spin" />
-          Fetching grid data for {city}…
-        </div>
-      )}
       {status === 'error' && (
         <div className="border border-fireweed bg-fireweed/5 text-fireweed text-sm p-4 mt-4 tabular-nums">{errorMsg}</div>
       )}
@@ -1117,7 +1107,7 @@ export default function EVCalculator() {
               return (
                 <div className="bg-glacier/5 border border-glacier px-4 py-3 mt-4 mb-2 rounded-[10px]">
                   <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px] tabular-nums text-scree mb-1">
-                    <span><span className="text-glacier font-semibold">{r.cityName}, {r.country}</span></span>
+                    <span><span className="text-glacier font-semibold">{r.cityName}</span></span>
                     <span><span className="text-glacier font-semibold">{gl.text}</span> — {gl.hint}</span>
                     {r.solarPct > 0 && <span className="text-glacier">↗ {r.solarPct}% solar applied</span>}
                     {applyRebates && <span className="text-glacier">↗ Rebates applied</span>}
@@ -1220,9 +1210,9 @@ export default function EVCalculator() {
             <SectionHeader num="02 — Emissions" title="What's the carbon story — today and over a lifetime?" />
 
             {/* Per-km emissions cards */}
-            <p className="tabular-nums text-[13px] text-scree mt-5 mb-2">Emissions per km on your grid right now</p>
+            <p className="tabular-nums text-[13px] text-scree mt-5 mb-2">Emissions per km on your grid</p>
             <p className="text-[13px] text-scree mb-4 leading-relaxed">
-              Live carbon intensity for {r.cityName}, {r.country} ({Math.round(r.grid)} gCO₂e/kWh today).
+              {r.cityName}&apos;s grid averaged {Math.round(r.grid)} gCO₂e/kWh in {r.gridYear}, from Canada&apos;s National Inventory Report.
               Your EV's driving emissions are entirely a function of how clean your electricity is — which is why Quebec and Alberta get very different answers.
             </p>
             <div className={`grid ${gridColsVehicles} gap-3 mb-8`}>
@@ -1341,7 +1331,7 @@ export default function EVCalculator() {
               { title: "Yes, EVs start with a higher footprint. Here's why.",
                 body: "Building a battery is energy-intensive — mining lithium, cobalt, and nickel; refining them; assembling cells. The Ioniq 5's 77.4 kWh NMC pack accounts for roughly 6,500 kg CO₂e before the car moves an inch. Add the rest of the vehicle and you're at ~14,500 kg, versus ~8,500 kg for a CR-V. The question isn't whether EVs have a manufacturing penalty — it's how long it takes to pay it back through cleaner driving." },
               { title: "Why Quebec and Alberta get very different answers",
-                body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (~28 gCO₂e/kWh hydro grid), an Ioniq 5 emits roughly 5 g CO₂e/km. In Alberta (~385 gCO₂e/kWh gas-heavy grid), the same car emits around 68 g/km — still better than a CR-V's ~194 g/km, but the advantage is thinner and the breakeven takes longer. This tool fetches live grid data for your specific city." },
+                body: "An EV's driving emissions are entirely a function of the electricity it uses. In Quebec (about 3 gCO₂e/kWh, almost all hydro), an Ioniq 5 emits well under 1 g CO₂e/km. In Alberta (346 gCO₂e/kWh in 2024, mostly natural gas), the same car emits around 73 g/km. That's still better than a CR-V's ~194 g/km, but the advantage is thinner and the breakeven takes longer. This tool uses your province's annual average from Canada's National Inventory Report." },
               { title: "LFP vs NMC — not all batteries are equal",
                 body: "The Ioniq 5 uses NMC811 chemistry — energy-dense but cobalt-intensive, at ~84 kg CO₂e/kWh of battery. The Mach-E Standard Range uses LFP (lithium iron phosphate) cells — no cobalt or nickel, at ~52 kg CO₂e/kWh. On a 72 kWh pack that's roughly 2,300 kg CO₂e less manufacturing, which shortens the emissions breakeven by years on a dirtier grid." },
               { title: "Why we use NRCan numbers",
@@ -1374,8 +1364,7 @@ export default function EVCalculator() {
               'GREET 2023 — NMC811: ~84 kg CO₂e/kWh · LFP: ~52 kg CO₂e/kWh',
               'Natural Resources Canada (NRCan) — official fuel consumption ratings, 2012–present',
               'NRCan 5-cycle test — Canadian combined L/100km and kWh/100km ratings',
-              'Electricity Maps — live grid carbon intensity by location',
-              'OpenWeatherMap — city location lookup',
+              'Environment and Climate Change Canada, National Inventory Report — annual grid intensity by province',
               'IPCC AR5 — lifecycle CO₂e emission factor for gasoline (2.31 kg/L)',
               'Canada EV Affordability Program (EVAP) — federal incentive amounts',
             ].map(s => (
@@ -1402,7 +1391,7 @@ export default function EVCalculator() {
           <h3 className="text-[13px] font-bold text-basalt tabular-nums mb-3">A few things worth noting</h3>
           <ul className="text-[13px] text-scree leading-relaxed space-y-2">
             <li><span className="text-basalt font-semibold">Averages, not actuals:</span> Manufacturing CO₂ is based on industry-average lifecycle models. The actual figure depends on the specific factory and its energy source.</li>
-            <li><span className="text-basalt font-semibold">Live data is a snapshot:</span> Grid carbon intensity changes hour by hour. Annual averages tell a more complete story.</li>
+            <li><span className="text-basalt font-semibold">Annual averages:</span> Grid intensity changes hour by hour. We use your province&apos;s yearly average, which reflects how a car charged across a whole year actually performs.</li>
             <li><span className="text-basalt font-semibold">Not financial advice:</span> Buying a car involves financing, resale value, insurance, and a dozen other variables this tool doesn't model.</li>
           </ul>
         </div>
