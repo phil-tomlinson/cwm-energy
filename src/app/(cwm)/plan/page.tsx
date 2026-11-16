@@ -598,7 +598,7 @@ export default function PlanPage() {
           <h2 className="m-0 mb-2 text-[22px] font-bold leading-[28px] text-basalt">Where this is heading</h2>
           <p className="text-[13px] text-scree leading-relaxed max-w-2xl">
             Right now, the plan covers your home and your vehicle — typically the two largest sources of household emissions.
-            Future modules will add flights, diet, consumer goods, and a unified priority action ranking that pulls from all of them.
+            Your food and trips are on My Footprint; next comes ranking those changes here too, then the things you buy.
             The goal: a single, honest, quantitative answer to "what should I do first?"
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">

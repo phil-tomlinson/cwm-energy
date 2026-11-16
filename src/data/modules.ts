@@ -4,7 +4,7 @@
 // Add a module here and it appears everywhere — no more hunting down hardcoded
 // lists. Non-module site pages (About, Contact, Terms…) live in their components.
 
-export type ModuleCategory = 'home' | 'transport' | 'planning'
+export type ModuleCategory = 'home' | 'transport' | 'food' | 'planning'
 export type ModuleStatus   = 'live' | 'coming'
 
 export interface AppModule {
@@ -60,10 +60,16 @@ export const MODULES: AppModule[] = [
     href: '/plan', category: 'planning', status: 'live', inNav: true,
   },
   {
-    id: 'flights', num: '06', navLabel: 'Flights',
-    title: 'Flights',
-    desc: 'Air travel emissions and offset trade-offs, folded into your priority plan.',
-    href: '#', category: 'transport', status: 'coming', inNav: false,
+    id: 'flights', num: '06', navLabel: 'Trips',
+    title: 'Flights and trips',
+    desc: 'Flights, trains, buses and ferries, past and planned, including the extra warming flights cause at altitude.',
+    href: '/trips', category: 'transport', status: 'live', inNav: false,
+  },
+  {
+    id: 'food', num: '07', navLabel: 'Food',
+    title: 'Food',
+    desc: 'Log a week of meals: what was on the plate, cooking at home versus eating out, and buying local.',
+    href: '/food', category: 'food', status: 'live', inNav: false,
   },
 ]
 
