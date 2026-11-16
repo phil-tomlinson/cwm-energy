@@ -96,6 +96,15 @@ export default function FootprintView() {
   const provinceName = PROVINCES.find((p) => p.code === home.province)?.name ?? home.province;
   const typical = typicalPerPerson(home.province, home.city, r.currentYear);
   const anyHeld = r.years.some((p) => p.gridHeld);
+  const isFood = (k: string) => k === "food";
+  const isTrip = (k: string) => k.startsWith("flights") || k === "ground-travel";
+  const foodKg = thisYear.parts.filter((x) => isFood(x.key)).reduce((s, x) => s + x.kg, 0);
+  const tripsKg = thisYear.parts.filter((x) => isTrip(x.key)).reduce((s, x) => s + x.kg, 0);
+  const hasFood = (timeline.diet?.length ?? 0) > 0 || (timeline.foodWeeks?.length ?? 0) > 0;
+  const hasTrips = (timeline.trips?.length ?? 0) > 0;
+  const homeAndCarKg = thisYear.actualKg - foodKg - tripsKg;
+  const scope = ["your home", "driving", hasFood && "food", hasTrips && "trips"].filter(Boolean) as string[];
+  const scopeText = scope.length > 2 ? `${scope.slice(0, -1).join(", ")} and ${scope.at(-1)}` : scope.join(" and ");
   const lastGrid = gridFactor(home.province, r.currentYear);
 
   return (
@@ -119,7 +128,7 @@ export default function FootprintView() {
               : `Here's your footprint since ${firstPoint.year}.`}
           </h1>
           <p className="m-0 text-scree">
-            Per person, for your home and driving. {r.currentYear} is projected from your current setup.
+            Per person, for {scopeText}. {r.currentYear} is projected from your current setup{hasTrips ? ", plus the trips you've logged" : ""}.
           </p>
         </header>
 
@@ -200,6 +209,12 @@ export default function FootprintView() {
               <dl className="m-0 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[15px] leading-[22px]">
                 <dt className="text-scree">You, if you&apos;d changed nothing</dt>
                 <dd className="m-0 font-bold tabular-nums">{tonnes(thisYear.baselineKg)}</dd>
+                {(hasFood || hasTrips) && (
+                  <>
+                    <dt className="text-scree">Your home and car only</dt>
+                    <dd className="m-0 font-bold tabular-nums">{tonnes(homeAndCarKg)}</dd>
+                  </>
+                )}
                 <dt className="text-scree">A typical {provinceName} home and car, per person</dt>
                 <dd className="m-0 font-bold tabular-nums">{tonnes(typical)}</dd>
               </dl>
@@ -211,6 +226,21 @@ export default function FootprintView() {
                   shared by the household.
                 </p>
               </details>
+            </Panel>
+            <Panel className="flex flex-col gap-3">
+              <p className="m-0 font-bold">Food and trips</p>
+              <dl className="m-0 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-[15px] leading-[22px]">
+                <dt className="text-scree">Food, {thisYear.year}</dt>
+                <dd className="m-0 font-bold tabular-nums">{hasFood ? tonnes(foodKg) : "Not added"}</dd>
+                <dt className="text-scree">Trips, {thisYear.year}</dt>
+                <dd className="m-0 font-bold tabular-nums">{!hasTrips ? "None logged" : tripsKg > 0 ? tonnes(tripsKg) : "None this year"}</dd>
+              </dl>
+              {!isExample && (
+                <div className="flex flex-wrap gap-x-5 gap-y-1">
+                  <Link href="/food" className="text-[15px] font-semibold text-glacier underline">{(timeline.foodWeeks?.length ?? 0) > 0 ? "Your food log" : "Log a week of meals"}</Link>
+                  <Link href="/trips" className="text-[15px] font-semibold text-glacier underline">{hasTrips ? "Your trips" : "Add flights and trips"}</Link>
+                </div>
+              )}
             </Panel>
             <Panel className="flex flex-col gap-2">
               <p className="m-0 font-bold">Sharpen your numbers</p>
@@ -228,7 +258,7 @@ export default function FootprintView() {
             <p className="m-0 mb-4 text-[15px] leading-[22px] text-scree">Each change counted from the month you made it. Your share only.</p>
             {r.actions.length === 0 ? (
               <p className="m-0 border-t border-hairline pt-4">
-                No changes on your timeline yet. <Link href="/start" className="font-semibold text-glacier underline">Add solar, a heat pump, insulation or a new car</Link> with the date you did it.
+                No changes on your timeline yet. <Link href="/start" className="font-semibold text-glacier underline">Add solar, a heat pump, insulation or a new car</Link>, or a <Link href="/food" className="font-semibold text-glacier underline">change of diet</Link>, with the date you did it.
               </p>
             ) : (
               <ul className="m-0 list-none border-t border-hairline p-0">
@@ -306,8 +336,14 @@ export default function FootprintView() {
               </p>
             )}
             <p className="m-0">
-              These are direct emissions for now. Lifecycle figures (including upstream fuel) are coming. Flights, food and
-              goods aren&apos;t included yet.
+              Food comes from your logged week or a typical diet, and a change of diet is credited like any other change.
+              Trips land in the month you took them, in both lines, since changing nothing wouldn&apos;t have changed them.
+              Flights include the extra warming at altitude. Sources are on the <Link href="/food" className="text-glacier underline">food</Link> and{" "}
+              <Link href="/trips" className="text-glacier underline">trips</Link> pages.
+            </p>
+            <p className="m-0">
+              These are direct emissions for now. Lifecycle figures (including upstream fuel) are coming. The things you buy
+              aren&apos;t included yet.
             </p>
           </div>
         </details>

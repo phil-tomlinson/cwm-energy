@@ -53,11 +53,79 @@ export interface Vehicle {
   replaces?: string
 }
 
+// ── Food ──────────────────────────────────────────────────────────────────────
+
+export type DietType = 'highMeat' | 'mediumMeat' | 'lowMeat' | 'pescatarian' | 'vegetarian' | 'vegan'
+
+/**
+ * How you usually ate from a date on. The first period also covers everything
+ * before it. Each later period is a change of diet, and counts as an action.
+ */
+export interface DietPeriod {
+  id: string
+  diet: DietType
+  start: YearMonth
+}
+
+export type MealSource = 'home' | 'takeout' | 'restaurant'
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snacks'
+export type WasteLevel = 'low' | 'average' | 'high'
+
+export interface MealItem {
+  /** Id from FOODS (src/lib/food.ts) */
+  foodId: string
+  /** Servings; 0.5 for a small portion, 2 for a double */
+  servings: number
+}
+
+export interface Meal {
+  id: string
+  /** 0 = the week's first day */
+  day: number
+  slot: MealSlot
+  items: MealItem[]
+  source: MealSource
+  /** Mostly local ingredients */
+  local: boolean
+}
+
+/** A week of logged meals. The newest one measures your diet now. */
+export interface FoodWeek {
+  id: string
+  /** First day of the week, 'YYYY-MM-DD' */
+  startDate: string
+  meals: Meal[]
+  waste: WasteLevel
+}
+
+// ── Trips ─────────────────────────────────────────────────────────────────────
+
+export type TripMode = 'flight' | 'rail' | 'bus' | 'ferry'
+export type Cabin = 'economy' | 'premium' | 'business' | 'first'
+
+/** One trip in your own seat. Road trips in your own car are in its yearly distance. */
+export interface Trip {
+  id: string
+  mode: TripMode
+  date: YearMonth
+  /** Airport code for flights, or a place name */
+  from?: string
+  to?: string
+  /** One way, km. Straight-line for flights; the uplift is added in the maths. */
+  km: number
+  roundTrip: boolean
+  cabin?: Cabin
+}
+
 export interface Timeline {
   version: 1
   residences: Residence[]
   changes: HomeChange[]
   vehicles: Vehicle[]
+  /** Added later, so older saved timelines don't have these */
+  diet?: DietPeriod[]
+  foodWeeks?: FoodWeek[]
+  trips?: Trip[]
   updatedAt: string
 }
 

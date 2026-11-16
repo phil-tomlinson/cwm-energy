@@ -5,8 +5,8 @@
 // Changes at a home are applied in date order, so the impacts sum exactly to
 // "if you'd changed nothing" minus "actual".
 //
-// Scope for the MVP: home energy (heating, hot water, baseload, solar) and
-// driving. Flights, diet and goods come later.
+// Scope: home energy (heating, hot water, baseload, solar), driving, food and
+// trips (flights, train, bus, ferry). Goods come later.
 
 import { calculateHeatLoss, buildEnvelopeFromDefaults } from '@/calculations/heatLoss'
 import { calculateWaterHeater, waterHeaterTypes } from '@/calculations/waterHeater'
@@ -15,8 +15,10 @@ import { HEATING_SYSTEMS, getFuelCostPerGJ, provincialPrices } from '@/data/ener
 import { eraDefaults } from '@/data/houseDefaults'
 import { getClimateData } from '@/data/climateData'
 import { ASSUMPTIONS, FUEL, TARGET_CUT_2030, gridFactor, type Province } from '@/lib/factors'
+import { DIET_BY_ID, calibration, computeWeek, type WeekResult } from '@/lib/food'
+import { tripKg } from '@/lib/travel'
 import type {
-  ActionImpact, EnvelopeUpgrade, Grade, HomeChange, Residence, Timeline,
+  ActionImpact, DietPeriod, EnvelopeUpgrade, FoodWeek, Grade, HomeChange, Residence, Timeline,
   TimelineResult, Vehicle, YearMonth, YearPoint,
 } from './types'
 
@@ -204,6 +206,61 @@ function vehicleLabel(v: Vehicle): { label: string; short: string; grade: Grade 
   return { label: `Changed vehicle: ${v.label}`, short: 'New vehicle', grade: 'medium' }
 }
 
+// ── Food ──────────────────────────────────────────────────────────────────────
+
+const DAYS_PER_YEAR = 365.25
+
+export interface FoodPlan {
+  periods: DietPeriod[]
+  /** kg CO2e a year for each period, at your own scale */
+  kgYear: number[]
+  ratio: number
+  week: WeekResult | null
+  /** Index of the period the logged week falls in */
+  weekPeriod: number
+}
+
+/** The newest logged week that has any meals in it. */
+export function latestWeek(weeks: FoodWeek[] | undefined): { week: FoodWeek; result: WeekResult } | null {
+  const sorted = [...(weeks ?? [])].sort((a, b) => b.startDate.localeCompare(a.startDate))
+  for (const w of sorted) {
+    const result = computeWeek(w)
+    if (result) return { week: w, result }
+  }
+  return null
+}
+
+function periodIndexAt(periods: DietPeriod[], m: number): number {
+  let idx = 0
+  for (let i = 1; i < periods.length; i++) if (toMonthIndex(periods[i].start) <= m) idx = i
+  return idx
+}
+
+export function foodPlan(t: Timeline): FoodPlan | null {
+  const periods = [...(t.diet ?? [])]
+    .filter((p) => DIET_BY_ID.has(p.diet))
+    .sort((a, b) => toMonthIndex(a.start) - toMonthIndex(b.start))
+  const latest = latestWeek(t.foodWeeks)
+  if (periods.length === 0 && latest) {
+    // A logged week with no history: that week is your diet, for all time.
+    periods.push({ id: 'diet-measured', diet: latest.result.dietType, start: latest.week.startDate.slice(0, 7) })
+  }
+  if (periods.length === 0) return null
+  let ratio = 1
+  let weekPeriod = -1
+  if (latest) {
+    weekPeriod = periodIndexAt(periods, toMonthIndex(latest.week.startDate.slice(0, 7)))
+    ratio = calibration(latest.result.kgPerDay, periods[weekPeriod].diet)
+  }
+  const kgYear = periods.map((p) => DIET_BY_ID.get(p.diet)!.kgPerDay * DAYS_PER_YEAR * ratio)
+  return { periods, kgYear, ratio, week: latest?.result ?? null, weekPeriod }
+}
+
+function dietActionLabel(p: DietPeriod): { label: string; short: string; grade: Grade } {
+  const d = DIET_BY_ID.get(p.diet)!
+  return { label: `Changed diet: ${d.label.toLowerCase()}`, short: 'Diet', grade: 'medium' }
+}
+
 // ── The run ───────────────────────────────────────────────────────────────────
 
 /** Fraction of the current month that has passed, so "to date" stops at today. */
@@ -217,7 +274,14 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
   const nowIdx = now.getFullYear() * 12 + now.getMonth()
   const currentYear = now.getFullYear()
 
-  const starts = [...t.residences.map((r) => r.start), ...t.vehicles.map((v) => v.start)]
+  const food = foodPlan(t)
+  const trips = t.trips ?? []
+  const starts = [
+    ...t.residences.map((r) => r.start),
+    ...t.vehicles.map((v) => v.start),
+    ...trips.map((x) => x.date),
+    ...(food ? food.periods.map((p) => p.start) : []),
+  ]
   if (starts.length === 0) {
     return {
       years: [], actions: [], firstYear: currentYear, currentYear, target2030Kg: 0,
@@ -261,6 +325,11 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
       const existing = point.parts.find((x) => x.key === part.key)
       if (existing) existing.kg += (part.kg / 12) * share
       else point.parts.push({ ...part, kg: (part.kg / 12) * share })
+    }
+    const addPartKg = (part: Part) => {
+      const existing = point.parts.find((x) => x.key === part.key)
+      if (existing) existing.kg += part.kg
+      else point.parts.push({ ...part })
     }
     const addSaved = (id: string, label: string, kg: number) => {
       const existing = point.saved.find((x) => x.id === id)
@@ -344,6 +413,49 @@ export function computeTimeline(t: Timeline, now: Date = new Date()): TimelineRe
         if (!future) { a.kgToDate += (dKg / 12) * w; a.dollarsToDate += (d$ / 12) * w }
         if (m === nowIdx) { a.kgPerYearNow += dKg; a.dollarsPerYearNow += d$ }
         addSaved(newer.id, label, dKg)
+      }
+    }
+
+    // Food: the diet you had at the time. "If you'd changed nothing" keeps your
+    // first diet. Each change is credited with the step from the diet before it,
+    // so the steps add up to "first diet minus this one".
+    if (food) {
+      const idx = periodIndexAt(food.periods, m)
+      const kgYear = food.kgYear[idx]
+      covered = true
+      point.actualKg += kgYear / 12
+      point.baselineKg += food.kgYear[0] / 12
+      const diet = DIET_BY_ID.get(food.periods[idx].diet)!
+      let detail = food.week ? `${diet.label}, scaled to your logged week` : `${diet.label}, a typical figure until you log a week`
+      if (food.week && idx === food.weekPeriod) {
+        const top = [...food.week.parts].sort((a, b) => b.kgPerDay - a.kgPerDay)[0]
+        detail = `From your logged week. ${top.label} is ${Math.round((top.kgPerDay / food.week.kgPerDay) * 100)}% of it`
+      }
+      addPart({ key: 'food', label: 'Food', detail, kg: kgYear }, 1)
+      for (let i = 1; i <= idx; i++) {
+        const p = food.periods[i]
+        const { label, short, grade } = dietActionLabel(p)
+        const a = ensure(p.id, label, short, p.start, grade)
+        const dKg = food.kgYear[i - 1] - food.kgYear[i]
+        if (!future) a.kgToDate += (dKg / 12) * w
+        if (m === nowIdx) a.kgPerYearNow += dKg
+        addSaved(p.id, label, dKg)
+      }
+    }
+
+    // Trips land in the month you took them, in both lines: changing nothing
+    // wouldn't have changed the trips you took.
+    for (const trip of trips) {
+      if (toMonthIndex(trip.date) !== m) continue
+      const k = tripKg(trip)
+      covered = true
+      point.actualKg += k.kg + k.extraKg
+      point.baselineKg += k.kg + k.extraKg
+      if (trip.mode === 'flight') {
+        addPartKg({ key: 'flights', label: 'Flights', detail: 'Fuel burned, your seat', kg: k.kg })
+        addPartKg({ key: 'flights-altitude', label: 'Flights: extra warming at altitude', detail: 'Contrails and NOx, about 1.7 times the CO₂ effect', kg: k.extraKg })
+      } else {
+        addPartKg({ key: 'ground-travel', label: 'Train, bus and ferry trips', kg: k.kg })
       }
     }
 

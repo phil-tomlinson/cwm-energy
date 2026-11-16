@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Tools | CWM Energy",
-  description: "Quick, free calculators: EV benefit, home heat loss, solar, your real energy rate and rebates.",
+  description: "Quick, free calculators: EV benefit, home heat loss, solar, your real energy rate, rebates, food and trips.",
 };
 
 const TOOLS = [
@@ -11,6 +11,8 @@ const TOOLS = [
   { href: "/solar", title: "Solar estimator", text: "What rooftop solar could generate and save on your home." },
   { href: "/energy-cost", title: "Your real energy rate", text: "Turn a few bills into the rate that actually drives your savings." },
   { href: "/rebates", title: "Rebates and funding", text: "Programs that can help pay for upgrades." },
+  { href: "/food", title: "Food log", text: "Log a week of meals: what's on the plate, eating out versus cooking at home, buying local." },
+  { href: "/trips", title: "Flights and trips", text: "Flights, trains, buses and ferries, with the extra warming flights cause at altitude." },
 ];
 
 export default function ToolsPage() {
